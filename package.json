@@ -1,0 +1,41 @@
+{
+  "name": "assetchain",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "demo:reset": "node contracts/scripts/demo-reset.js"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.0.2",
+    "@prisma/client": "^5.19.1",
+    "clsx": "^2.1.1",
+    "ethers": "^6.13.2",
+    "jspdf": "^2.5.1",
+    "lucide-react": "^0.441.0",
+    "next": "^14.2.18",
+    "prisma": "^5.19.1",
+    "qrcode": "^1.5.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tailwind-merge": "^2.5.2"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@types/node": "^20.16.5",
+    "@types/qrcode": "^1.5.5",
+    "@types/react": "^18.3.8",
+    "@types/react-dom": "^18.3.0",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^14.2.18",
+    "hardhat": "^2.22.10",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.11",
+    "typescript": "^5.6.2"
+  }
+}
+

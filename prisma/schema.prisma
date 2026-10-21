@@ -1,0 +1,87 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  fullName      String
+  role          String    @default("CREATOR") // "CREATOR" | "ADMIN"
+  walletAddress String?   @unique
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  assets        Asset[]
+
+  @@map("users")
+}
+
+model Asset {
+  id                 String             @id @default(cuid())
+  tokenId            Int?               @unique
+  title              String
+  description        String
+  category           String             @default("ART")
+  filePath           String
+  fileName           String
+  fileHash           String             @unique // 64 ký tự hex SHA-256
+  fileSize           Int
+  mimeType           String
+  status             String             @default("PENDING_APPROVAL") 
+  // PENDING_APPROVAL -> APPROVED (hoặc REJECTED) -> REGISTERED -> REVOKED
+  
+  creatorId          String
+  creator            User               @relation(fields: [creatorId], references: [id])
+  
+  currentOwnerWallet String
+  txHash             String?
+  blockNumber        Int?
+  registeredAt       DateTime?
+  rejectionReason    String?
+
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  history            OwnershipHistory[]
+  certificate        Certificate?
+
+  @@index([status])
+  @@index([currentOwnerWallet])
+  @@map("assets")
+}
+
+model OwnershipHistory {
+  id           String   @id @default(cuid())
+  assetId      String
+  asset        Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  tokenId      Int
+  fromWallet   String
+  toWallet     String
+  txHash       String   @unique
+  blockNumber  Int
+  eventType    String   // "MINT" | "TRANSFER" | "REVOKE"
+  createdAt    DateTime @default(now())
+
+  @@map("ownership_histories")
+}
+
+model Certificate {
+  id                String   @id @default(cuid())
+  assetId           String   @unique
+  asset             Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  certificateNumber String   @unique
+  verifyUrl         String
+  qrCodeBase64      String?
+  pdfPath           String?
+  issuedAt          DateTime @default(now())
+  issuedBy          String
+
+  @@map("certificates")
+}
+
