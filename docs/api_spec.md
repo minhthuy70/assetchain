@@ -1,235 +1,201 @@
-# Đặc Tả API RESTful (NestJS Backend)
+# Đặc Tả API RESTful (Next.js App Router Route Handlers)
 
-Tất cả các API được phục vụ dưới tiền tố `/api/v1`. Các endpoint yêu cầu xác thực cần kèm header:
-`Authorization: Bearer <JWT_ACCESS_TOKEN>`
+Toàn bộ các API được triển khai trực tiếp bên trong ứng dụng **Next.js Fullstack** qua thư mục `src/app/api/...`. Cách tiếp cận này loại bỏ việc duy trì riêng biệt NestJS server, giúp nhóm 2 người phát triển và chạy local dễ dàng chỉ với một cổng duy nhất (`http://localhost:3000`).
 
 ---
 
-## 1. Authentication & Wallet Management (`/auth`)
+## 1. Authentication & Session (`/api/auth`)
+
+Xác thực người dùng sử dụng JWT token lưu trữ trong HTTP-only Cookie hoặc gửi qua header `Authorization: Bearer <token>`.
 
 ### 1.1. Đăng ký tài khoản
-- **Method:** `POST /api/v1/auth/register`
+- **Endpoint:** `POST /api/auth/register`
 - **Body:**
   ```json
   {
-    "email": "creator@assetchain.io",
-    "password": "StrongPassword123!",
-    "fullName": "Nguyen Van A",
-    "role": "CREATOR"
+    "email": "creator@assetchain.local",
+    "password": "Password123!",
+    "fullName": "Nguyễn Văn Creator",
+    "role": "CREATOR",
+    "walletAddress": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
   }
   ```
 - **Response (201 Created):**
   ```json
   {
     "success": true,
-    "data": {
-      "id": "uuid-v4",
-      "email": "creator@assetchain.io",
-      "fullName": "Nguyen Van A",
-      "role": "CREATOR"
-    }
-  }
-  ```
-
-### 1.2. Đăng nhập
-- **Method:** `POST /api/v1/auth/login`
-- **Body:**
-  ```json
-  {
-    "email": "creator@assetchain.io",
-    "password": "StrongPassword123!"
-  }
-  ```
-- **Response (200 OK):**
-  ```json
-  {
-    "success": true,
-    "accessToken": "eyJhbGciOi...",
     "user": {
-      "id": "uuid-v4",
-      "email": "creator@assetchain.io",
-      "fullName": "Nguyen Van A",
+      "id": "cuid_123",
+      "email": "creator@assetchain.local",
+      "fullName": "Nguyễn Văn Creator",
       "role": "CREATOR",
       "walletAddress": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
     }
   }
   ```
 
-### 1.3. Lấy Nonce để ký xác thực ví (Signature Challenge)
-- **Method:** `GET /api/v1/auth/wallet/nonce`
-- **Headers:** `Authorization: Bearer <token>`
-- **Response (200 OK):**
-  ```json
-  {
-    "nonce": "a7b3c9d1e2f3g4h5",
-    "message": "AssetChain Wallet Binding Authentication\nPlease sign this message to verify ownership of your wallet.\nNonce: a7b3c9d1e2f3g4h5\nIssued At: 2026-10-23T08:00:00.000Z"
-  }
-  ```
-
-### 1.4. Xác thực và Liên kết địa chỉ ví
-- **Method:** `POST /api/v1/auth/wallet/bind`
-- **Headers:** `Authorization: Bearer <token>`
+### 1.2. Đăng nhập
+- **Endpoint:** `POST /api/auth/login`
 - **Body:**
   ```json
   {
-    "walletAddress": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
-    "signature": "0x4355c3c391f427563114f56b4d1a2a005f..."
+    "email": "creator@assetchain.local",
+    "password": "Password123!"
   }
   ```
 - **Response (200 OK):**
   ```json
   {
     "success": true,
-    "message": "Wallet verified and bound successfully",
-    "walletAddress": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
+    "token": "eyJhbGciOi...",
+    "user": {
+      "id": "cuid_123",
+      "email": "creator@assetchain.local",
+      "role": "CREATOR",
+      "walletAddress": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
+    }
   }
   ```
 
 ---
 
-## 2. Quản Lý Tài Sản Số (`/assets`)
+## 2. Quản Lý Đăng Ký Tài Sản (`/api/assets`) - Do Thành viên A phụ trách
 
-### 2.1. Upload tệp gốc & Tạo mã băm
-- **Method:** `POST /api/v1/assets/upload`
-- **Headers:** `Authorization: Bearer <token>`, `Content-Type: multipart/form-data`
-- **Form Data:** `file: <binary_file>`
+### 2.1. Đăng ký tài sản mới & Upload file
+- **Endpoint:** `POST /api/assets`
+- **Headers:** `Authorization: Bearer <token>`
+- **Content-Type:** `multipart/form-data`
+- **Form Data Fields:**
+  - `file`: File nhị phân (Ảnh, tài liệu thiết kế)
+  - `title`: Tên tài sản (VD: "Tranh kỹ thuật số Sen Vàng")
+  - `description`: Mô tả chi tiết
+  - `category`: Thể loại ("ART", "DESIGN", "PHOTOGRAPHY")
+  - `clientHash`: Mã SHA-256 tính từ client (để backend đối chiếu tính toàn vẹn)
+  - `walletAddress`: Địa chỉ ví của tác giả
+- **Quy trình xử lý:**
+  1. Backend lưu file vào `public/uploads/`.
+  2. Backend tính lại SHA-256 của file đã lưu, đối chiếu với `clientHash`.
+  3. Kiểm tra trùng lặp `fileHash` trong SQLite. Nếu đã tồn tại -> Trả về lỗi 409 Conflict.
+  4. Tạo bản ghi Asset với trạng thái khởi tạo: `PENDING_APPROVAL`.
+- **Response (201 Created):**
+  ```json
+  {
+    "success": true,
+    "data": {
+      "id": "asset_cuid_456",
+      "title": "Tranh kỹ thuật số Sen Vàng",
+      "fileHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "filePath": "/uploads/1730000000_sen_vang.png",
+      "status": "PENDING_APPROVAL",
+      "createdAt": "2026-11-01T10:00:00.000Z"
+    }
+  }
+  ```
+
+### 2.2. Lấy danh sách tài sản của người dùng hiện tại
+- **Endpoint:** `GET /api/assets/my-assets`
+- **Headers:** `Authorization: Bearer <token>`
+- **Response (200 OK):** Danh sách tài sản của user với các trạng thái (`PENDING_APPROVAL`, `APPROVED`, `REGISTERED`, `REJECTED`).
+
+### 2.3. Cập nhật đồng bộ sau khi Mint on-chain thành công
+- **Endpoint:** `POST /api/assets/[id]/sync-onchain`
+- **Headers:** `Authorization: Bearer <token>`
+- **Body:**
+  ```json
+  {
+    "tokenId": 1,
+    "txHash": "0x123abc456def...",
+    "blockNumber": 12,
+    "ownerWallet": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
+  }
+  ```
+- **Quy trình xử lý:**
+  1. Backend xác nhận giao dịch qua Local RPC Provider (kiểm tra event `AssetRegistered`).
+  2. Cập nhật `status = "REGISTERED"`, lưu `tokenId`, `txHash`, `blockNumber`.
+  3. Tự động ghi bản ghi vào bảng `OwnershipHistory` (eventType: "MINT").
+- **Response (200 OK):** `{ "success": true, "message": "Synchronized on-chain status successfully" }`.
+
+---
+
+## 3. Quản Trị & Xét Duyệt Hồ Sơ (`/api/admin`) - Do Thành viên B phụ trách
+
+### 3.1. Danh sách hồ sơ cần xét duyệt
+- **Endpoint:** `GET /api/admin/assets?status=PENDING_APPROVAL`
+- **Headers:** `Authorization: Bearer <token>` (Role: ADMIN)
+- **Response (200 OK):** Danh sách tất cả tài sản đang chờ duyệt kèm thông tin tác giả.
+
+### 3.2. Phê duyệt hoặc Từ chối hồ sơ
+- **Endpoint:** `POST /api/admin/assets/[id]/review`
+- **Headers:** `Authorization: Bearer <token>` (Role: ADMIN)
+- **Body:**
+  ```json
+  {
+    "action": "APPROVE", // hoặc "REJECT"
+    "rejectionReason": "" // nếu action là REJECT
+  }
+  ```
+- **Quy trình xử lý:**
+  - Nếu `APPROVE`: Đổi trạng thái sang `APPROVED`. Cho phép Creator kích hoạt giao dịch mint on-chain, hoặc Admin mint thay. Đồng thời kích hoạt sinh mã chứng nhận ban đầu.
+  - Nếu `REJECT`: Đổi trạng thái sang `REJECTED`, lưu `rejectionReason`.
 - **Response (200 OK):**
   ```json
   {
     "success": true,
     "data": {
-      "tempFileId": "temp-uuid",
-      "originalName": "digital_artwork_01.png",
-      "fileHash": "0xe3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "mimeType": "image/png",
-      "fileSizeBytes": 4512030,
-      "previewUrl": "/uploads/temp-uuid.png",
-      "isDuplicate": false
+      "id": "asset_cuid_456",
+      "status": "APPROVED"
     }
   }
   ```
 
-### 2.2. Chuẩn bị đăng ký tài sản (Tạo Metadata & Kiểm tra điều kiện)
-- **Method:** `POST /api/v1/assets/prepare-registration`
-- **Headers:** `Authorization: Bearer <token>`
-- **Body:**
-  ```json
-  {
-    "tempFileId": "temp-uuid",
-    "title": "Cosmic Genesis #01",
-    "description": "Original 3D rendered digital art created using Blender.",
-    "category": "3D_ART",
-    "fileHash": "0xe3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-  }
-  ```
-- **Response (200 OK):**
-  ```json
-  {
-    "assetId": "asset-uuid",
-    "metadataUri": "http://localhost:3001/api/v1/assets/metadata/asset-uuid",
-    "contentHash": "0xe3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "contractAddress": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
-    "status": "DRAFT"
-  }
-  ```
+---
 
-### 2.3. Xác nhận giao dịch on-chain (Client gửi txHash sau khi MetaMask ký)
-- **Method:** `POST /api/v1/assets/confirm-registration`
-- **Headers:** `Authorization: Bearer <token>`
-- **Body:**
-  ```json
-  {
-    "assetId": "asset-uuid",
-    "txHash": "0x98f2195f487e41e5...",
-    "chainId": 31337
-  }
-  ```
-- **Processing:** Backend kết nối EVM RPC node, kiểm tra txReceipt, bóc tách event `AssetRegistered`, cập nhật `tokenId`, `blockNumber`, `status: REGISTERED`.
+## 4. Chứng Nhận Điện Tử & Tra Cứu (`/api/certificate`, `/api/verify`) - Do Thành viên B phụ trách
+
+### 4.1. Tạo và lấy thông tin chứng nhận điện tử (E-Certificate)
+- **Endpoint:** `GET /api/certificate/[assetId]`
 - **Response (200 OK):**
   ```json
   {
     "success": true,
-    "assetId": "asset-uuid",
-    "tokenId": 1,
-    "status": "REGISTERED",
-    "blockNumber": 14,
-    "registeredAt": "2026-10-23T08:15:30.000Z"
-  }
-  ```
-
-### 2.4. Danh sách tài sản (Public / Search / Filter)
-- **Method:** `GET /api/v1/assets?page=1&limit=10&search=Cosmic&category=3D_ART&status=REGISTERED`
-- **Response (200 OK):** Trả về mảng tài sản phân trang kèm thông tin creator.
-
-### 2.5. Chi tiết tài sản kèm lịch sử
-- **Method:** `GET /api/v1/assets/:id`
-- **Response (200 OK):** Toàn bộ thông tin metadata, creator, owner hiện tại, thông tin on-chain đối chiếu và lịch sử giao dịch.
-
-### 2.6. Xác minh tính toàn vẹn tài sản (Public Verification Engine)
-- **Method:** `POST /api/v1/assets/verify`
-- **Body hoặc Multipart File:**
-  - Cách 1: Gửi mã băm `{"fileHash": "0xe3b0..."}`
-  - Cách 2: Tải trực tiếp tệp lên qua Form-Data `file: <binary>`
-- **Response (200 OK):**
-  ```json
-  {
-    "status": "VERIFIED_VALID",
-    "computedHash": "0xe3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "match": {
-      "assetId": "asset-uuid",
+    "certificate": {
+      "certificateNumber": "CERT-2026-0001",
+      "assetTitle": "Tranh kỹ thuật số Sen Vàng",
+      "fileHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "tokenId": 1,
-      "title": "Cosmic Genesis #01",
-      "creator": {
-        "name": "Nguyen Van A",
-        "walletAddress": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
-      },
-      "currentOwner": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
-      "registeredAt": "2026-10-23T08:15:30.000Z",
-      "blockNumber": 14,
-      "txHash": "0x98f2195f487e41e5...",
-      "onChainVerification": {
-        "verifiedOnChain": true,
-        "contractAddress": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
-        "isRevoked": false
-      }
+      "creatorName": "Nguyễn Văn Creator",
+      "creatorWallet": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+      "verifyUrl": "http://localhost:3000/verify?hash=e3b0c442...",
+      "qrCodeBase64": "data:image/png;base64,iVBORw0KGgo...",
+      "issuedAt": "2026-11-02T14:30:00.000Z"
     }
   }
   ```
 
----
-
-## 3. Lịch Sử & Chuyển Nhượng Quyền Sở Hữu (`/ownership`)
-
-### 3.1. Xác nhận chuyển nhượng on-chain
-- **Method:** `POST /api/v1/ownership/confirm-transfer`
-- **Headers:** `Authorization: Bearer <token>`
+### 4.2. Cổng tra cứu và xác minh tính toàn vẹn (Public Verification)
+- **Endpoint:** `POST /api/verify`
 - **Body:**
   ```json
   {
-    "assetId": "asset-uuid",
-    "toAddress": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
-    "txHash": "0xabcdef..."
+    "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tokenId": 1 // (optional, có thể truyền 1 trong 2)
   }
   ```
-- **Response (200 OK):** Backend xác thực `Transfer` event trên RPC node và cập nhật `currentOwnerWalletAddress` cùng bản ghi mới vào bảng `OwnershipHistory`.
-
-### 3.2. Lấy dòng thời gian lịch sử tài sản (Provenance Timeline)
-- **Method:** `GET /api/v1/ownership/history/:assetId`
-- **Response (200 OK):** Danh sách các mốc thời gian: MINT -> TRANSFER -> LICENSE...
-
----
-
-## 4. Quản Lý Cấp Phép Bản Quyền (`/licenses`) - Phase 2
-
-- `POST /api/v1/licenses/issue`: Tạo thỏa thuận cấp phép sử dụng có thời hạn.
-- `GET /api/v1/licenses/my-licenses`: Tra cứu các giấy phép đang sở hữu hoặc đã cấp.
-- `PATCH /api/v1/licenses/:id/revoke`: Hủy cấp phép trước hạn (nếu vi phạm điều khoản).
-
----
-
-## 5. Quản Trị Hệ Thống (`/admin`)
-
-- `GET /api/v1/admin/users`: Danh sách người dùng hệ thống.
-- `PATCH /api/v1/admin/users/:id/status`: Kích hoạt / Khóa tài khoản.
-- `GET /api/v1/admin/disputes`: Danh sách khiếu nại tranh chấp bản quyền.
-- `PATCH /api/v1/admin/disputes/:id/resolve`: Ra quyết định xử lý khiếu nại (bác bỏ hoặc gắn cờ/thu hồi tài sản).
+- **Response (200 OK):**
+  ```json
+  {
+    "verified": true,
+    "source": "BOTH_DATABASE_AND_BLOCKCHAIN",
+    "asset": {
+      "title": "Tranh kỹ thuật số Sen Vàng",
+      "fileHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tokenId": 1,
+      "creatorWallet": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+      "currentOwnerWallet": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+      "registeredAt": "2026-11-02T14:30:00.000Z",
+      "isRevoked": false,
+      "txHash": "0x123abc...",
+      "certificateNumber": "CERT-2026-0001"
+    }
+  }
+  ```

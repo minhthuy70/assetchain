@@ -1,32 +1,32 @@
+# ==============================================================================
+# AssetChain - Docker Compose (ARCHIVED / OPTIONAL)
+# ==============================================================================
+# Lưu ý quan trọng:
+# Kế hoạch tối ưu cho nhóm 2 người trong 14 ngày đã chuyển đổi toàn bộ sang kiến trúc
+# Local-First siêu nhẹ:
+# - SQLite (Prisma ORM) thay thế PostgreSQL (không cần Docker container).
+# - Next.js Route Handlers thay thế NestJS backend độc lập.
+# - Hardhat Local Node (Node.js) chạy trực tiếp qua `npx hardhat node`.
+#
+# Dự án hiện tại KHÔNG CẦN DOCKER để chạy.
+# File này được lưu lại cho mục đích tham khảo nếu sau này muốn mở rộng lên PostgreSQL.
+# ==============================================================================
+
+version: '3.8'
 services:
-  postgres:
+  # Optional: Chỉ bật nếu nhóm quyết định chuyển sang PostgreSQL khi mở rộng production
+  postgres_optional:
     image: postgres:16-alpine
-    container_name: assetchain-postgres
-    restart: unless-stopped
+    container_name: assetchain-postgres-optional
+    profiles: ["optional-postgres"]
     environment:
       POSTGRES_USER: assetchain_admin
-      POSTGRES_PASSWORD: assetchain_secure_password_example
+      POSTGRES_PASSWORD: assetchain_password
       POSTGRES_DB: assetchain_db
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U assetchain_admin -d assetchain_db"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # Web-based database management UI (accessible at http://localhost:8081)
-  adminer:
-    image: adminer:latest
-    container_name: assetchain-adminer
-    restart: unless-stopped
-    ports:
-      - "8081:8080"
-    depends_on:
-      - postgres
+      - postgres_data_optional:/var/lib/postgresql/data
 
 volumes:
-  postgres_data:
-    driver: local
+  postgres_data_optional:
