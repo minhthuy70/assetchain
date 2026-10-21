@@ -18,6 +18,7 @@
 | **Kiến trúc vận hành:** | **Local-First Fullstack:** Next.js 14/15 App Router + SQLite Prisma + Hardhat Local EVM |
 | **Hội đồng chấm thi:** | Giảng viên Bộ môn Công nghệ Phần mềm & Mạng máy tính |
 | **Thời gian thực hiện:** | 14 ngày (2 tuần) — Vận hành hoàn toàn Cục bộ (Zero Docker, Zero Cloud Dependency) |
+| **Kế hoạch riêng từng người:** | • **Thành viên A:** [PLAN_THANH_VIEN_A_14_DAYS.md](file:///d:/GITHUB/assetchain/PLAN_THANH_VIEN_A_14_DAYS.md)<br>• **Thành viên B:** [PLAN_THANH_VIEN_B_14_DAYS.md](file:///d:/GITHUB/assetchain/PLAN_THANH_VIEN_B_14_DAYS.md) |
 
 ---
 
@@ -617,6 +618,7 @@ Mô hình phân chia **Vertical Slicing (Lát cắt Dọc theo Tính năng Nghi�
 | **Trách nhiệm Smart Contract** | - Thiết lập Hardhat, viết contract `AssetRegistry.sol`.<br>- Hàm `registerAsset`, `transferAsset`.<br>- Bộ Unit Test 15-20 test cases.<br>- Script deploy tự động xuất ABI sang `src/contracts/`. | - Hàm `getAssetByHash` (view), `revokeAsset` (admin).<br>- Tích hợp Ethers provider gọi hàm view không tốn gas trên cổng verify.<br>- Tham gia review contract logic và test coverage. |
 | **Trách nhiệm Database & API** | - Khởi tạo `prisma/schema.prisma` ban đầu.<br>- API `POST /api/assets` (Upload, check duplicate).<br>- API `POST /api/assets/[id]/sync-onchain`.<br>- Module Auth JWT cơ bản. | - Mở rộng schema `Certificate` nếu cần.<br>- API `GET /api/admin/assets`.<br>- API `POST /api/admin/assets/[id]/review`.<br>- API `POST /api/verify`. |
 | **Trách nhiệm Giao diện (UI)** | - Form Đăng ký tài sản (`/creator/register`).<br>- Tích hợp Web Crypto API tính SHA-256 hiển thị live.<br>- Dashboard tác giả (`/creator/my-assets`).<br>- Chức năng Chuyển nhượng (`/creator/transfer`).<br>- Provenance Timeline (dòng thời gian nguồn gốc). | - Layout tổng thể (Navbar, Footer, WalletButton).<br>- Cổng thẩm định hồ sơ Admin (`/admin/approvals`).<br>- Bộ sinh E-Certificate PDF (`src/lib/certificate.ts`).<br>- Cổng xác minh 1-Click kéo thả (`/verify`).<br>- Landing Page (`/`) và Explore Gallery (`/explore`). |
+| **Tài liệu Hành động Chi tiết** | 🔗 **[Xem Kế hoạch 14 ngày của Thành viên A](file:///d:/GITHUB/assetchain/PLAN_THANH_VIEN_A_14_DAYS.md)** | 🔗 **[Xem Kế hoạch 14 ngày của Thành viên B](file:///d:/GITHUB/assetchain/PLAN_THANH_VIEN_B_14_DAYS.md)** |
 
 ### 6.2. Quy ước thành phần dùng chung để tránh xung đột
 1. **Contract ABI & Địa chỉ Contract:** Thành viên A chịu trách nhiệm chính. Sau khi compile, script deploy tự động ghi đè file `src/contracts/AssetRegistry.json`. Thành viên B chỉ việc import để sử dụng. ABI được khóa vào cuối **Ngày 2**.
