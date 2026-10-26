@@ -373,3 +373,4 @@ export async function saveCertificatePDF(
   fs.writeFileSync(filePath, buffer);
   return `/certificates/${fileName}`;
 }
+
