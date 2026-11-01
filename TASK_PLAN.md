@@ -1,349 +1,171 @@
-# AssetChain - TASK PLAN
+# AssetChain - KẾ HOẠCH HÀNH ĐỘNG VÀ DANH MỤC CÔNG VIỆC 14 NGÀY
 
-## Goal
+## 🎯 Mục Tiêu Dự Án
 
-Xây dựng nền tảng đăng ký, xác minh và quản lý quyền sở hữu tài sản số bằng
-Blockchain EVM, kết hợp Web2 để lưu metadata, tài khoản và tệp ngoài chuỗi.
-Mục tiêu MVP là chứng minh được toàn bộ luồng:
+Xây dựng hệ thống đăng ký, xét duyệt, phát hành chứng nhận và xác minh quyền sở hữu tài sản số bằng công nghệ **Blockchain EVM cục bộ** kết hợp **Next.js Fullstack (App Router + Route Handlers + SQLite + Prisma ORM)**.
 
-1. Người dùng đăng ký tài khoản và liên kết ví MetaMask bằng chữ ký.
-2. Creator upload tài sản, tạo SHA-256 fingerprint và mint bản ghi
-   `AssetRegistry.sol` trên blockchain.
-3. Backend xác thực độc lập transaction receipt/event rồi đồng bộ trạng thái
-   vào PostgreSQL.
-4. Guest có thể xác minh tệp hoặc hash, xem metadata và provenance.
-5. Chủ sở hữu có thể chuyển quyền; hệ thống lưu lại lịch sử và đối chiếu
-   on-chain.
+- **Quy mô:** Nhóm 2 thành viên (**Thành viên A** & **Thành viên B**).
+- **Thời gian thực hiện:** 14 ngày (2 tuần).
+- **Môi trường vận hành:** 100% Cục bộ (Localhost), loại bỏ hoàn toàn Docker/PostgreSQL/NestJS cồng kềnh, sẵn sàng demo trực tiếp mượt mà.
 
-Công nghệ và công cụ dự kiến:
+---
 
-- **Smart contract:** Solidity `^0.8.24`, Hardhat, OpenZeppelin,
-  ethers.js v6, Chai.
-- **Backend:** NestJS, TypeScript, Prisma ORM, PostgreSQL 16, JWT, SIWE/
-  EIP-4361 hoặc thông điệp chữ ký tương thích, Multer và ethers.js v6.
-- **Frontend:** Next.js App Router, TypeScript, Tailwind CSS, ethers.js v6,
-  MetaMask browser extension.
-- **Vận hành cục bộ:** Docker Compose, Hardhat local EVM (chain ID `31337`),
-  Adminer.
-- **Kiểm thử:** Hardhat/Chai, Jest/NestJS Testing Module, API E2E và kiểm thử
-  luồng trình duyệt khi môi trường cho phép.
+## 📅 Lộ Trình Triển Khai 14 Ngày Chi Tiết
 
-Blockchain chỉ lưu `tokenId`, `contentHash`, địa chỉ ví, timestamp và URI;
-password, private key, PII và file nhị phân chỉ được lưu ngoài chuỗi. Hệ
-thống cung cấp bằng chứng kỹ thuật về tồn tại/tính toàn vẹn, không tuyên bố
-thay thế văn bằng pháp lý về quyền sở hữu trí tuệ.
+```
+[Tuần 1: Ngày 1 - 7]
+D1: Khởi tạo Project Next.js, Prisma SQLite, Hardhat
+D2: Hoàn thiện Smart Contract AssetRegistry.sol & Unit Test
+D3: Deploy Contract local, tích hợp Web3 Provider & Mốc M1
+D4: [A] Upload & Client SHA-256 | [B] Giao diện Admin Review
+D5: [A] API Đăng ký & SQLite   | [B] API Duyệt/Từ chối hồ sơ
+D6: [A] Giao dịch Mint on-chain| [B] Bộ sinh E-Certificate PDF & QR
+D7: [A] Đồng bộ On-Chain       | [B] Cổng Tra Cứu & Xác Minh /verify
+============================================================
+[Tuần 2: Ngày 8 - 14]
+D8: MỐC M2: Tích hợp chéo end-to-end lần 1
+D9: [A] Dashboard & My Assets  | [B] Drag-and-Drop Instant Verify
+D10: [A] Chuyển nhượng (Transfer)| [B] Trang chủ & Explore Gallery (Mốc M3)
+D11: [A] Provenance Timeline   | [B] Thu hồi bản quyền (Revoke) & Watermark
+D12: MỐC M4: Kiểm thử chịu lỗi, mạng gián đoạn, từ chối ví
+D13: Chuẩn hóa dữ liệu Demo, 1-Click Reset Script, diễn tập thuyết trình
+D14: BẢO VỆ ĐỒ ÁN / DEMO TRỰC TIẾP
+```
 
-## Current Phase
+---
 
-**Phase 0 - Khảo sát và lập kế hoạch (complete); Phase 1 - Khởi tạo workspace
-và nền tảng thực thi (pending).**
+## 📋 Danh Mục Công Việc Chi Tiết Theo Ngày (Day-by-Day Checklist)
 
-Đã kiểm chứng trong repository:
+### NGÀY 1: Khởi Tạo Dự Án & Cấu Hình Dùng Chung
+- [ ] **Task 1.1 (Thành viên A):** Khởi tạo repository Next.js 14/15 TypeScript với Tailwind CSS.
+- [ ] **Task 1.2 (Thành viên A):** Cài đặt Prisma ORM, cấu hình SQLite (`DATABASE_URL="file:./dev.db"`), tạo schema cơ bản (`User`, `Asset`, `OwnershipHistory`, `Certificate`).
+- [ ] **Task 1.3 (Thành viên A):** Khởi tạo cấu trúc Hardhat trong thư mục `contracts/`, cài đặt `@openzeppelin/contracts` và `ethers`.
+- [ ] **Task 1.4 (Thành viên B):** Xây dựng Layout tổng thể (`Navbar`, `Footer`, `ThemeContainer`).
+- [ ] **Task 1.5 (Thành viên B):** Viết module tiện ích băm `SHA-256` phía client sử dụng `window.crypto.subtle.digest`.
+- **Đầu ra Ngày 1:** Project Next.js chạy được trên cả 2 máy (`npm run dev`), kết nối được SQLite qua Prisma Studio (`npx prisma studio`).
 
-- Đã có `README.md`, các đặc tả kiến trúc/API/contract/ERD, `.env.example`,
-  `.gitignore` và `docker-compose.yml`.
-- Chưa có thư mục hoặc mã nguồn `contracts/`, `backend/`, `frontend/`.
-- Chưa có bằng chứng về migration, contract deployment, API runtime, UI hoặc
-  test implementation; các mục này không được đánh dấu hoàn thành trước khi
-  chạy và kiểm tra thực tế.
+---
 
-## Roadmap & Detailed Task Checklist
+### NGÀY 2: Smart Contract Lõi & Thư Viện Chứng Nhận
+- [ ] **Task 2.1 (Thành viên A):** Viết hợp đồng `AssetRegistry.sol` (kế thừa `ERC721URIStorage`, `Ownable`, `Pausable`, struct `AssetRecord`, mapping `hashToTokenId`, `isHashRegistered`).
+- [ ] **Task 2.2 (Thành viên A):** Viết bộ Unit Test toàn diện (15-20 test cases: mint, trùng lặp hash, transfer, revoke, quyền admin).
+- [ ] **Task 2.3 (Thành viên B):** Tích hợp thư viện `jspdf` và `qrcode` vào Next.js.
+- [ ] **Task 2.4 (Thành viên B):** Tạo bản vẽ mẫu E-Certificate dạng component/canvas có logo, viền hoa văn, con dấu số và mã QR.
+- **Đầu ra Ngày 2:** Chạy test smart contract đạt 100% pass (`npx hardhat test`); Component E-Certificate xuất được bản PDF mẫu đầu tiên.
 
-### Phase 0 - Khảo sát hiện trạng và chốt phạm vi
+---
 
-**Status: complete**
+### NGÀY 3: Deploy Local Node & Mốc Tích Hợp M1
+- [ ] **Task 3.1 (Thành viên A):** Viết script deploy contract lên Hardhat local node (`scripts/deploy.js`), tự động xuất file ABI và địa chỉ contract vào `src/contracts/AssetRegistry.json`.
+- [ ] **Task 3.2 (Thành viên A):** Viết helper `getContractInstance(signerOrProvider)` hỗ trợ cả client component và server handler.
+- [ ] **Task 3.3 (Thành viên B):** Xây dựng component `WalletConnectButton` kết nối MetaMask, chuyển mạng Hardhat Chain ID `31337`, hiển thị địa chỉ ví rút gọn và số dư test ETH.
+- [ ] **Task 3.4 (Cả hai):** Thống nhất API contract ABI giữa 2 người.
+- **Đầu ra Ngày 3 (Mốc M1):** Kết nối thành công MetaMask tới Hardhat node local; đọc được thông tin contract từ trình duyệt.
 
-- [x] **Task 0.1 - Kiểm kê repository và tài liệu hiện có:** Đọc README,
-  architecture, ERD, API spec, contracts spec, Docker Compose, env template
-  và gitignore; xác nhận repository mới chỉ có tài liệu/cấu hình.
-- [x] **Task 0.2 - Xác định phạm vi MVP và Phase 2:** Chốt MVP gồm auth,
-  wallet binding, upload/hash, đăng ký on-chain, receipt verification,
-  public verification, provenance và transfer; đưa licensing, dispute
-  workflow, worker sync và IPFS vào Phase 6.
-- [x] **Task 0.3 - Xác định phụ thuộc kiến trúc:** Ghi nhận thứ tự bắt buộc
-  `contract ABI/address -> database -> backend -> frontend -> tích hợp`,
-  đồng thời phân định dữ liệu on-chain/off-chain và ranh giới bảo mật.
+---
 
-### Phase 1 - Khởi tạo workspace và môi trường phát triển
+### NGÀY 4: Đăng Ký Tài Sản (Slice A) & Giao Diện Quản Trị (Slice B)
+- [ ] **Task 4.1 (Thành viên A):** Xây dựng giao diện Form Đăng ký tài sản (`/creator/register`): kéo thả file, tự động hiển thị mã SHA-256 ngay khi chọn file.
+- [ ] **Task 4.2 (Thành viên A):** Tạo API upload file `POST /api/assets`, lưu file nhị phân vào thư mục `public/uploads/`.
+- [ ] **Task 4.3 (Thành viên B):** Xây dựng giao diện Cổng xét duyệt Admin (`/admin/approvals`): bảng danh sách các tài sản đang chờ duyệt (`PENDING_APPROVAL`).
+- [ ] **Task 4.4 (Thành viên B):** Xây dựng modal xem trước file gốc (hình ảnh phóng to, thông tin kích thước, mốc thời gian tải lên).
+- **Đầu ra Ngày 4:** Tải được file từ UI lưu vào `public/uploads/`; Trang Admin hiển thị được danh sách hồ sơ mẫu.
 
-**Status: pending**
+---
 
-- [ ] **Task 1.1 - Chốt ma trận phiên bản và package boundary:** Ghi nhận
-  phiên bản Node.js, npm/pnpm, Solidity, Hardhat, NestJS, Next.js, Prisma,
-  PostgreSQL và OpenZeppelin; xác định workspace scripts và cách chạy từng
-  package.
-  **Phụ thuộc:** Task 0.1.
-  **Đầu ra:** Các manifest/config nền tảng nhất quán, không có dependency
-  không được sử dụng.
-- [ ] **Task 1.2 - Khởi tạo Hardhat project:** Tạo `contracts/` với cấu hình
-  TypeScript, network local chain `31337`, compiler `^0.8.24`, OpenZeppelin,
-  test runner và script deploy.
-  **Phụ thuộc:** Task 1.1.
-  **Kiểm chứng:** `compile` và test command chạy được trên workspace mới.
-- [ ] **Task 1.3 - Khởi tạo NestJS backend:** Tạo `backend/`, cấu hình
-  TypeScript, lint/test, prefix `/api/v1`, validation pipe, CORS, error
-  response chuẩn và cấu hình environment có kiểm tra giá trị bắt buộc.
-  **Phụ thuộc:** Task 1.1.
-- [ ] **Task 1.4 - Khởi tạo Prisma/PostgreSQL:** Tạo Prisma schema/migration
-  bám ERD, enum trạng thái, index/unique constraint cần thiết và seed admin
-  an toàn cho local.
-  **Phụ thuộc:** Task 1.3.
-  **Kiểm chứng:** `prisma validate`, migration trên PostgreSQL Docker và
-  truy vấn seed thành công.
-- [ ] **Task 1.5 - Khởi tạo Next.js frontend:** Tạo `frontend/` với App
-  Router, TypeScript, Tailwind, API client, layout cơ bản và cấu hình env
-  public/private đúng ranh giới.
-  **Phụ thuộc:** Task 1.1.
-- [ ] **Task 1.6 - Chuẩn hóa local runbook:** Cập nhật hướng dẫn chạy Hardhat
-  node, deploy, PostgreSQL, backend và frontend; kiểm tra không để private key
-  thật hoặc `.env` vào source control.
-  **Phụ thuộc:** Task 1.2, Task 1.4, Task 1.5.
+### NGÀY 5: Lưu Trữ Off-Chain & Nghiệp Vụ Xét Duyệt
+- [ ] **Task 5.1 (Thành viên A):** Hoàn thiện API `POST /api/assets`: kiểm tra trùng lặp `fileHash` trong SQLite, lưu bản ghi mới với trạng thái `PENDING_APPROVAL`.
+- [ ] **Task 5.2 (Thành viên A):** Xây dựng trang thông báo đăng ký thành công kèm mã theo dõi hồ sơ.
+- [ ] **Task 5.3 (Thành viên B):** Xây dựng API Route `POST /api/admin/assets/[id]/review`: xử lý phê duyệt (`APPROVED`) hoặc từ chối (`REJECTED` + lý do từ chối).
+- [ ] **Task 5.4 (Thành viên B):** Kết nối nút "Duyệt" và "Từ chối" trên giao diện Admin với API backend.
+- **Đầu ra Ngày 5:** Người dùng đăng ký -> Dữ liệu lưu vào SQLite -> Admin mở giao diện bấm Duyệt/Từ chối và trạng thái thay đổi tức thì.
 
-### Phase 2 - Smart contract AssetRegistry và bằng chứng on-chain
+---
 
-**Status: pending**
+### NGÀY 6: Đưa Lên Blockchain (Mint) & Sinh Chứng Nhận Điện Tử
+- [ ] **Task 6.1 (Thành viên A):** Tích hợp MetaMask gọi hàm `registerAsset(to, uri, contentHash)` trên smart contract từ giao diện khi tài sản đã được duyệt.
+- [ ] **Task 6.2 (Thành viên A):** Xử lý giao diện hiển thị trạng thái đang gửi giao dịch, chờ xác nhận block và thông báo mã giao dịch (`txHash`).
+- [ ] **Task 6.3 (Thành viên B):** Xây dựng chức năng tự động tạo bản ghi `Certificate` trong SQLite khi tài sản được cấp phép/mint.
+- [ ] **Task 6.4 (Thành viên B):** Tự động sinh mã QR chứa link tra cứu công khai: `http://localhost:3000/verify?hash=<contentHash>`.
+- [ ] **Task 6.5 (Thành viên B):** Xuất file PDF chứng nhận chất lượng cao lưu vào `public/certificates/`.
+- **Đầu ra Ngày 6:** Mint thành công NFT on-chain trên Hardhat node; Tải được file PDF chứng nhận có mã QR quét được bằng điện thoại.
 
-- [ ] **Task 2.1 - Triển khai cấu trúc contract:** Implement
-  `AssetRegistry.sol` với ERC-721 URI storage, Ownable, Pausable, record
-  asset, mapping hash duy nhất và các event theo `contracts_spec.md`.
-  **Phụ thuộc:** Task 1.2.
-- [ ] **Task 2.2 - Implement đăng ký và tra cứu:** Implement
-  `registerAsset`, `getAssetByHash` và các getter cần thiết; bảo vệ input
-  zero address/URI rỗng/hash zero/trùng hash; giữ token ID tăng tuần tự.
-  **Phụ thuộc:** Task 2.1.
-- [ ] **Task 2.3 - Implement revoke và access control:** Chỉ owner được
-  revoke, lưu reason, phát event, hỗ trợ pause/unpause và định nghĩa rõ hành
-  vi của các hàm khi paused hoặc token không tồn tại.
-  **Phụ thuộc:** Task 2.1.
-- [ ] **Task 2.4 - Viết unit test contract:** Kiểm tra mint, ownership,
-  URI, hash uniqueness, event fields, timestamp, duplicate/invalid input,
-  revoke authorization, pause và transfer ERC-721.
-  **Phụ thuộc:** Task 2.2, Task 2.3.
-- [ ] **Task 2.5 - Deploy và xuất artifact local:** Deploy vào Hardhat
-  network, lấy ABI/address/chain ID cho backend/frontend, kiểm tra gọi read
-  function từ client/provider.
-  **Phụ thuộc:** Task 2.4.
-- [ ] **Task 2.6 - Kiểm tra chuẩn hash:** Xác nhận SHA-256 binary từ backend
-  được chuyển ổn định thành `bytes32`, không nhầm với hash chuỗi hex hoặc
-  thay đổi chữ hoa/thường.
-  **Phụ thuộc:** Task 2.2, Task 2.5.
+---
 
-### Phase 3 - Backend core, dữ liệu và xác thực
+### NGÀY 7: Đồng Bộ Dữ Liệu & Cổng Tra Cứu Xác Minh
+- [ ] **Task 7.1 (Thành viên A):** Viết API Route `POST /api/assets/[id]/sync-onchain`: kiểm tra transaction receipt qua RPC, cập nhật `tokenId`, `txHash`, đổi trạng thái sang `REGISTERED`, ghi vào `OwnershipHistory`.
+- [ ] **Task 7.2 (Thành viên A):** Xây dựng cơ chế xử lý khi giao dịch blockchain bị hủy hoặc lỗi (nút bấm "Thực hiện lại giao dịch").
+- [ ] **Task 7.3 (Thành viên B):** Xây dựng Cổng tra cứu công khai (`/verify`): cho phép nhập số Token ID hoặc mã băm SHA-256 để kiểm tra.
+- [ ] **Task 7.4 (Thành viên B):** Viết API Route `POST /api/verify`: đối chiếu dữ liệu đồng thời giữa SQLite và Smart Contract.
+- **Đầu ra Ngày 7:** Luồng dữ liệu khép kín từ Đăng ký -> Duyệt -> Mint -> Đồng bộ -> Tra cứu.
 
-**Status: pending**
+---
 
-- [ ] **Task 3.1 - Hoàn thiện schema và service dữ liệu:** Implement Prisma
-  repositories/services cho User, CreatorProfile, Asset,
-  OwnershipHistory, DisputeReport và BlockchainSyncLog; áp dụng unique/index,
-  transaction boundary và trạng thái chuyển hợp lệ.
-  **Phụ thuộc:** Task 1.4, Task 2.5.
-- [ ] **Task 3.2 - Implement đăng ký/đăng nhập JWT:** Hash password bằng
-  thư viện chuẩn, validate DTO, không trả passwordHash, phát access token,
-  kiểm tra user status và RBAC guard cho USER/CREATOR/ADMIN.
-  **Phụ thuộc:** Task 3.1.
-- [ ] **Task 3.3 - Implement wallet challenge/binding:** Sinh nonce đủ ngẫu
-  nhiên, tạo message có domain/chain/time phù hợp, verify chữ ký bằng
-  ethers, chống replay, chuẩn hóa địa chỉ và xử lý wallet đã gắn với tài
-  khoản khác.
-  **Phụ thuộc:** Task 3.2.
-- [ ] **Task 3.4 - Implement upload và fingerprint:** Giới hạn kích thước,
-  MIME/extension theo chính sách, lưu file ngoài database với tên an toàn,
-  tính SHA-256 theo binary stream, tạo temp file có cleanup/expiry và trả
-  duplicate result chính xác.
-  **Phụ thuộc:** Task 3.1.
-- [ ] **Task 3.5 - Implement prepare-registration:** Kiểm tra quyền sở hữu
-  temp file, duplicate ở DB và on-chain, tạo metadata URI ổn định, ghi asset
-  `DRAFT`/`PENDING_ONCHAIN` theo transaction boundary và không nhận hash do
-  client khai báo thay cho hash đã tính.
-  **Phụ thuộc:** Task 3.4, Task 2.5.
-- [ ] **Task 3.6 - Implement confirm-registration:** Lấy receipt từ đúng
-  RPC/chain, kiểm tra transaction success, contract address, sender/receiver,
-  event `AssetRegistered`, tokenId/hash/creator và idempotency trước khi cập
-  nhật `REGISTERED`; ghi lỗi rõ ràng khi receipt không hợp lệ.
-  **Phụ thuộc:** Task 3.5.
-- [ ] **Task 3.7 - Implement public asset query/detail:** Tạo list có
-  pagination giới hạn, search/category/status filter, detail metadata,
-  owner hiện tại, on-chain đối chiếu và provenance; không làm lộ file hoặc
-  dữ liệu riêng tư ngoài chính sách public.
-  **Phụ thuộc:** Task 3.1, Task 3.6.
-- [ ] **Task 3.8 - Implement integrity verification:** Nhận file hoặc hash,
-  tính hash server-side, truy vấn DB và contract song song, trả các trạng
-  thái valid/unregistered/modified/flagged/revoked cùng bằng chứng kiểm tra.
-  **Phụ thuộc:** Task 3.6, Task 3.7.
-- [ ] **Task 3.9 - Implement transfer confirmation và history:** Xác thực
-  event `Transfer` độc lập, kiểm tra token/địa chỉ đích/transaction chain,
-  cập nhật owner và append OwnershipHistory idempotently; hỗ trợ timeline
-  MINT/TRANSFER/REVOKE.
-  **Phụ thuộc:** Task 2.4, Task 3.6.
-- [ ] **Task 3.10 - Viết backend unit/integration tests:** Test DTO/guard/
-  service/repository, invalid auth, replay signature, upload limit,
-  duplicate hash, malformed receipt, wrong chain/contract/event, retry
-  idempotency và các trạng thái lỗi database/RPC.
-  **Phụ thuộc:** Task 3.2 đến Task 3.9.
+### NGÀY 8: MỐC TÍCH HỢP M2 (KIỂM THỬ TÍCH HỢP ĐẦU TIÊN)
+- [ ] **Task 8.1 (Cả hai):** Hợp nhất code nhánh của Thành viên A và Thành viên B vào nhánh `main` (hoặc `develop`).
+- [ ] **Task 8.2 (Cả hai):** Thực hiện kịch bản kiểm thử liên máy:
+  - Máy A đăng ký tác phẩm số "Tranh hoa sen".
+  - Máy B mở trang Admin thấy hồ sơ -> bấm Duyệt.
+  - Máy A nhận được thông báo đã duyệt -> kích hoạt MetaMask ký mint on-chain.
+  - Máy B mở trang Xác minh gõ mã băm -> Hệ thống hiển thị bản ghi on-chain và tải được chứng nhận PDF.
+- [ ] **Task 8.3 (Cả hai):** Rà soát và sửa các lỗi phát sinh trong lần tích hợp đầu tiên.
+- **Đầu ra Ngày 8:** Hoàn thành 100% luồng nghiệp vụ cốt lõi, không còn phụ thuộc kỹ thuật tồn đọng.
 
-### Phase 4 - Frontend MVP và trải nghiệm người dùng
+---
 
-**Status: pending**
+### NGÀY 9: Bảng Điều Khiển Tác Giả & Xác Minh 1-Click Siêu Tốc
+- [ ] **Task 9.1 (Thành viên A):** Hoàn thiện Dashboard cá nhân (`/creator/my-assets`): thống kê tổng tài sản, chia tab (Chờ duyệt, Đã chứng nhận, Bị từ chối).
+- [ ] **Task 9.2 (Thành viên A):** Bổ sung chức năng lọc, tìm kiếm tài sản cá nhân.
+- [ ] **Task 9.3 (Thành viên B):** Nâng cấp cổng `/verify` với tính năng **"1-Click Verification"**: Vùng kéo thả file bất kỳ vào trình duyệt -> Web Crypto API băm SHA-256 -> Tự động gọi `getAssetByHash` trên Smart Contract -> Hiển thị kết quả thật/giả kèm visual banner xanh/đỏ ấn tượng.
+- [ ] **Task 9.4 (Thành viên B):** Kiểm thử kéo thả file gốc (báo THẬT) và file đã chỉnh sửa 1 pixel (báo GIẢ MẠO).
+- **Đầu ra Ngày 9:** Dashboard tác giả chuyên nghiệp; Cổng xác minh kéo-thả hoạt động hoàn hảo tạo hiệu ứng ấn tượng cho buổi demo.
 
-- [ ] **Task 4.1 - Xây dựng app shell và API state:** Tạo navigation, auth
-  session, typed API client, loading/error/empty states, route protection và
-  thông báo lỗi không làm lộ secret/RPC nội bộ.
-  **Phụ thuộc:** Task 1.5, Task 3.2.
-- [ ] **Task 4.2 - Xây dựng auth và wallet binding UI:** Implement register,
-  login, connect MetaMask, nonce/message signing, bind wallet, xử lý chain
-  mismatch, user reject và account change.
-  **Phụ thuộc:** Task 3.3, Task 4.1.
-- [ ] **Task 4.3 - Xây dựng Integrity Verifier public:** Cho kéo-thả/chọn
-  file hoặc nhập hash, hiển thị progress, kết quả valid/modified/
-  unregistered/flagged/revoked, token/creator/owner/time và provenance link.
-  **Phụ thuộc:** Task 3.8, Task 4.1.
-- [ ] **Task 4.4 - Xây dựng registration flow:** Implement upload preview,
-  metadata form, duplicate warning, prepare API, gọi `registerAsset` bằng
-  MetaMask, chờ mined và confirm API; hiển thị retry/cancel/failure rõ ràng.
-  **Phụ thuộc:** Task 2.5, Task 3.5, Task 3.6, Task 4.2.
-- [ ] **Task 4.5 - Xây dựng asset explorer/detail/provenance:** Implement
-  pagination/search/filter, detail, on-chain status và timeline; phân biệt
-  dữ liệu stale, pending và confirmed.
-  **Phụ thuộc:** Task 3.7, Task 3.9.
-- [ ] **Task 4.6 - Xây dựng transfer UI:** Cho phép đúng owner chọn địa chỉ
-  đích hợp lệ, ký transfer, gửi confirm, hiển thị pending và không cập nhật
-  thành công nếu receipt/event không đạt kiểm tra.
-  **Phụ thuộc:** Task 3.9, Task 4.2.
-- [ ] **Task 4.7 - Kiểm thử frontend:** Kiểm tra form validation, wallet
-  rejection, wrong network, upload lỗi, transaction pending/reverted,
-  refresh sau confirm, responsive và keyboard accessibility trên các màn MVP.
-  **Phụ thuộc:** Task 4.2 đến Task 4.6.
+---
 
-### Phase 5 - Tích hợp hệ thống, bảo mật và release MVP
+### NGÀY 10: Chuyển Nhượng Quyền Sở Hữu & Khám Phá Công Khai
+- [ ] **Task 10.1 (Thành viên A):** Xây dựng chức năng Chuyển nhượng quyền sở hữu (`/creator/transfer`): nhập địa chỉ ví người nhận, gọi hàm `transferAsset` trên contract.
+- [ ] **Task 10.2 (Thành viên A):** Cập nhật bảng `OwnershipHistory` trong SQLite sau khi giao dịch chuyển nhượng thành công on-chain.
+- [ ] **Task 10.3 (Thành viên B):** Thiết kế Landing Page giới thiệu hệ thống (`/`) với giao diện hiện đại, các số liệu thống kê trực quan.
+- [ ] **Task 10.4 (Thành viên B):** Xây dựng trang Thư viện khám phá (`/explore`): trưng bày các tài sản đã được bảo vệ bản quyền.
+- **Đầu ra Ngày 10 (Mốc M3):** Chuyển nhượng NFT on-chain mượt mà; Trang chủ và trang khám phá hoàn thiện thẩm mỹ.
 
-**Status: pending**
+---
 
-- [ ] **Task 5.1 - Dựng môi trường tích hợp reproducible:** Chạy PostgreSQL,
-  Hardhat node/deploy, backend và frontend theo runbook; kiểm tra env
-  separation, health checks và contract address/ABI đồng nhất.
-  **Phụ thuộc:** Task 1.6, Task 2.5, Task 3.10, Task 4.7.
-- [ ] **Task 5.2 - Kiểm thử acceptance end-to-end:** Thực hiện kịch bản
-  register/login/bind wallet, upload/register/mint/confirm, public verify,
-  modified file, duplicate file, transfer/history và revoke/flag outcome.
-  **Phụ thuộc:** Task 5.1.
-- [ ] **Task 5.3 - Kiểm tra lỗi và khôi phục:** Kiểm tra restart backend,
-  RPC unavailable, transaction reverted, duplicate callback, DB failure,
-  temp upload cleanup, partial registration và retry không tạo bản ghi
-  hoặc token trùng.
-  **Phụ thuộc:** Task 5.2.
-- [ ] **Task 5.4 - Rà soát bảo mật MVP:** Kiểm tra secret leakage, private key
-  scope local-only, password hashing, JWT expiry, RBAC, nonce replay,
-  upload traversal/type spoofing, rate/size limits, CORS, SQL/ORM input và
-  không đưa PII/file binary lên chain.
-  **Phụ thuộc:** Task 3.10, Task 4.7, Task 5.2.
-- [ ] **Task 5.5 - Chạy quality gates:** Chạy compile, lint, type-check,
-  contract unit tests, backend tests, frontend tests/build và kiểm tra
-  coverage/known failures; sửa chỉ các lỗi thuộc phạm vi MVP.
-  **Phụ thuộc:** Task 5.2 đến Task 5.4.
-- [ ] **Task 5.6 - Hoàn thiện tài liệu vận hành:** Cập nhật README và các
-  spec liên quan theo implementation thực tế, bổ sung API examples, local
-  deployment, seed accounts, troubleshooting và giới hạn pháp lý; không đánh
-  dấu task nếu tài liệu chưa khớp runtime.
-  **Phụ thuộc:** Task 5.5.
+### NGÀY 11: Nguồn Gốc Lịch Sử (Provenance) & Thu Hồi Bản Quyền
+- [ ] **Task 11.1 (Thành viên A):** Xây dựng giao diện Dòng thời gian lịch sử nguồn gốc (*Provenance Timeline*) trên trang chi tiết tài sản: hiển thị người tạo ban đầu, ngày giờ mint, các lần đổi chủ kèm txHash.
+- [ ] **Task 11.2 (Thành viên B):** Xây dựng chức năng Thu hồi chứng nhận (*Revoke Asset*): Admin có quyền đánh dấu thu hồi khi có gian lận, gọi hàm `revokeAsset` on-chain và cập nhật trạng thái `REVOKED`.
+- [ ] **Task 11.3 (Thành viên B):** Khi file bị thu hồi, chứng nhận PDF hiển thị watermark đỏ "REVOKED / ĐÃ THU HỒI".
+- **Đầu ra Ngày 11:** Hệ thống hoàn thiện đầy đủ các tính năng nâng cao và trường hợp vi phạm bản quyền.
 
-### Phase 6 - Nghiệp vụ nâng cao sau MVP
+---
 
-**Status: pending**
+### NGÀY 12: MỐC TÍCH HỢP M4 (KIỂM THỬ CHỊU LỖI & PHẢN ỨNG GIAO DIỆN)
+- [ ] **Task 12.1 (Cả hai):** Kiểm thử các kịch bản lỗi:
+  - Người dùng bấm nút từ chối ký giao dịch trên MetaMask.
+  - Người dùng nhập trùng file đã từng đăng ký -> Hệ thống báo lỗi trước khi tốn phí gas.
+  - Tắt Hardhat node và bật lại -> Xem hệ thống phản hồi thông báo thân thiện.
+- [ ] **Task 12.2 (Cả hai):** Tối ưu hóa UI/UX: thêm loading spinners, toast notifications, hiệu ứng chuyển trang mượt mà.
+- **Đầu ra Ngày 12:** Toàn bộ ứng dụng hoạt động ổn định, không có crash hoặc unhandled promise rejections.
 
-- [ ] **Task 6.1 - Chốt thiết kế licensing:** Phân tích lại quyền owner/
-  licensee, thời hạn, loại license, phí, revoke và dữ liệu cần on-chain hay
-  off-chain trước khi code `AssetLicensing.sol`.
-  **Phụ thuộc:** Task 5.6.
-- [ ] **Task 6.2 - Implement AssetLicensing và test:** Xây dựng contract,
-  access control, expiry, revoke và test các trường hợp owner transfer,
-  license overlap, invalid dates và payment nếu được phê duyệt.
-  **Phụ thuộc:** Task 6.1.
-- [ ] **Task 6.3 - Implement licensing backend/frontend:** Migration,
-  APIs issue/list/revoke, authorization, terms URI, dashboard và timeline;
-  kiểm tra license không thay đổi ownership token.
-  **Phụ thuộc:** Task 6.2.
-- [ ] **Task 6.4 - Implement admin dispute workflow:** Tạo API/UI nhận
-  dispute, evidence access control, review/resolve, flag/revoke đồng bộ DB
-  và contract, audit trail và trạng thái verify tương ứng.
-  **Phụ thuộc:** Task 3.7, Task 5.6, Task 6.2.
-- [ ] **Task 6.5 - Implement blockchain event worker:** Thiết kế cursor từ
-  `BlockchainSyncLog`, scan block range an toàn, deduplicate event, retry/
-  reorg policy và reconcile ownership/registration khi backend restart.
-  **Phụ thuộc:** Task 3.9, Task 5.3.
-- [ ] **Task 6.6 - Tích hợp IPFS có kiểm soát:** Chọn Pinata/Kubo, pin
-  metadata/file phù hợp, lưu CID, fallback/error policy, privacy/retention
-  và kiểm thử không làm hỏng local storage hoặc verification.
-  **Phụ thuộc:** Task 6.5 và quyết định kiến trúc được ghi nhận.
-- [ ] **Task 6.7 - Acceptance Phase 2:** Kiểm thử licensing, dispute,
-  worker restart/reorg và IPFS unavailable; cập nhật tài liệu và trạng thái
-  phase theo bằng chứng runtime.
-  **Phụ thuộc:** Task 6.3 đến Task 6.6.
+---
 
-## Status Summary
+### NGÀY 13: Chuẩn Hóa Môi Trường Demo & Diễn Tập Thuyết Trình
+- [ ] **Task 13.1 (Thành viên A):** Viết script chuẩn bị môi trường demo 1 dòng lệnh (`npm run demo:reset`):
+  - Reset SQLite database.
+  - Khởi động và deploy lại hợp đồng `AssetRegistry.sol`.
+  - Tạo sẵn 3 tài sản mẫu (1 tài sản đã đăng ký thành công, 1 hồ sơ đang chờ duyệt, 1 tài sản bị từ chối).
+- [ ] **Task 13.2 (Thành viên B):** Chuẩn bị kịch bản thuyết trình & demo 5 phút:
+  - Phút 1: Giới thiệu bài toán bản quyền số và giải pháp AssetChain.
+  - Phút 2: Tác giả tải lên tác phẩm nghệ thuật, băm SHA-256 client-side.
+  - Phút 3: Admin duyệt hồ sơ trên cổng quản trị.
+  - Phút 4: Tác giả mint on-chain, hệ thống xuất E-Certificate PDF có mã QR.
+  - Phút 5: Khách vãng lai kéo file vào cổng `/verify` để chứng thực ngay lập tức.
+- [ ] **Task 13.3 (Cả hai):** Diễn tập thuyết trình thử ít nhất 2 lần.
+- **Đầu ra Ngày 13:** Bộ dữ liệu demo chuẩn chỉn; Nhóm tự tin làm chủ toàn bộ bài thuyết trình.
 
-| Phase | Phạm vi | Status |
-|---|---|---|
-| Phase 0 | Khảo sát, phân tích, chốt phạm vi | complete |
-| Phase 1 | Workspace và môi trường | pending |
-| Phase 2 | AssetRegistry và on-chain proof | pending |
-| Phase 3 | Backend, database, auth, verification | pending |
-| Phase 4 | Frontend MVP | pending |
-| Phase 5 | Tích hợp, bảo mật, release MVP | pending |
-| Phase 6 | Licensing, dispute, worker, IPFS | pending |
+---
 
-## Issue / Blocked Tasks Log
-
-| Task ID | Status | Issue Description | Root Cause | Proposed Solution | Last Updated |
-|---------|--------|-------------------|------------|-------------------|--------------|
-| (chưa có task bị block) |
-
-## Architecture & Technology Change Log
-
-| Date | Change Type | From | To | Reason | Affected Tasks |
-|------|-------------|------|-----|--------|----------------|
-| (chưa có thay đổi kiến trúc/công nghệ) |
-
-## Ad-hoc Tasks / Scope Changes
-
-| ID | Description | Proposed Phase | Priority | Rationale | Status |
-|----|-------------|----------------|----------|-----------|--------|
-| (chưa có task phát sinh) |
-
-## Project Notes & Assumptions
-
-- **Giả định môi trường phát triển:** Node.js 18+, PostgreSQL 16, Docker Desktop cho Windows.
-- **Giả định security:** Private key chỉ dùng local (Hardhat node), không deploy testnet/mainnet trong MVP.
-- **Giả định user:** Creator và Guest có hiểu biết cơ bản về MetaMask; hệ thống không xử lý recovery ví bị mất.
-- **Quyết định pending:** IPFS và dispute workflow dời sang Phase 6 để tập trung MVP core.
-
-## Final Acceptance
-
-Chỉ nghiệm thu khi các bằng chứng sau đã tồn tại và các checkbox liên quan
-được cập nhật sau khi kiểm chứng thực tế:
-
-1. **Build và môi trường:** Có thể dựng lại PostgreSQL/Hardhat/backend/
-   frontend từ hướng dẫn; compile, migration, type-check, lint và production
-   build đều thành công.
-2. **Contract:** Unit tests pass cho mint, duplicate hash, ownership,
-   transfer, revoke, pause, access control và event payload; address/ABI
-   đúng chain `31337`.
-3. **API và dữ liệu:** Auth/RBAC/wallet challenge không replay được; upload
-   hash đúng binary; transaction receipt/event được verify độc lập; các
-   endpoint trả đúng status/error và thao tác retry không tạo duplicate.
-4. **MVP E2E:** Một creator có thể đăng ký và mint tài sản; Guest verify được
-   file nguyên bản, file đã sửa và hash chưa đăng ký; detail hiển thị
-   provenance; owner transfer thành công và history cập nhật đúng.
-5. **Ngoại lệ quan trọng:** Duplicate asset, file vượt giới hạn, MIME giả,
-   account/wallet sai, chain sai, user từ chối MetaMask, RPC/database down,
-   transaction revert, receipt sai contract/event và backend restart đều có
-   thông báo lỗi rõ ràng, không ghi trạng thái thành công giả.
-6. **Bảo mật và dữ liệu:** Không có secret/private key thật trong git; không
-   có password, PII nhạy cảm hoặc file binary on-chain; file path được
-   sandbox; JWT, nonce, RBAC, CORS và input validation đã được test.
-7. **Tài liệu và bàn giao:** README, API/architecture/ERD/contracts spec phản
-   ánh implementation; có lệnh chạy, biến môi trường, seed local, địa chỉ
-   contract, test commands, troubleshooting và danh sách giới hạn đã biết.
-8. **Phase 2 (nếu được triển khai):** Licensing, dispute, worker và IPFS chỉ
-   được nghiệm thu riêng sau khi có test/acceptance tương ứng; không xem các
-   mục này là điều kiện hoàn thành MVP nếu chưa đưa vào release scope.
-
+### NGÀY 14: BẢO VỆ ĐỒ ÁN / DEMO TRỰC TIẾP
+- [ ] **Task 14.1:** Kiểm tra lần cuối máy tính, mạng local, ví MetaMask demo (đảm bảo đủ test ETH).
+- [ ] **Task 14.2:** Tự tin trình bày và trả lời câu hỏi vấn đáp của giảng viên về Smart Contract, tính toàn vẹn dữ liệu, và phân định On-chain/Off-chain.
+- **Kết quả mong đợi:** Đạt điểm tối đa (10/10) với sự khen ngợi từ Hội đồng đánh giá!

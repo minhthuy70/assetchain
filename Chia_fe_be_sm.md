@@ -1,423 +1,130 @@
-# Phân Chia Công Việc Team 2 Người - AssetChain
+# Phân Chia Công Việc Nhóm 2 Thành Viên - AssetChain (Mô Hình Vertical Slicing)
 
-## Tổng Quan
+## 1. Nguyên Tắc Phân Chia Công Việc
 
-| Thành Viên | Vai Trò Chính | Kỹ Năng Cần Thiết |
-|-----------|---------------|-------------------|
-| **Thành Viên A** | Backend + Smart Contract Developer | Solidity, Hardhat, NestJS, Prisma, PostgreSQL, ethers.js |
-| **Thành Viên B** | Frontend + Integration Developer | Next.js, React, TypeScript, Tailwind CSS, ethers.js, MetaMask |
+Thay vì chia ngang (Horizontal Slicing - một người chỉ làm Frontend và một người chỉ làm Backend), dự án áp dụng mô hình **Chia theo nhóm chức năng nghiệp vụ (Vertical Slicing)**. Mỗi thành viên sở hữu trọn vẹn một lát cắt tính năng bao gồm: **Giao diện (UI) + API Routes + Thao tác SQLite (Prisma) + Tương tác Blockchain (Ethers.js)**.
 
----
-
-## Phân Chiả Chi Tiết Theo Phase
-
-### Phase 1 - Khởi tạo Workspace (Có thể làm song song)
-
-#### Thành Viên A - Backend + Smart Contract
-- [ ] **Task 1.1** - Chốt ma trận phiên bản (Node.js, Solidity, Hardhat, NestJS, Prisma, PostgreSQL)
-- [ ] **Task 1.2** - Khởi tạo Hardhat project:
-  - Cấu hình TypeScript, network local chain `31337`
-  - Cài đặt OpenZeppelin contracts
-  - Cấu hình test runner và script deploy
-- [ ] **Task 1.3** - Khởi tạo NestJS backend:
-  - Cấu hình TypeScript, lint/test
-  - Cấu hình prefix `/api/v1`
-  - Setup validation pipe, CORS, error response chuẩn
-  - Cấu hình environment variables
-- [ ] **Task 1.4** - Khởi tạo Prisma/PostgreSQL:
-  - Tạo Prisma schema theo ERD
-  - Setup enum trạng thái, index/unique constraints
-  - Tạo migration đầu tiên
-  - Seed admin account an toàn cho local
-- [ ] **Task 1.6** - Chuẩn hóa local runbook:
-  - Hướng dẫn chạy Hardhat node, deploy
-  - Hướng dẫn chạy PostgreSQL
-  - Kiểm tra không để private key thật vào source control
-
-#### Thành Viên B - Frontend
-- [ ] **Task 1.1** - Chốt ma trận phiên bản (Next.js, TypeScript, Tailwind, ethers.js)
-- [ ] **Task 1.5** - Khởi tạo Next.js frontend:
-  - Cấu hình App Router, TypeScript
-  - Setup Tailwind CSS
-  - Tạo layout cơ bản
-  - Cấu hình env public/private đúng ranh giới
-  - Tạo API client foundation
-- [ ] **Task 1.6** - Chuẩn hóa local runbook:
-  - Hướng dẫn chạy frontend dev server
-  - Cấu hình MetaMask local network (chain ID 31337)
+Cách tiếp cận này mang lại 4 lợi ích sống còn cho thời hạn 14 ngày:
+1. **Phát triển độc lập:** Hai thành viên có thể code song song trên 2 máy mà không phải chờ đợi API hay giao diện của nhau.
+2. **Ít xung đột mã nguồn (Git Conflict):** Mỗi người làm việc trên các trang và endpoint riêng biệt.
+3. **Hiểu sâu toàn diện:** Cả 2 thành viên đều nắm được luồng Web3 từ giao diện đến smart contract, phục vụ tốt buổi vấn đáp/demo với giảng viên.
+4. **Đóng góp cân bằng (50% - 50%):** Số lượng commit, khối lượng code và mức độ phức tạp được cân đối đồng đều trên GitHub.
 
 ---
 
-### Phase 2 - Smart Contract (Thành Viên A chính, B hỗ trợ review)
+## 2. Bảng Phân Định Trách Nhiệm Chi Tiết
 
-#### Thành Viên A
-- [ ] **Task 2.1** - Triển khai cấu trúc contract `AssetRegistry.sol`:
-  - Kế thừa ERC-721URIStorage, Ownable, Pausable
-  - Implement struct AssetRecord
-  - Implement mapping và state variables
-- [ ] **Task 2.2** - Implement đăng ký và tra cứu:
-  - `registerAsset()` function
-  - `getAssetByHash()` function
-  - Các getter cần thiết
-  - Bảo vệ input (zero address, URI rỗng, hash zero, trùng hash)
-- [ ] **Task 2.3** - Implement revoke và access control:
-  - `revokeAsset()` (chỉ owner)
-  - Cơ chế pause/unpause
-- [ ] **Task 2.4** - Viết unit test contract:
-  - Test mint, ownership, URI
-  - Test hash uniqueness
-  - Test event fields, timestamp
-  - Test duplicate/invalid input
-  - Test revoke authorization, pause
-  - Test transfer ERC-721
-- [ ] **Task 2.5** - Deploy và xuất artifact local:
-  - Deploy vào Hardhat network
-  - Lấy ABI, address, chain ID
-  - Test gọi read function từ client
-- [ ] **Task 2.6** - Kiểm tra chuẩn hash:
-  - Xác nhận SHA-256 binary → bytes32 ổn định
-  - Không nhầm với hash chuỗi hex
-
-#### Thành Viên B
-- [ ] **Review** contract code và unit tests
-- [ ] **Học** cách tích hợp ethers.js với contract ABI
-- [ ] **Chuẩn bị** frontend structure để tích hợp contract khi sẵn sàng
+| Đặc tính | **Thành Viên A** | **Thành Viên B** |
+|---|---|---|
+| **Chủ đề chính** | **Nền tảng & Đăng ký Tài sản (Creator Portal)** | **Xét duyệt & Chứng nhận (Admin & Verification)** |
+| **Phần phụ trách chính** | - Khởi tạo project Next.js + Tailwind + Prisma SQLite.<br>- Viết & Deploy Smart Contract lõi `AssetRegistry.sol` (Hardhat).<br>- Module Auth & Session cơ bản.<br>- Luồng Đăng ký tài sản (Upload, Web Crypto SHA-256).<br>- Bảng điều khiển tác giả (Dashboard, Danh sách tài sản của tôi).<br>- Chức năng Chuyển nhượng quyền sở hữu (Transfer on-chain). | - Cổng quản trị và thẩm định hồ sơ Admin (`/admin/approvals`).<br>- Nghiệp vụ Duyệt / Từ chối (Approve / Reject).<br>- Bộ sinh Chứng nhận điện tử (PDF + QR Code generator).<br>- Cổng tra cứu & xác minh tính toàn vẹn (`/verify`).<br>- Tính năng 1-Click Verification (kéo thả file kiểm tra on-chain tức thì).<br>- Trang chủ công cộng (Landing Page & Explore Gallery). |
+| **Thư mục / File chính** | - `contracts/` (Solidity, scripts deploy, test)<br>- `prisma/schema.prisma` (Chủ trì khởi tạo)<br>- `src/app/(auth)/...`<br>- `src/app/creator/...` (Form đăng ký, Dashboard)<br>- `src/app/api/assets/...`<br>- `src/lib/contracts/...` (ABI, Contract helpers) | - `src/app/(public)/...` (Home, Explore)<br>- `src/app/admin/...` (Review portal)<br>- `src/app/verify/...` (Tra cứu & Kéo thả)<br>- `src/app/api/admin/...`<br>- `src/app/api/verify/...`<br>- `src/app/api/certificate/...`<br>- `src/lib/certificate/...` (jspdf, qrcode) |
+| **Tương tác Blockchain** | - Deploy contract lên Hardhat node.<br>- Giao dịch `registerAsset` (Mint NFT on-chain).<br>- Giao dịch `transferAsset` (Chuyển quyền). | - Đọc dữ liệu `getAssetByHash` & `getAssetById` (View call - 0 gas).<br>- Giao dịch `revokeAsset` (Admin thu hồi bản quyền nếu vi phạm). |
 
 ---
 
-### Phase 3 - Backend Core (Thành Viên A chính)
+## 3. Quy Ước Thành Phần Dùng Chung & Trách Nhiệm Phụ Trách
 
-#### Thành Viên A
-- [ ] **Task 3.1** - Hoàn thiện schema và service dữ liệu:
-  - Implement Prisma repositories/services cho User, CreatorProfile, Asset, OwnershipHistory, DisputeReport, BlockchainSyncLog
-  - Áp dụng unique/index, transaction boundary
-- [ ] **Task 3.2a** - Implement Creator Profile module:
-  - Tạo/Update CreatorProfile (displayName, bio, avatarUrl, portfolioUrl)
-  - API get public profile by userId hoặc walletAddress
-  - Validation cho profile fields
-- [ ] **Task 3.2** - Implement đăng ký/đăng nhập JWT:
-  - Hash password (bcrypt/argon2)
-  - Validate DTO
-  - Phát access token
-  - RBAC guard (USER/CREATOR/ADMIN)
-- [ ] **Task 3.3** - Implement wallet challenge/binding:
-  - Sinh nonce ngẫu nhiên
-  - Tạo message có domain/chain/time
-  - Verify chữ ký bằng ethers
-  - Chống replay
-  - Xử lý wallet đã gắn với tài khoản khác
-- [ ] **Task 3.4** - Implement upload và fingerprint:
-  - Giới hạn kích thước, MIME/extension
-  - Lưu file an toàn
-  - Tính SHA-256 theo binary stream
-  - Tạo temp file với cleanup/expiry
-- [ ] **Task 3.5** - Implement prepare-registration:
-  - Kiểm tra quyền sở hữu temp file
-  - Kiểm tra duplicate DB và on-chain
-  - Tạo metadata URI
-  - Ghi asset DRAFT/PENDING_ONCHAIN
-- [ ] **Task 3.6** - Implement confirm-registration:
-  - Lấy receipt từ RPC
-  - Kiểm tra transaction success, contract address, sender/receiver
-  - Kiểm tra event AssetRegistered
-  - Kiểm tra idempotency
-  - Cập nhật REGISTERED
-- [ ] **Task 3.7** - Implement public asset query/detail:
-  - List có pagination, search/category/status filter
-  - Detail metadata, owner hiện tại, on-chain đối chiếu
-  - Provenance
-- [ ] **Task 3.8** - Implement integrity verification:
-  - Nhận file hoặc hash
-  - Tính hash server-side
-  - Truy vấn DB và contract song song
-  - Trả valid/unregistered/modified/flagged/revoked
-- [ ] **Task 3.9** - Implement transfer confirmation và history:
-  - Xác thực event Transfer độc lập
-  - Kiểm tra token/địa chỉ đích/transaction chain
-  - Cập nhật owner và append OwnershipHistory
-- [ ] **Task 3.10** - Viết backend unit/integration tests:
-  - Test DTO/guard/service/repository
-  - Test invalid auth, replay signature
-  - Test upload limit, duplicate hash
-  - Test malformed receipt, wrong chain/contract/event
-  - Test retry idempotency
+Để tránh việc cả hai người cùng sửa chung một file dẫn đến xung đột Git, quy ước các tài nguyên dùng chung như sau:
 
-#### Thành Viên B
-- [ ] **Review** API endpoints và DTO
-- [ ] **Test** API bằng Postman/Insomnia
-- [ ] **Chuẩn bị** frontend API client structure
+| Thành phần dùng chung | Người chịu trách nhiệm chính | Người sử dụng | Quy tắc phối hợp |
+|---|---|---|---|
+| **Smart Contract & ABI** | **Thành viên A** | **Thành viên B** | Thành viên A hoàn thành và khóa contract ABI vào cuối **Ngày 2**. Sau khi compile, ABI được lưu tại file dùng chung: `src/contracts/AssetRegistry.json`. Thành viên B chỉ việc import để gọi hàm. |
+| **Prisma Schema (`schema.prisma`)** | **Thành viên A** | **Thành viên B** | Thành viên A tạo schema ban đầu vào **Ngày 1**. Nếu Thành viên B cần bổ sung thêm trường cho chứng nhận (`Certificate`), hai người thảo luận trước 15 phút trước khi Thành viên B thêm và chạy `npx prisma db push`. |
+| **Cấu hình môi trường (`.env.example`)** | **Thành viên A** | **Thành viên B** | Giữ cố định cấu hình chung (Port 3000, RPC 8545, Contract Address `0x5FbDB...`). Không commit `.env` cá nhân. |
+| **Thư mục lưu trữ Uploads** | Dùng chung | Dùng chung | Đường dẫn chuẩn hóa: `public/uploads/` cho tài sản gốc, `public/certificates/` cho file PDF chứng nhận. Bổ sung vào `.gitignore`. |
 
 ---
 
-### Phase 4 - Frontend MVP (Thành Viên B chính, A hỗ trợ API)
+## 4. Chi Tiết Nhiệm Vụ Từng Thành Viên Theo Các Giai Đoạn
 
-#### Thành Viên B
-- [ ] **Task 4.1** - Xây dựng app shell và API state:
-  - Navigation, auth session
-  - Typed API client
-  - Loading/error/empty states
-  - Route protection
-  - Thông báo lỗi không làm lộ secret
-- [ ] **Task 4.2** - Xây dựng auth và wallet binding UI:
-  - Register, login UI
-  - Connect MetaMask
-  - Nonce/message signing
-  - Bind wallet
-  - Xử lý chain mismatch, user reject, account change
-- [ ] **Task 4.3** - Xây dựng Integrity Verifier public:
-  - Kéo-thả/chọn file hoặc nhập hash
-  - Hiển thị progress
-  - Kết quả valid/modified/unregistered/flagged/revoked
-  - Token/creator/owner/time và provenance link
-- [ ] **Task 4.4** - Xây dựng registration flow:
-  - Upload preview
-  - Metadata form
-  - Duplicate warning
-  - Prepare API
-  - Gọi registerAsset bằng MetaMask
-  - Chờ mined và confirm API
-  - Hiển thị retry/cancel/failure
-- [ ] **Task 4.5** - Xây dựng asset explorer/detail/provenance:
-  - Pagination/search/filter
-  - Detail, on-chain status
-  - Timeline
-  - Phân biệt stale, pending, confirmed
-- [ ] **Task 4.6** - Xây dựng Creator Dashboard:
-  - Quản lý tài sản số cá nhân (list, filter by status)
-  - Xem thống kê (số lượng tài sản, trạng thái)
-  - Quick action cho từng asset (view, transfer, revoke nếu có quyền)
-- [ ] **Task 4.7** - Xây dựng Creator Profile UI:
-  - Hiển thị thông tin Creator (displayName, bio, avatar, portfolioUrl)
-  - Danh sách tài sản công khai của Creator
-  - Badge verified (nếu isVerified = true)
-- [ ] **Task 4.8** - Xây dựng transfer UI:
-  - Cho phép đúng owner chọn địa chỉ đích
-  - Ký transfer
-  - Gửi confirm
-  - Hiển thị pending
-  - Không cập nhật thành công nếu receipt/event không đạt
-- [ ] **Task 4.9** - Xây dựng trang Home/Landing:
-  - Hero section giới thiệu hệ thống
-  - Quick link: Verify asset, Explore assets, Register
-  - Hiển thị số liệu thống kê cơ bản (số tài sản đã đăng ký, số creator)
-- [ ] **Task 4.10** - Kiểm thử frontend:
-  - Form validation
-  - Wallet rejection, wrong network
-  - Upload lỗi
-  - Transaction pending/reverted
-  - Refresh sau confirm
-  - Responsive và keyboard accessibility
+### GIAI ĐOẠN 1: Thiết Lập Nền Tảng & Hợp Đồng Lõi (Ngày 1 - Ngày 3)
+
+#### Thành Viên A (Chủ trì Nền tảng & Contract):
+- [ ] Khởi tạo dự án Next.js 14/15 App Router với TypeScript và Tailwind CSS.
+- [ ] Cấu hình Prisma ORM với SQLite (`prisma/schema.prisma`), chạy migrate và seed tài khoản mẫu.
+- [ ] Thiết lập thư mục `contracts/` với Hardhat, cấu hình mạng local chain ID `31337`.
+- [ ] Viết Smart Contract `AssetRegistry.sol` (kế thừa ERC-721URIStorage, Ownable, Pausable).
+- [ ] Viết test cases bằng Chai/Ethers (tối thiểu 15-20 test cases kiểm tra mint, duplicate hash, transfer, revoke).
+- [ ] Viết script deploy và xuất tự động ABI + Contract Address ra thư mục `src/contracts/`.
+
+#### Thành Viên B (Khởi tạo Giao diện & Thư viện Chứng nhận):
+- [ ] Thiết lập hệ thống UI Layout chung (Navbar, Footer, Modal, WalletConnectButton component).
+- [ ] Nghiên cứu và thử nghiệm thư viện tạo PDF (`jspdf`) và mã QR (`qrcode`).
+- [ ] Thiết kế mẫu giao diện Chứng nhận số (E-Certificate template) với khung viền sang trọng, watermark và bố cục thông tin minh bạch.
+- [ ] Viết hàm tiện ích tính mã băm SHA-256 phía client sử dụng trình duyệt Web Crypto API (`window.crypto.subtle.digest`).
+- [ ] Kiểm tra kết nối ví MetaMask với mạng Hardhat Local (`http://127.0.0.1:8545`).
+
+> **Mốc tích hợp M1 (Cuối Ngày 3):** Chạy thử thành công script deploy Smart Contract trên local node; Client kết nối được MetaMask và đọc được số dư test ETH.
 
 ---
 
-### Phase 6 - Nghiệp vụ Nâng cao (Sau MVP - Tùy chọn triển khai)
+### GIAI ĐOẠN 2: Phát Triển Chức Năng Độc Lập Theo Slice (Ngày 4 - Ngày 8)
 
-#### Thành Viên A - Backend + Contract
-- [ ] **Task 6.1** - Chốt thiết kế licensing:
-  - Phân tích quyền owner/licensee, thời hạn, loại license, phí
-  - Quyết định dữ liệu on-chain vs off-chain
-- [ ] **Task 6.2** - Implement AssetLicensing.sol:
-  - Contract với access control, expiry, revoke
-  - Test owner transfer, license overlap, invalid dates
-- [ ] **Task 6.3** - Implement licensing backend:
-  - Migration cho LicenseAgreement
-  - APIs issue/list/revoke
-  - Authorization, terms URI
-- [ ] **Task 6.4** - Implement admin dispute workflow:
-  - API nhận dispute, evidence access control
-  - Review/resolve, flag/revoke đồng bộ DB và contract
-  - Audit trail
-- [ ] **Task 6.5** - Implement blockchain event worker:
-  - Thiết kế cursor từ BlockchainSyncLog
-  - Scan block range an toàn
-  - Deduplicate event, retry/reorg policy
-- [ ] **Task 6.6** - Tích hợp IPFS có kiểm soát:
-  - Chọn Pinata/Kubo
-  - Pin metadata/file
-  - Fallback/error policy
+#### Thành Viên A: Luồng Đăng Ký Tài Sản & Quản Lý Cá Nhân
+- [ ] Xây dựng form Đăng ký tài sản (`/creator/register`): kéo thả file, tự động tính SHA-256 trên browser và hiển thị mã băm ngay cho người dùng xem.
+- [ ] Xây dựng API Route `POST /api/assets`: lưu file vào `public/uploads/`, đối chiếu mã băm, kiểm tra trùng lặp trong SQLite, tạo bản ghi với trạng thái `PENDING_APPROVAL`.
+- [ ] Xây dựng Trang cá nhân / Dashboard tác giả (`/creator/my-assets`): hiển thị danh sách tài sản theo các trạng thái (Chờ duyệt, Đã duyệt, Đã lên Blockchain, Bị từ chối).
+- [ ] Xây dựng chức năng kích hoạt giao dịch MetaMask mint NFT on-chain khi hồ sơ được duyệt.
+- [ ] Xây dựng API `POST /api/assets/[id]/sync-onchain`: xác thực transaction receipt từ Hardhat RPC và cập nhật `tokenId`, `txHash` vào SQLite.
+- [ ] Xây dựng tính năng Chuyển nhượng tài sản (`transferAsset`) kèm cập nhật `OwnershipHistory`.
 
-#### Thành Viên B - Frontend
-- [ ] **Task 6.7** - Xây dựng Licensing UI:
-  - Form tạo license agreement
-  - Dashboard danh sách license
-  - Timeline license (active/expired/terminated)
-- [ ] **Task 6.8** - Xây dựng Admin Dashboard:
-  - Quản lý user (list, activate/suspend)
-  - Xem dispute reports
-  - Form review dispute với evidence
-  - Action: flag/revoke asset
-  - Audit trail viewer
-- [ ] **Task 6.9** - Xây dựng IPFS integration UI:
-  - Hiển thị CID khi upload
-  - Fallback indicator khi IPFS unavailable
-  - Privacy/retention settings
-- [ ] **Task 6.10** - Kiểm thử Phase 2:
-  - E2E test licensing flow
-  - Dispute workflow
-  - Worker restart/reorg
-  - IPFS unavailable scenario
+#### Thành Viên B: Luồng Xét Duyệt & Cổng Xác Minh Chứng Nhận
+- [ ] Xây dựng Cổng quản trị xét duyệt (`/admin/approvals`): hiển thị danh sách hồ sơ `PENDING_APPROVAL`, cho phép xem file gốc, xem thông tin tác giả và mã băm.
+- [ ] Xây dựng API Route `POST /api/admin/assets/[id]/review`: xử lý nút "Phê duyệt" (status -> `APPROVED`) hoặc "Từ chối" (status -> `REJECTED` + lý do).
+- [ ] Xây dựng API và hàm sinh E-Certificate: tự động tạo mã chứng nhận (`CERT-2026-XXXX`), tạo mã QR chứa link tra cứu, xuất file PDF chứng nhận có thể tải về.
+- [ ] Xây dựng Cổng xác minh công khai (`/verify`):
+  - Tra cứu bằng số Token ID hoặc mã băm SHA-256.
+  - **Tính năng đặc biệt:** Vùng kéo thả file trực tiếp (Drag & Drop File) -> Trình duyệt tự băm SHA-256 -> Gọi trực tiếp hàm `getAssetByHash` của Smart Contract và đối chiếu SQLite -> Báo kết quả thật/giả tức thì!
+- [ ] Xây dựng trang xem chi tiết chứng nhận điện tử (`/certificate/[id]`).
 
-#### Thành Viên A
-- [ ] **Hỗ trợ** debug API issues
-- [ ] **Đảm bảo** contract ABI/address cung cấp đúng
-- [ ] **Review** ethers.js integration
+> **Mốc tích hợp M2 (Cuối Ngày 8):** Kiểm thử tích hợp luồng chéo đầu tiên: Thành viên A đăng ký tài sản -> Thành viên B mở trang Admin duyệt hồ sơ -> Thành viên A mint on-chain -> Thành viên B kiểm tra trang Xác minh và xuất chứng nhận PDF.
 
 ---
 
-### Phase 5 - Tích hợp & Release MVP (Cả 2 người cùng làm)
+### GIAI ĐOẠN 3: Hoàn Thiện Trải Nghiệm & Tính Năng Nâng Cao (Ngày 9 - Ngày 11)
 
-#### Thành Viên A
-- [ ] **Task 5.1** - Dựng môi trường tích hợp reproducible:
-  - Chạy PostgreSQL, Hardhat node/deploy, backend theo runbook
-  - Kiểm tra env separation, health checks
-- [ ] **Task 5.3** - Kiểm tra lỗi và khôi phục:
-  - Test restart backend
-  - Test RPC unavailable
-  - Test transaction reverted
-  - Test duplicate callback
-  - Test DB failure
-  - Test temp upload cleanup
-- [ ] **Task 5.4** - Rà soát bảo mật MVP:
-  - Secret leakage check
-  - Private key scope local-only
-  - Password hashing, JWT expiry
-  - RBAC, nonce replay
-  - Upload traversal/type spoofing
-  - Rate/size limits, CORS
-  - SQL/ORM input
-  - Không đưa PII/file binary lên chain
-- [ ] **Task 5.5** - Chạy quality gates:
-  - Compile, lint, type-check
-  - Contract unit tests
-  - Backend tests
-  - Sửa lỗi MVP scope
+#### Thành Viên A:
+- [ ] Hoàn thiện trang chi tiết tài sản công khai (`/assets/[id]`): hiển thị ảnh, thông tin tác giả, mốc thời gian on-chain, transaction hash có link mở rộng.
+- [ ] Xây dựng biểu đồ lịch sử chuyển nhượng (Provenance Timeline) trực quan từ bảng `OwnershipHistory`.
+- [ ] Xử lý các trường hợp ngoại lệ: người dùng từ chối ký ví, giao dịch blockchain thất bại, mạng bị ngắt kết nối.
 
-#### Thành Viên B
-- [ ] **Task 5.1** - Dựng môi trường tích hợp:
-  - Chạy frontend
-  - Kiểm tra contract address/ABI đồng nhất
-- [ ] **Task 5.2** - Kiểm thử acceptance end-to-end:
-  - Register/login/bind wallet
-  - Upload/register/mint/confirm
-  - Public verify
-  - Modified file, duplicate file
-  - Transfer/history
-  - Revoke/flag outcome
-- [ ] **Task 5.4** - Rà soát bảo mật:
-  - Check frontend không lộ secret
-  - Check environment variables đúng public/private
-- [ ] **Task 5.5** - Chạy quality gates:
-  - Frontend tests/build
-  - Check coverage/known failures
-
-#### Cả 2 người cùng làm
-- [ ] **Task 5.6** - Hoàn thiện tài liệu vận hành:
-  - Cập nhật README theo implementation thực tế
-  - Bổ sung API examples
-  - Local deployment guide
-  - Seed accounts
-  - Troubleshooting
-  - Giới hạn pháp lý
+#### Thành Viên B:
+- [ ] Thiết kế Landing Page giới thiệu dự án (`/`): thống kê tổng tài sản đã bảo vệ, các tính năng nổi bật, hướng dẫn sử dụng.
+- [ ] Xây dựng trang Khám phá (Explore Gallery): hiển thị các tác phẩm số đã được chứng nhận và bảo vệ on-chain.
+- [ ] Tối ưu hóa giao diện E-Certificate PDF (thêm watermark chống sao chép, chữ ký số đại diện, màu sắc chuẩn đồ họa cao cấp).
+- [ ] Bổ sung chức năng Quản trị thu hồi bản quyền (`revokeAsset`) trên giao diện Admin khi phát hiện tài sản vi phạm.
 
 ---
 
-## Checkpoint Sync (Quan Trọng)
+### GIAI ĐOẠN 4: Kiểm Thử Toàn Diện, Đồng Bộ Môi Trường & Chuẩn Bị Demo (Ngày 12 - Ngày 14)
 
-### Checkpoint 1: Sau Phase 1
-- ✅ Hardhat project đã chạy được `npx hardhat compile` và `npx hardhat test`
-- ✅ NestJS backend đã chạy được `npm run start:dev`
-- ✅ Prisma migration đã thành công trên PostgreSQL
-- ✅ Next.js frontend đã chạy được `npm run dev`
-- ✅ Cả 2 người đều có thể chạy local environment
-
-### Checkpoint 2: Sau Phase 2 (Critical)
-- ✅ **Thành Viên A** cung cấp cho **Thành Viên B**:
-  - Contract ABI (file JSON)
-  - Contract address (địa chỉ trên local chain)
-  - Chain ID (31337)
-  - Example ethers.js integration code
-- ✅ Contract unit tests 100% pass
-- ✅ Contract đã deploy lên local Hardhat node
-
-### Checkpoint 3: Sau Phase 3 (Critical)
-- ✅ **Thành Viên A** cung cấp cho **Thành Viên B**:
-  - API spec đầy đủ (endpoint, method, request/response)
-  - DTO types TypeScript
-  - Example API calls (Postman collection hoặc documentation)
-  - JWT token example cho testing
-- ✅ Backend tests pass
-- ✅ Auth endpoint sẵn sàng (register, login, wallet binding)
-
-### Checkpoint 4: Sau Phase 4
-- ✅ Frontend có thể gọi API backend thành công
-- ✅ Frontend có thể kết nối MetaMask
-- ✅ Frontend có thể gọi contract function qua ethers.js
-- ✅ End-to-end flow cơ bản hoạt động (register → mint → verify)
-
-### Checkpoint 5: Sau Phase 5
-- ✅ Toàn bộ E2E flow pass
-- ✅ Security audit cơ bản hoàn thành
-- ✅ Documentation cập nhật
-- ✅ MVP sẵn sàng demo
+#### Cả 2 thành viên cùng phối hợp:
+- [ ] Chuẩn hóa kịch bản Demo hoàn chỉnh trong 5 phút (kịch bản trình bày luồng từ lúc đăng ký đến lúc xác thực thành công và phát hiện file giả mạo).
+- [ ] Viết script Reset & Seed dữ liệu demo chỉ bằng 1 dòng lệnh: deploy lại contract, tạo sẵn 3 tài sản mẫu kèm file chứng nhận.
+- [ ] Kiểm thử kiểm tra chéo (Cross-Testing): Thành viên A đóng vai Admin duyệt tài sản, Thành viên B đóng vai Creator đăng ký tài sản.
+- [ ] Rà soát toàn bộ tài liệu, README, slide thuyết trình và commit lịch sử GitHub đều đặn.
 
 ---
 
-## Công Cụ Hỗ Trợ Sync
+## 5. Hướng Dẫn Tự Kiểm Thử Độc Lập Cho Từng Thành Viên
 
-### Communication
-- **Daily Standup:** 15 phút mỗi ngày
-  - Thành viên A: Progress backend/contract, blockers
-  - Thành Viên B: Progress frontend, blockers
-  - Sync dependencies: API changes, contract changes
+Mỗi thành viên có thể kiểm thử toàn bộ chức năng của mình trên máy cá nhân mà không cần máy của thành viên kia:
 
-### Version Control
-- **Branch Strategy:**
-  - `main` - Production ready
-  - `dev` - Integration branch
-  - `feature/backend-xxx` - Backend features
-  - `feature/frontend-xxx` - Frontend features
-  - `feature/contract-xxx` - Contract features
-- **Merge Rules:**
-  - Contract changes → review bởi cả 2 người
-  - API changes → update docs trước khi merge
-  - Frontend integration → test với backend dev server trước
+### Thành viên A tự kiểm thử:
+```bash
+# 1. Khởi động Hardhat local node
+npx hardhat node
 
-### Documentation Sharing
-- **Contract Artifacts:** Commit vào repo (để frontend dễ access)
-- **API Spec:** Cập nhật file `docs/api_spec.md` khi có thay đổi
-- **Environment Variables:** Cập nhật `.env.example` khi có biến mới
+# 2. Deploy contract ở terminal khác
+npx hardhat run scripts/deploy.js --network localhost
 
----
+# 3. Chạy Next.js
+npm run dev
 
-## Timeline Gợi Ý (MVP)
+# 4. Truy cập http://localhost:3000/creator/register để test upload file và kiểm tra dev.db
+```
 
-| Phase | Thời Gian Ước Tính | Deliverable |
-|-------|-------------------|-------------|
-| Phase 1 | 2-3 ngày | Workspace sẵn sàng, cả 2 có thể chạy local |
-| Phase 2 | 3-4 ngày | Contract hoàn chỉnh, tests pass, deploy local |
-| Phase 3 | 5-7 ngày | Backend hoàn chỉnh, API sẵn sàng, tests pass |
-| Phase 4 | 5-7 ngày | Frontend hoàn chỉnh, integration thành công |
-| Phase 5 | 2-3 ngày | E2E pass, security check, documentation |
-| **Tổng** | **17-24 ngày** | MVP demo ready |
-
----
-
-## Lưu Ý Quan Trọng
-
-1. **Thành Viên A** cần hoàn thành contract deploy và API auth sớm nhất có thể để **Thành Viên B** bắt đầu frontend integration
-2. **Thành Viên B** có thể bắt đầu làm UI components không phụ thuộc API (shell, layout, components cơ bản) trong khi chờ backend
-3. **Sync thường xuyên** - Đừng để frontend chờ API quá lâu, hãy mock data nếu cần
-4. **Review code chéo** - Thành viên A review frontend code, Thành viên B review backend/contract code
-5. **Test local cùng nhau** - Trước khi commit, cả 2 chạy full E2E flow local
-
----
-
-## Risk Mitigation
-
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| Contract có bug sau khi frontend đã tích hợp | High | Unit tests kỹ lưỡng, review chéo, deploy local test trước |
-| API changes break frontend | Medium | Version API, update docs, communicate changes sớm |
-| Hash inconsistency giữa backend và contract | Critical | Test cross-platform hash, document standard rõ ràng |
-| MetaMask integration issues | Medium | Test trên nhiều browser, handle edge cases |
-| Database schema changes late | High | Chốt schema sớm, migration strategy rõ ràng |
+### Thành viên B tự kiểm thử:
+- Sử dụng script seed dữ liệu mẫu (do Thành viên A cung cấp hoặc tạo trực tiếp bằng Prisma Studio: `npx prisma studio`).
+- Tạo sẵn 1 bản ghi `PENDING_APPROVAL` và 1 bản ghi `REGISTERED` trong SQLite local để test ngay giao diện Admin và tính năng xuất PDF/QR mà không cần chờ Thành viên A đăng ký.
