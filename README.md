@@ -137,6 +137,7 @@ assetchain/
 ├── .env.example                   # Mẫu cấu hình môi trường chuẩn
 ├── .gitignore                     # Loại trừ file nhạy cảm và build artifacts
 ├── package.json                   # Dependencies toàn dự án
+├── BLOCKCHAIN_PROJECT_PLAN_14_DAYS.md # KẾ HOẠCH DỰ ÁN 14 NGÀY DUY NHẤT & TOÀN DIỆN
 └── README.md                      # Tài liệu hướng dẫn dự án
 ```
 
