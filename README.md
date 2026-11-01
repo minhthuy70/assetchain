@@ -149,6 +149,7 @@ assetchain/
 |---|---|---|
 | **Chức năng chính** | - Khởi tạo project Next.js + Tailwind + Prisma SQLite.<br>- Viết Smart Contract lõi `AssetRegistry.sol` & Unit tests.<br>- Form đăng ký tài sản (Upload, Web Crypto SHA-256).<br>- API Upload và xử lý trùng hash trong SQLite.<br>- Tích hợp MetaMask ký mint NFT on-chain.<br>- Dashboard tác giả (`/creator/my-assets`).<br>- Chức năng Chuyển nhượng quyền sở hữu (`transferAsset`). | - Xây dựng Layout tổng thể & Component kết nối ví.<br>- Cổng quản trị thẩm định hồ sơ Admin (`/admin/approvals`).<br>- API duyệt / từ chối hồ sơ (Approve / Reject).<br>- Bộ sinh E-Certificate PDF & tạo mã QR động.<br>- Cổng tra cứu xác minh công khai (`/verify`).<br>- Tính năng 1-Click Drag-and-Drop Verification.<br>- Nghiệp vụ thu hồi bản quyền (`revokeAsset`). |
 | **Phần dùng chung** | Chịu trách nhiệm chính cấu trúc hợp đồng và Prisma schema ban đầu. Khóa ABI và schema vào Ngày 2. | Nhận ABI và schema để xây dựng cổng Admin và cổng xác minh mà không phải chờ Thành viên A code xong giao diện. |
+| **Kế hoạch chi tiết 14 ngày** | 🔗 **[Xem Kế Hoạch Thành Viên A](file:///d:/GITHUB/assetchain/PLAN_THANH_VIEN_A_14_DAYS.md)** | 🔗 **[Xem Kế Hoạch Thành Viên B](file:///d:/GITHUB/assetchain/PLAN_THANH_VIEN_B_14_DAYS.md)** |
 
 ---
 
