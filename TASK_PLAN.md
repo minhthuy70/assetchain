@@ -291,6 +291,31 @@ và nền tảng thực thi (pending).**
 | Phase 5 | Tích hợp, bảo mật, release MVP | pending |
 | Phase 6 | Licensing, dispute, worker, IPFS | pending |
 
+## Issue / Blocked Tasks Log
+
+| Task ID | Status | Issue Description | Root Cause | Proposed Solution | Last Updated |
+|---------|--------|-------------------|------------|-------------------|--------------|
+| (chưa có task bị block) |
+
+## Architecture & Technology Change Log
+
+| Date | Change Type | From | To | Reason | Affected Tasks |
+|------|-------------|------|-----|--------|----------------|
+| (chưa có thay đổi kiến trúc/công nghệ) |
+
+## Ad-hoc Tasks / Scope Changes
+
+| ID | Description | Proposed Phase | Priority | Rationale | Status |
+|----|-------------|----------------|----------|-----------|--------|
+| (chưa có task phát sinh) |
+
+## Project Notes & Assumptions
+
+- **Giả định môi trường phát triển:** Node.js 18+, PostgreSQL 16, Docker Desktop cho Windows.
+- **Giả định security:** Private key chỉ dùng local (Hardhat node), không deploy testnet/mainnet trong MVP.
+- **Giả định user:** Creator và Guest có hiểu biết cơ bản về MetaMask; hệ thống không xử lý recovery ví bị mất.
+- **Quyết định pending:** IPFS và dispute workflow dời sang Phase 6 để tập trung MVP core.
+
 ## Final Acceptance
 
 Chỉ nghiệm thu khi các bằng chứng sau đã tồn tại và các checkbox liên quan
