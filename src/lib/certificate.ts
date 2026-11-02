@@ -15,6 +15,8 @@ export interface CertificateData {
   issuedAt: string;
   issuedBy?: string;
   appUrl?: string;
+  isRevoked?: boolean;
+  revocationReason?: string;
 }
 
 /**
@@ -341,6 +343,20 @@ export async function generateCertificatePDF(data: CertificateData): Promise<jsP
     196,
     { align: "center" }
   );
+
+  // 7. WATERMARK THU HỒI NẾU TÀI SẢN BỊ REVOKED
+  if (data.isRevoked) {
+    doc.saveGraphicsState();
+    doc.setGState(new (doc as any).GState({ opacity: 0.35 }));
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(40);
+    doc.setTextColor(225, 29, 72); // Rose/Red
+    doc.text("REVOKED / ĐÃ THU HỒI", 148.5, 115, {
+      align: "center",
+      angle: 25,
+    });
+    doc.restoreGraphicsState();
+  }
 
   return doc;
 }

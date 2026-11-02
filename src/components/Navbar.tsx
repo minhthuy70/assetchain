@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { name: "Khám phá", href: "/explore", icon: Compass },
   { name: "Cổng xác minh 1-Click", href: "/verify", icon: FileCheck, highlight: true },
   { name: "Quản trị thẩm định", href: "/admin/approvals", icon: ShieldAlert },
+  { name: "Thu hồi", href: "/admin/revoke", icon: ShieldAlert },
 ];
 
 export default function Navbar() {
