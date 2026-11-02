@@ -58,6 +58,31 @@ export function getAssetRegistryContract(
 }
 
 /**
+ * Bẫy lỗi và dịch mã lỗi Web3 / MetaMask sang thông báo thân thiện
+ */
+export function parseWeb3ErrorMessage(error: any): string {
+  if (!error) return "Đã xảy ra lỗi không xác định.";
+
+  if (error.code === 4001 || error.code === "ACTION_REJECTED") {
+    return "Bạn đã từ chối ký giao dịch trên MetaMask.";
+  }
+
+  if (error.code === "INSUFFICIENT_FUNDS" || error.message?.includes("insufficient funds")) {
+    return "Số dư ETH trong ví không đủ để chi trả phí Gas giao dịch.";
+  }
+
+  if (error.code === "NETWORK_ERROR" || error.message?.includes("could not detect network")) {
+    return "Không thể kết nối mạng Hardhat Local EVM tại http://127.0.0.1:8545. Hãy đảm bảo node đang chạy!";
+  }
+
+  if (error.reason) {
+    return `Lỗi hợp đồng thông minh: ${error.reason}`;
+  }
+
+  return error.message || "Giao dịch Blockchain thất bại.";
+}
+
+/**
  * Kiểm tra và chuyển đổi mạng sang Hardhat Local EVM (31337)
  */
 export async function ensureHardhatNetwork(): Promise<boolean> {
