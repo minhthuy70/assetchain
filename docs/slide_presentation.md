@@ -97,3 +97,4 @@
   1. Triển khai lên testnet/mainnet công khai (Polygon, Arbitrum).
   2. Tích hợp mạng lưu trữ phi tập trung vĩnh cửu (IPFS / Arweave).
   3. Mở rộng cơ chế Royalty Fee khi chuyển nhượng bản quyền tác phẩm.
+

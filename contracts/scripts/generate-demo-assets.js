@@ -45,3 +45,4 @@ console.log("   SHA-256:", originalHash);
 console.log("2. Fake/Altered 1-Pixel Image: public/demo/Sen_Vang_Fake.png");
 console.log("   SHA-256:", fakeHash);
 console.log("Difference: Exactly 1 bit altered, yet SHA-256 is 100% avalanche-diverged!");
+

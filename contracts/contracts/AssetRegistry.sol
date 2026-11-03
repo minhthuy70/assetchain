@@ -176,3 +176,4 @@ contract AssetRegistry is ERC721URIStorage, Ownable, Pausable {
         _unpause();
     }
 }
+
