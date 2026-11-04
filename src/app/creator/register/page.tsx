@@ -129,7 +129,7 @@ export default function CreatorRegisterPage() {
           <div className="space-y-2">
             <h2 className="text-2xl font-bold text-white">Nộp Hồ Sơ Đăng Ký Thành Công!</h2>
             <p className="text-xs sm:text-sm text-slate-300 max-w-lg mx-auto">
-              Hồ sơ tác phẩm <span className="font-semibold text-white">"{successAsset.title}"</span> đã được tiếp nhận và chuyển vào hàng đợi thẩm định của Hội đồng Admin.
+              Hồ sơ tác phẩm <span className="font-semibold text-white">&ldquo;{successAsset.title}&rdquo;</span> đã được tiếp nhận và chuyển vào hàng đợi thẩm định của Hội đồng Admin.
             </p>
           </div>
 

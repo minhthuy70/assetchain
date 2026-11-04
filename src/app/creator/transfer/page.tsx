@@ -190,7 +190,7 @@ function TransferContent() {
           <div className="space-y-2">
             <h2 className="text-2xl font-bold text-white">Chuyển Quyền Thành Công!</h2>
             <p className="text-xs sm:text-sm text-slate-300 max-w-md mx-auto">
-              Tác phẩm <span className="font-semibold text-white">"{successData.assetTitle}"</span> (Token #{successData.tokenId}) đã được chuyển giao thành công trên mạng EVM.
+              Tác phẩm <span className="font-semibold text-white">&ldquo;{successData.assetTitle}&rdquo;</span> (Token #{successData.tokenId}) đã được chuyển giao thành công trên mạng EVM.
             </p>
           </div>
 
