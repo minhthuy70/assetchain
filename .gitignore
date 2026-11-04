@@ -20,10 +20,6 @@ out/
 build/
 dist/
 
-# NestJS Build Outputs (Backend)
-backend/dist/
-backend/dist-test/
-
 # Hardhat & Smart Contracts Outputs
 contracts/artifacts/
 contracts/cache/
@@ -44,11 +40,17 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Database & Uploaded Assets (Local Storage)
-backend/uploads/
+# Database & Local SQLite
+prisma/*.db
+prisma/*.db-journal
 *.sqlite
 *.sqlite3
-pgdata/
+
+# Uploaded Assets & Certificates (Local Storage)
+public/uploads/*
+!public/uploads/.gitkeep
+public/certificates/*
+!public/certificates/.gitkeep
 
 # IDE & OS Files
 .idea/
