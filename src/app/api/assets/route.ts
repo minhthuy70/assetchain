@@ -12,6 +12,7 @@ export async function GET(req: NextRequest) {
     const wallet = searchParams.get("wallet");
     const category = searchParams.get("category");
     const query = searchParams.get("query");
+    const status = searchParams.get("status");
     const onlyRegistered = searchParams.get("registered") === "1";
 
     const where: any = {};
@@ -20,7 +21,9 @@ export async function GET(req: NextRequest) {
       where.currentOwnerWallet = wallet;
     }
 
-    if (onlyRegistered) {
+    if (status) {
+      where.status = status;
+    } else if (onlyRegistered) {
       where.status = "REGISTERED";
     }
 
@@ -73,7 +76,7 @@ export async function POST(req: NextRequest) {
 
     const buffer = Buffer.from(await file.arrayBuffer());
 
-    // 1. Tính mã băm SHA-256 server-side
+    // 1. Tính mã băm SHA-256 server-side để đối chiếu client-side
     const serverHash = crypto.createHash("sha256").update(buffer).digest("hex");
 
     // 2. Chống trùng lặp tuyệt đối trong cơ sở dữ liệu SQLite
@@ -143,4 +146,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
-

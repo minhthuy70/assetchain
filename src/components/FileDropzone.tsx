@@ -176,51 +176,36 @@ export default function FileDropzone({
           onClick={() => fileInputRef.current?.click()}
           className={`relative group cursor-pointer flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-10 text-center transition-all duration-300 ${
             isDragging
-              ? "border-indigo-400 bg-indigo-500/15 scale-[1.01] shadow-2xl shadow-indigo-500/20"
-              : "border-slate-700/80 bg-slate-900/60 hover:border-indigo-500/60 hover:bg-slate-800/40"
+              ? "border-indigo-500 bg-indigo-500/10 scale-[1.01]"
+              : "border-slate-700 bg-slate-900/40 hover:border-indigo-400/80 hover:bg-slate-900/80"
           }`}
         >
-          {/* BACKGROUND GLOW */}
-          <div className="absolute inset-0 -z-10 rounded-2xl bg-gradient-to-b from-indigo-500/5 to-transparent opacity-0 transition group-hover:opacity-100" />
-
-          {/* ICON */}
-          <div
-            className={`flex h-16 w-16 items-center justify-center rounded-2xl transition duration-300 ${
-              isDragging
-                ? "bg-indigo-500 text-white scale-110 shadow-lg shadow-indigo-500/40"
-                : "bg-slate-800 text-indigo-400 group-hover:bg-indigo-500/20 group-hover:text-indigo-300"
-            }`}
-          >
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-400 group-hover:scale-110 group-hover:bg-indigo-500/20 transition-all duration-300">
             <UploadCloud className="h-8 w-8" />
           </div>
 
-          <h3 className="mt-4 text-base font-semibold text-slate-100">
-            Kéo thả tệp tin tác phẩm vào đây hoặc{" "}
-            <span className="text-indigo-400 underline decoration-indigo-400/40 underline-offset-4 group-hover:text-indigo-300">
-              chọn từ máy tính
-            </span>
+          <h3 className="mt-4 text-base font-semibold text-white">
+            Kéo thả tệp tác phẩm vào đây hoặc <span className="text-indigo-400 underline">duyệt từ máy</span>
           </h3>
-
-          <p className="mt-2 text-xs text-slate-400 max-w-sm">
-            Hỗ trợ ảnh số (PNG, JPG, WEBP, GIF, SVG) và tài liệu PDF. Tối đa {maxSizeMB}MB.
+          <p className="mt-1 text-xs text-slate-400">
+            Hỗ trợ PNG, JPG, WEBP, PDF lên đến {maxSizeMB}MB
           </p>
 
-          <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-slate-800/80 px-3 py-1 text-[11px] text-slate-400 ring-1 ring-slate-700/60">
-            <Sparkles className="h-3 w-3 text-emerald-400" />
-            <span>Web Crypto API: Băm SHA-256 tức thì trực tiếp trên trình duyệt</span>
+          <div className="mt-4 flex items-center gap-2 rounded-full bg-slate-800/80 px-3 py-1 text-xs text-slate-300 border border-slate-700">
+            <Sparkles className="h-3.5 w-3.5 text-emerald-400" />
+            <span>Băm SHA-256 client-side tức thì (Zero-knowledge)</span>
           </div>
         </div>
       ) : (
-        /* PROCESSED / HASHED FILE DISPLAY CARD */
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-2xl backdrop-blur-xl">
-          {/* HEADER: FILE INFO + RESET BUTTON */}
-          <div className="flex items-start justify-between gap-4 border-b border-slate-800 pb-4">
+        <div className="rounded-2xl border border-slate-700 bg-slate-900/80 p-5 shadow-xl backdrop-blur-xl">
+          {/* FILE HEADER INFO */}
+          <div className="flex items-center justify-between border-b border-slate-800 pb-4">
             <div className="flex items-center gap-3">
               {previewUrl ? (
                 <div className="relative h-14 w-14 overflow-hidden rounded-xl border border-slate-700 bg-slate-950">
                   <Image
                     src={previewUrl}
-                    alt={file.name}
+                    alt="Preview"
                     fill
                     className="object-cover"
                     unoptimized
@@ -327,4 +312,3 @@ export default function FileDropzone({
     </div>
   );
 }
-

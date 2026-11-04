@@ -1,44 +1,62 @@
-const hre = require("hardhat");
+const { ethers } = require("hardhat");
 const fs = require("fs");
 const path = require("path");
 
 async function main() {
-  console.log("=== Starting Deployment of AssetRegistry.sol ===");
-  const [deployer] = await hre.ethers.getSigners();
-  console.log("Deploying contract with account:", deployer.address);
+  console.log("----------------------------------------------------");
+  console.log("BẮT ĐẦU TRIỂN KHAI SMART CONTRACT ASSETREGISTRY...");
+  console.log("----------------------------------------------------");
 
-  const balance = await hre.ethers.provider.getBalance(deployer.address);
-  console.log("Account balance:", hre.ethers.formatEther(balance), "ETH");
+  const [deployer] = await ethers.getSigners();
+  console.log("Địa chỉ ví Deployer (Admin):", deployer.address);
+  const balance = await ethers.provider.getBalance(deployer.address);
+  console.log("Số dư ví Deployer:", ethers.formatEther(balance), "ETH");
 
-  const AssetRegistry = await hre.ethers.getContractFactory("AssetRegistry");
-  const contract = await AssetRegistry.deploy();
-  await contract.waitForDeployment();
+  const AssetRegistryFactory = await ethers.getContractFactory("AssetRegistry");
+  const assetRegistry = await AssetRegistryFactory.deploy();
+  await assetRegistry.waitForDeployment();
 
-  const contractAddress = await contract.getAddress();
-  console.log("AssetRegistry deployed successfully at:", contractAddress);
+  const contractAddress = await assetRegistry.getAddress();
+  console.log("✅ HỢP ĐỒNG ĐÃ ĐƯỢC TRIỂN KHAI THÀNH CÔNG TẠI:", contractAddress);
 
-  // Xuất file ABI và Address sang thư mục src/contracts để Frontend sử dụng ngay
+  // 1. Lấy thông tin ABI từ Artifacts của Hardhat
+  const artifactPath = path.join(
+    __dirname,
+    "../artifacts/contracts/contracts/AssetRegistry.sol/AssetRegistry.json"
+  );
+
+  if (!fs.existsSync(artifactPath)) {
+    throw new Error(`Không tìm thấy file artifact tại ${artifactPath}`);
+  }
+
+  const artifact = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
+
+  // 2. Định dạng file cấu hình Frontend
+  const outputData = {
+    address: contractAddress,
+    chainId: 31337,
+    networkName: "Hardhat Local EVM",
+    deployedAt: new Date().toISOString(),
+    deployer: deployer.address,
+    abi: artifact.abi,
+  };
+
+  // 3. Tự động ghi ra src/contracts/AssetRegistry.json
   const targetDir = path.join(__dirname, "../../src/contracts");
   if (!fs.existsSync(targetDir)) {
     fs.mkdirSync(targetDir, { recursive: true });
   }
 
-  const artifact = await hre.artifacts.readArtifact("AssetRegistry");
-  const contractData = {
-    address: contractAddress,
-    chainId: 31337,
-    deployer: deployer.address,
-    deployedAt: new Date().toISOString(),
-    abi: artifact.abi,
-  };
+  const targetPath = path.join(targetDir, "AssetRegistry.json");
+  fs.writeFileSync(targetPath, JSON.stringify(outputData, null, 2));
 
-  const outputPath = path.join(targetDir, "AssetRegistry.json");
-  fs.writeFileSync(outputPath, JSON.stringify(contractData, null, 2));
-  console.log("Saved ABI & Address to:", outputPath);
+  console.log(`✅ ĐÃ XUẤT ABI VÀ ĐỊA CHỈ CONTRACT RA: ${targetPath}`);
+  console.log("----------------------------------------------------");
 }
 
-main().catch((error) => {
-  console.error("Deployment failed:", error);
-  process.exitCode = 1;
-});
-
+main()
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error("❌ Lỗi khi triển khai:", error);
+    process.exit(1);
+  });

@@ -39,4 +39,3 @@ if (fs.existsSync(artifactPath)) {
 }
 
 console.log("=== DEMO ENVIRONMENT IS 100% READY FOR PRESENTATION! ===");
-

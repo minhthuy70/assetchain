@@ -17,3 +17,12 @@ export function hexToBytes32(hex: string): string {
   return "0x" + clean.padStart(64, "0");
 }
 
+export function shortenAddress(addr: string): string {
+  if (!addr || addr.length < 10) return addr || "";
+  return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+}
+
+export function shortenHash(hash: string): string {
+  if (!hash || hash.length < 16) return hash || "";
+  return `${hash.slice(0, 8)}...${hash.slice(-8)}`;
+}
