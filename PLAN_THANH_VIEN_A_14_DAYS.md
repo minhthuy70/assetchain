@@ -395,26 +395,26 @@ npm run dev
 
 Thành viên A tự kiểm tra từng tiêu chí kỹ thuật trước khi bàn giao module:
 
-- [ ] **Smart Contract Logic:**
-  - [ ] Contract biên dịch không có warning với Solidity `^0.8.24`.
-  - [ ] 15+ unit test cases đều pass màu xanh (`npx hardhat test`).
-  - [ ] Chống trùng lặp on-chain: Không thể mint 2 lần cho cùng một `contentHash`.
-  - [ ] Chuyển nhượng tài sản chỉ chủ sở hữu hợp pháp mới gọi được.
-- [ ] **Băm SHA-256 Client-side:**
-  - [ ] Băm trực tiếp trên trình duyệt bằng Web Crypto API trong < 0.1s.
-  - [ ] Mã băm hiển thị đúng định dạng Hex 64 ký tự.
-  - [ ] Chuyển đổi chuẩn xác sang `bytes32` (`0x...`) tương thích Solidity.
-- [ ] **Database & API:**
-  - [ ] Lưu file nhị phân thành công vào thư mục vật lý `public/uploads/`.
-  - [ ] Database SQLite cập nhật đúng trạng thái qua từng bước: `PENDING_APPROVAL` -> `APPROVED` -> `REGISTERED`.
-  - [ ] Ghi nhận đầy đủ thông tin vào bảng `OwnershipHistory` mỗi khi có sự kiện MINT hoặc TRANSFER.
-- [ ] **Giao diện & Web3:**
-  - [ ] Nút "Đưa lên Blockchain" kích hoạt popup MetaMask chính xác.
-  - [ ] Trạng thái chờ đóng block hiển thị spinner rõ ràng, không gây đơ trang.
-  - [ ] Giao diện Dashboard tác giả hiển thị đầy đủ danh sách, bộ lọc mượt mà.
-  - [ ] Provenance Timeline hiển thị trực quan lịch sử chuyển quyền.
-- [ ] **Môi trường Demo:**
-  - [ ] Lệnh `npm run demo:reset` chạy trơn tru trong vòng 5 giây.
+- [x] **Smart Contract Logic:**
+  - [x] Contract biên dịch không có warning với Solidity `^0.8.24`.
+  - [x] 15+ unit test cases đều pass màu xanh (`npx hardhat test`).
+  - [x] Chống trùng lặp on-chain: Không thể mint 2 lần cho cùng một `contentHash`.
+  - [x] Chuyển nhượng tài sản chỉ chủ sở hữu hợp pháp mới gọi được.
+- [x] **Băm SHA-256 Client-side:**
+  - [x] Băm trực tiếp trên trình duyệt bằng Web Crypto API trong < 0.1s.
+  - [x] Mã băm hiển thị đúng định dạng Hex 64 ký tự.
+  - [x] Chuyển đổi chuẩn xác sang `bytes32` (`0x...`) tương thích Solidity.
+- [x] **Database & API:**
+  - [x] Lưu file nhị phân thành công vào thư mục vật lý `public/uploads/`.
+  - [x] Database SQLite cập nhật đúng trạng thái qua từng bước: `PENDING_APPROVAL` -> `APPROVED` -> `REGISTERED`.
+  - [x] Ghi nhận đầy đủ thông tin vào bảng `OwnershipHistory` mỗi khi có sự kiện MINT hoặc TRANSFER.
+- [x] **Giao diện & Web3:**
+  - [x] Nút "Đưa lên Blockchain" kích hoạt popup MetaMask chính xác.
+  - [x] Trạng thái chờ đóng block hiển thị spinner rõ ràng, không gây đơ trang.
+  - [x] Giao diện Dashboard tác giả hiển thị đầy đủ danh sách, bộ lọc mượt mà.
+  - [x] Provenance Timeline hiển thị trực quan lịch sử chuyển quyền.
+- [x] **Môi trường Demo:**
+  - [x] Lệnh `npm run demo:reset` chạy trơn tru trong vòng 5 giây.
 
 ---
 
