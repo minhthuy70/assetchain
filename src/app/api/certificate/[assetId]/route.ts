@@ -56,6 +56,8 @@ export async function GET(
       }),
       issuedBy: asset.certificate.issuedBy,
       appUrl: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+      isRevoked: asset.status === "REVOKED",
+      revocationReason: asset.rejectionReason || undefined,
     };
 
     // Lưu bản sao PDF vào public/certificates
@@ -90,4 +92,3 @@ export async function GET(
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
-

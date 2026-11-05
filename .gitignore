@@ -46,11 +46,13 @@ prisma/*.db-journal
 *.sqlite
 *.sqlite3
 
-# Uploaded Assets & Certificates (Local Storage)
+# Uploaded Assets & Certificates (Keep sample files, ignore runtime user uploads)
 public/uploads/*
 !public/uploads/.gitkeep
+!public/uploads/*.png
 public/certificates/*
 !public/certificates/.gitkeep
+!public/certificates/*.pdf
 
 # IDE & OS Files
 .idea/

@@ -10,6 +10,9 @@
     "seed": "node contracts/scripts/seed.js",
     "demo:reset": "node contracts/scripts/demo-reset.js"
   },
+  "prisma": {
+    "seed": "node contracts/scripts/seed.js"
+  },
   "dependencies": {
     "@openzeppelin/contracts": "^5.0.2",
     "@prisma/client": "^5.19.1",

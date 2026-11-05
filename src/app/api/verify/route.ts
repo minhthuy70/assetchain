@@ -60,11 +60,15 @@ export async function POST(req: NextRequest) {
       };
     }
 
+    const isDbVerified = Boolean(dbAsset) && (dbAsset.status === "REGISTERED" || dbAsset.status === "APPROVED");
+    const isRevoked = Boolean(onchainData?.isRevoked || dbAsset?.status === "REVOKED");
+    const verified = Boolean(onchainData?.registered) || isDbVerified;
+
     return NextResponse.json({
       success: true,
-      verified: onchainData?.registered || Boolean(dbAsset),
+      verified,
       isOnchain: Boolean(onchainData?.registered),
-      isRevoked: Boolean(onchainData?.isRevoked || dbAsset?.status === "REVOKED"),
+      isRevoked,
       hash: targetHash,
       dbData: dbAsset,
       onchainData,
@@ -74,4 +78,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
-
