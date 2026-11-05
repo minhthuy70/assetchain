@@ -12,8 +12,12 @@ import {
   CheckCircle2,
   FileCheck2,
   Lock,
+  Wallet,
+  ArrowRight,
+  ShieldCheck,
 } from "lucide-react";
 import contractInfo from "@/contracts/AssetRegistry.json";
+import { shortenAddress } from "@/lib/crypto";
 
 export default function AdminRevokePage() {
   const [tokenId, setTokenId] = useState<string>("");
@@ -22,6 +26,81 @@ export default function AdminRevokePage() {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [registeredAssets, setRegisteredAssets] = useState<any[]>([]);
+
+  // AUTH STATE
+  const [connectedWallet, setConnectedWallet] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [checkingAuth, setCheckingAuth] = useState<boolean>(true);
+
+  const verifyWalletRole = useCallback(async (address: string | null) => {
+    if (!address) {
+      setConnectedWallet(null);
+      setIsAdmin(false);
+      setCheckingAuth(false);
+      return;
+    }
+
+    try {
+      setConnectedWallet(address);
+      const res = await fetch(`/api/admin/check-role?wallet=${address}`);
+      const data = await res.json();
+      setIsAdmin(!!data.isAdmin);
+    } catch (err) {
+      console.error("Lỗi kiểm tra quyền Admin:", err);
+      setIsAdmin(false);
+    } finally {
+      setCheckingAuth(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    async function initWallet() {
+      if (typeof window !== "undefined" && (window as any).ethereum) {
+        try {
+          const accounts = await (window as any).ethereum.request({
+            method: "eth_accounts",
+          });
+          if (accounts && accounts.length > 0) {
+            await verifyWalletRole(accounts[0]);
+          } else {
+            setCheckingAuth(false);
+          }
+
+          (window as any).ethereum.on("accountsChanged", (newAccounts: string[]) => {
+            if (newAccounts && newAccounts.length > 0) {
+              verifyWalletRole(newAccounts[0]);
+            } else {
+              setConnectedWallet(null);
+              setIsAdmin(false);
+            }
+          });
+        } catch {
+          setCheckingAuth(false);
+        }
+      } else {
+        setCheckingAuth(false);
+      }
+    }
+
+    initWallet();
+  }, [verifyWalletRole]);
+
+  const connectAdminWallet = async () => {
+    if (typeof window !== "undefined" && (window as any).ethereum) {
+      try {
+        const accounts = await (window as any).ethereum.request({
+          method: "eth_requestAccounts",
+        });
+        if (accounts && accounts.length > 0) {
+          await verifyWalletRole(accounts[0]);
+        }
+      } catch (err) {
+        console.error("Lỗi kết nối ví:", err);
+      }
+    } else {
+      alert("Vui lòng cài đặt tiện ích mở rộng MetaMask trên trình duyệt!");
+    }
+  };
 
   const fetchRegistered = useCallback(async () => {
     try {
@@ -39,6 +118,11 @@ export default function AdminRevokePage() {
 
   const handleRevoke = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isAdmin) {
+      setErrorMsg("Từ chối quyền: Vui lòng kết nối ví MetaMask thuộc Hội đồng Quản trị (Admin)!");
+      return;
+    }
+
     if (!tokenId || !reason.trim()) {
       setErrorMsg("Vui lòng cung cấp đầy đủ Token ID và Lý do thu hồi!");
       return;
@@ -65,11 +149,18 @@ export default function AdminRevokePage() {
         }
       }
 
-      // 2. Gửi lệnh cập nhật off-chain
+      // 2. Gửi lệnh cập nhật off-chain kèm adminWallet
       const res = await fetch("/api/admin/revoke", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tokenId: Number(tokenId), reason: reason.trim() }),
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-wallet": connectedWallet || "",
+        },
+        body: JSON.stringify({
+          tokenId: Number(tokenId),
+          reason: reason.trim(),
+          adminWallet: connectedWallet,
+        }),
       });
 
       const data = await res.json();
@@ -102,6 +193,78 @@ export default function AdminRevokePage() {
         </p>
       </div>
 
+      {/* ADMIN STATUS BANNER */}
+      {checkingAuth ? (
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 flex items-center gap-3">
+          <div className="h-4 w-4 rounded-full border-2 border-rose-500 border-t-transparent animate-spin" />
+          <span className="text-xs text-slate-400">Đang kiểm tra quyền hạn ví MetaMask Admin...</span>
+        </div>
+      ) : !connectedWallet ? (
+        <div className="rounded-3xl border border-amber-500/30 bg-amber-500/10 p-6 backdrop-blur-xl shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-500/20 text-amber-400 ring-1 ring-amber-500/30">
+              <Lock className="h-6 w-6" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-white">Yêu Cầu Kết Nối Ví Quản Trị Viên (Admin)</h3>
+              <p className="text-xs text-slate-300 mt-1">
+                Lệnh thu hồi quyền bản quyền yêu cầu quyền hạn Deployer/Owner của Smart Contract.
+              </p>
+              <p className="text-[11px] font-mono text-amber-400 mt-1">
+                Gợi ý tài khoản Admin (Hardhat #0): 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={connectAdminWallet}
+            className="shrink-0 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#F6851B] to-[#CD6116] px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-orange-500/25 hover:brightness-110 transition"
+          >
+            <Wallet className="h-4 w-4" />
+            <span>Kết Nối Ví Admin</span>
+          </button>
+        </div>
+      ) : !isAdmin ? (
+        <div className="rounded-3xl border border-rose-500/30 bg-rose-500/10 p-6 backdrop-blur-xl shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-rose-500/20 text-rose-400 ring-1 ring-rose-500/30">
+              <ShieldAlert className="h-6 w-6" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-rose-400">Từ Chối Quyền Truy Cập (403 Forbidden)</h3>
+              <p className="text-xs text-slate-300 mt-1">
+                Địa chỉ ví hiện tại (<span className="font-mono text-white">{shortenAddress(connectedWallet)}</span>) không có quyền Quản trị viên (Admin Council).
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/creator/my-assets"
+            className="shrink-0 inline-flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-200 hover:text-white transition"
+          >
+            <span>Về Bảng Điều Khiển</span>
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-400 ring-1 ring-emerald-500/40">
+              <ShieldCheck className="h-4 w-4" />
+            </div>
+            <div>
+              <span className="text-xs font-bold text-white flex items-center gap-2">
+                Quyền Hạn: Hội Đồng Quản Trị (Admin Council)
+                <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] text-emerald-300 font-mono">
+                  ĐÃ XÁC THỰC
+                </span>
+              </span>
+              <p className="text-[11px] text-slate-300 font-mono">
+                Ví Admin: {connectedWallet}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* FORM CARD */}
       <div className="rounded-3xl border border-rose-500/30 bg-slate-900/60 p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6">
         <div className="flex items-center gap-3">
@@ -121,10 +284,11 @@ export default function AdminRevokePage() {
               <input
                 type="number"
                 required
+                disabled={!isAdmin}
                 value={tokenId}
                 onChange={(e) => setTokenId(e.target.value)}
                 placeholder="VD: 1"
-                className="w-full rounded-xl border border-slate-800 bg-slate-950 p-3 text-xs text-white font-mono focus:outline-none focus:ring-1 focus:ring-rose-500"
+                className="w-full rounded-xl border border-slate-800 bg-slate-950 p-3 text-xs text-white font-mono focus:outline-none focus:ring-1 focus:ring-rose-500 disabled:opacity-50"
               />
             </div>
 
@@ -133,10 +297,11 @@ export default function AdminRevokePage() {
               <input
                 type="text"
                 required
+                disabled={!isAdmin}
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="VD: Phát hiện vi phạm bản quyền tác giả ban đầu..."
-                className="w-full rounded-xl border border-slate-800 bg-slate-950 p-3 text-xs text-white focus:outline-none focus:ring-1 focus:ring-rose-500"
+                className="w-full rounded-xl border border-slate-800 bg-slate-950 p-3 text-xs text-white focus:outline-none focus:ring-1 focus:ring-rose-500 disabled:opacity-50"
               />
             </div>
           </div>
@@ -156,11 +321,15 @@ export default function AdminRevokePage() {
           <div className="flex justify-end pt-2">
             <button
               type="submit"
-              disabled={loading}
-              className="inline-flex items-center gap-2 rounded-xl bg-rose-600 px-6 py-2.5 text-xs font-bold text-white shadow-lg shadow-rose-600/30 hover:bg-rose-700 transition disabled:opacity-50"
+              disabled={loading || !isAdmin}
+              className={`inline-flex items-center gap-2 rounded-xl px-6 py-2.5 text-xs font-bold text-white shadow-lg transition ${
+                isAdmin
+                  ? "bg-rose-600 shadow-rose-600/30 hover:bg-rose-700 cursor-pointer"
+                  : "bg-slate-800 border border-slate-750 text-slate-500 cursor-not-allowed opacity-50"
+              }`}
             >
               <ShieldAlert className="h-4 w-4" />
-              <span>{loading ? "Đang thực thi lệnh..." : "Xác Nhận Thu Hồi Bản Quyền"}</span>
+              <span>{loading ? "Đang thực thi lệnh..." : isAdmin ? "Xác Nhận Thu Hồi Bản Quyền" : "Yêu Cầu Quyền Admin"}</span>
             </button>
           </div>
         </form>
@@ -184,8 +353,9 @@ export default function AdminRevokePage() {
                 </div>
                 <button
                   type="button"
+                  disabled={!isAdmin}
                   onClick={() => setTokenId(String(asset.tokenId))}
-                  className="rounded-lg bg-slate-800 px-2.5 py-1 text-[11px] font-medium text-slate-300 hover:text-white hover:bg-slate-700"
+                  className="rounded-lg bg-slate-800 px-2.5 py-1 text-[11px] font-medium text-slate-300 hover:text-white hover:bg-slate-700 disabled:opacity-50"
                 >
                   Chọn Token #{asset.tokenId}
                 </button>
@@ -197,4 +367,3 @@ export default function AdminRevokePage() {
     </div>
   );
 }
-

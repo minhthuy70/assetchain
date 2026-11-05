@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { verifyAdminWallet } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -9,7 +10,23 @@ export async function POST(
 ) {
   try {
     const assetId = params.id;
-    const { action, rejectionReason } = await req.json();
+    const body = await req.json();
+    const { action, rejectionReason, adminWallet } = body;
+
+    // Xác thực quyền Admin từ header hoặc body
+    const callerWallet = req.headers.get("x-admin-wallet") || adminWallet;
+    const isAdmin = await verifyAdminWallet(callerWallet);
+
+    if (!isAdmin) {
+      return NextResponse.json(
+        {
+          error:
+            "Từ chối quyền truy cập: Chỉ có địa chỉ ví thuộc Hội đồng Quản trị (Admin) mới có quyền thẩm định hồ sơ!",
+          requiredRole: "ADMIN",
+        },
+        { status: 403 }
+      );
+    }
 
     const existingAsset = await prisma.asset.findUnique({
       where: { id: assetId },
@@ -69,15 +86,17 @@ export async function POST(
 
       return NextResponse.json({
         success: true,
-        message: "Đã từ chối hồ sơ kèm lý do phản hồi",
+        message: "Đã từ chối hồ sơ kèm lý do phản hồi cho tác giả",
         data: updated,
       });
     }
 
-    return NextResponse.json({ error: "Hành động review không hợp lệ" }, { status: 400 });
+    return NextResponse.json({ error: "Hành động thẩm định không hợp lệ" }, { status: 400 });
   } catch (err: any) {
-    console.error("Lỗi review hồ sơ admin:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error("Lỗi thẩm định tài sản:", err);
+    return NextResponse.json(
+      { error: err.message || "Lỗi xử lý yêu cầu thẩm định" },
+      { status: 500 }
+    );
   }
 }
-

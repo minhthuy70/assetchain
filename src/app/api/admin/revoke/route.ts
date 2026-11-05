@@ -1,11 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { verifyAdminWallet } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   try {
-    const { tokenId, assetId, reason } = await req.json();
+    const body = await req.json();
+    const { tokenId, assetId, reason, adminWallet } = body;
+
+    // Xác thực quyền Admin
+    const callerWallet = req.headers.get("x-admin-wallet") || adminWallet;
+    const isAdmin = await verifyAdminWallet(callerWallet);
+
+    if (!isAdmin) {
+      return NextResponse.json(
+        {
+          error:
+            "Từ chối quyền truy cập: Chỉ có địa chỉ ví thuộc Hội đồng Quản trị (Admin) mới có quyền thu hồi tài sản!",
+          requiredRole: "ADMIN",
+        },
+        { status: 403 }
+      );
+    }
 
     if (!reason || !reason.trim()) {
       return NextResponse.json({ error: "Vui lòng nhập lý do thu hồi chứng nhận" }, { status: 400 });
@@ -53,4 +70,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
-
