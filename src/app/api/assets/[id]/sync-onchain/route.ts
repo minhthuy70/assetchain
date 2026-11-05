@@ -18,6 +18,14 @@ export async function POST(
       );
     }
 
+    const numericTokenId = Number(tokenId);
+    if (isNaN(numericTokenId) || numericTokenId <= 0) {
+      return NextResponse.json(
+        { error: "Token ID không hợp lệ (phải là số nguyên dương)" },
+        { status: 400 }
+      );
+    }
+
     const asset = await prisma.asset.findUnique({
       where: { id: assetId },
       include: { certificate: true },
@@ -27,26 +35,33 @@ export async function POST(
       return NextResponse.json({ error: "Không tìm thấy tài sản để đồng bộ" }, { status: 404 });
     }
 
-    // Cập nhật trạng thái sang REGISTERED
+    // 1. Cập nhật trạng thái sang REGISTERED
+    const targetOwner = ownerWallet || asset.currentOwnerWallet;
     const updated = await prisma.asset.update({
       where: { id: assetId },
       data: {
-        tokenId: Number(tokenId),
+        tokenId: numericTokenId,
         txHash,
         blockNumber: blockNumber ? Number(blockNumber) : null,
-        currentOwnerWallet: ownerWallet || asset.currentOwnerWallet,
+        currentOwnerWallet: targetOwner,
         status: "REGISTERED",
-        registeredAt: new Date(),
+        registeredAt: asset.registeredAt || new Date(),
       },
     });
 
-    // Ghi nhận lịch sử sở hữu
-    await prisma.ownershipHistory.create({
-      data: {
+    // 2. Ghi nhận lịch sử sở hữu một cách an toàn (Idempotent Upsert theo txHash)
+    await prisma.ownershipHistory.upsert({
+      where: { txHash },
+      update: {
+        tokenId: numericTokenId,
+        toWallet: targetOwner,
+        blockNumber: blockNumber ? Number(blockNumber) : 1,
+      },
+      create: {
         assetId,
-        tokenId: Number(tokenId),
+        tokenId: numericTokenId,
         fromWallet: "0x0000000000000000000000000000000000000000",
-        toWallet: ownerWallet || asset.currentOwnerWallet,
+        toWallet: targetOwner,
         txHash,
         blockNumber: blockNumber ? Number(blockNumber) : 1,
         eventType: "MINT",

@@ -6,6 +6,8 @@ import crypto from "crypto";
 
 export const dynamic = "force-dynamic";
 
+const VALID_CATEGORIES = ["ART", "PHOTOGRAPHY", "DESIGN", "DOCUMENT"];
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
@@ -63,7 +65,7 @@ export async function POST(req: NextRequest) {
     const file = formData.get("file") as File | null;
     const title = formData.get("title") as string | null;
     const description = (formData.get("description") as string | null) || "";
-    const category = (formData.get("category") as string | null) || "ART";
+    let category = (formData.get("category") as string | null) || "ART";
     const walletAddress = formData.get("walletAddress") as string | null;
     const creatorName = (formData.get("creatorName") as string | null) || "Nghệ sĩ ẩn danh";
 
@@ -72,6 +74,12 @@ export async function POST(req: NextRequest) {
         { error: "Vui lòng cung cấp đầy đủ: Tệp tin, Tiêu đề và Địa chỉ ví Web3!" },
         { status: 400 }
       );
+    }
+
+    // Chuẩn hóa danh mục tác phẩm
+    category = category.toUpperCase().trim();
+    if (!VALID_CATEGORIES.includes(category)) {
+      category = "ART";
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
@@ -100,7 +108,7 @@ export async function POST(req: NextRequest) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
 
-    // 4. Lưu file vật lý với tên chuẩn hóa
+    // 4. Lưu file vật lý với tên chuẩn hóa theo quy ước
     const ext = path.extname(file.name) || ".png";
     const safeFileName = `${Date.now()}_${serverHash.slice(0, 8)}${ext}`;
     const filePath = path.join(uploadDir, safeFileName);
@@ -126,8 +134,8 @@ export async function POST(req: NextRequest) {
     // 6. Tạo bản ghi Asset với trạng thái PENDING_APPROVAL
     const asset = await prisma.asset.create({
       data: {
-        title,
-        description,
+        title: title.trim(),
+        description: description.trim(),
         category,
         filePath: `/uploads/${safeFileName}`,
         fileName: file.name,

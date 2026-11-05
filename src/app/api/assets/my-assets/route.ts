@@ -50,19 +50,22 @@ export async function GET(req: NextRequest) {
       orderBy: { createdAt: "desc" },
     });
 
-    // Thống kê nhanh theo từng trạng thái
-    const totalCount = await prisma.asset.count({
-      where: { currentOwnerWallet: wallet },
-    });
-    const registeredCount = await prisma.asset.count({
-      where: { currentOwnerWallet: wallet, status: "REGISTERED" },
-    });
-    const pendingCount = await prisma.asset.count({
-      where: { currentOwnerWallet: wallet, status: "PENDING_APPROVAL" },
-    });
-    const rejectedCount = await prisma.asset.count({
-      where: { currentOwnerWallet: wallet, status: "REJECTED" },
-    });
+    // Thống kê nhanh theo từng trạng thái phục vụ Creator Dashboard (Day 9)
+    const baseWalletFilter = {
+      OR: [
+        { currentOwnerWallet: wallet },
+        { creator: { walletAddress: wallet } },
+      ],
+    };
+
+    const [totalCount, registeredCount, pendingCount, approvedCount, rejectedCount] =
+      await Promise.all([
+        prisma.asset.count({ where: baseWalletFilter }),
+        prisma.asset.count({ where: { ...baseWalletFilter, status: "REGISTERED" } }),
+        prisma.asset.count({ where: { ...baseWalletFilter, status: "PENDING_APPROVAL" } }),
+        prisma.asset.count({ where: { ...baseWalletFilter, status: "APPROVED" } }),
+        prisma.asset.count({ where: { ...baseWalletFilter, status: "REJECTED" } }),
+      ]);
 
     return NextResponse.json({
       success: true,
@@ -70,6 +73,7 @@ export async function GET(req: NextRequest) {
         total: totalCount,
         registered: registeredCount,
         pending: pendingCount,
+        approved: approvedCount,
         rejected: rejectedCount,
       },
       data: assets,
