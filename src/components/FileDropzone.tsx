@@ -60,40 +60,38 @@ export default function FileDropzone({
       }
 
       setFile(selectedFile);
+      setIsHashing(true);
 
-      // Tạo preview nếu là ảnh
       if (selectedFile.type.startsWith("image/")) {
-        const url = URL.createObjectURL(selectedFile);
-        setPreviewUrl(url);
+        const objectUrl = URL.createObjectURL(selectedFile);
+        setPreviewUrl(objectUrl);
       } else {
         setPreviewUrl(null);
       }
 
-      // Bắt đầu băm SHA-256 client
-      setIsHashing(true);
-      const t0 = performance.now();
-
       try {
+        const startTime = performance.now();
         const hashResult = await computeFileHashSHA256(selectedFile);
-        const t1 = performance.now();
-        const duration = ((t1 - t0) / 1000).toFixed(2);
-        const b32 = hexToBytes32(hashResult);
+        const endTime = performance.now();
+        const duration = ((endTime - startTime) / 1000).toFixed(3);
+
+        const bytes32Result = hexToBytes32(hashResult);
 
         setHash(hashResult);
-        setBytes32(b32);
+        setBytes32(bytes32Result);
         setDurationSec(duration);
 
         if (onFileHashed) {
           onFileHashed({
             file: selectedFile,
             hash: hashResult,
-            bytes32Hash: b32,
-            durationMs: t1 - t0,
+            bytes32Hash: bytes32Result,
+            durationMs: Math.round(endTime - startTime),
           });
         }
-      } catch (err) {
-        console.error("Lỗi khi tính toán SHA-256:", err);
-        setError("Không thể tính mã băm SHA-256 của tệp tin. Vui lòng thử lại!");
+      } catch (err: any) {
+        console.error("Lỗi khi băm file:", err);
+        setError("Không thể tính mã băm SHA-256 cho tệp này. Vui lòng thử lại!");
       } finally {
         setIsHashing(false);
       }
@@ -103,19 +101,16 @@ export default function FileDropzone({
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
-    e.stopPropagation();
     setIsDragging(true);
   };
 
   const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
-    e.stopPropagation();
     setIsDragging(false);
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    e.stopPropagation();
     setIsDragging(false);
 
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
@@ -176,28 +171,28 @@ export default function FileDropzone({
           onClick={() => fileInputRef.current?.click()}
           className={`relative group cursor-pointer flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-10 text-center transition-all duration-300 ${
             isDragging
-              ? "border-indigo-500 bg-indigo-500/10 scale-[1.01]"
-              : "border-slate-700 bg-slate-900/40 hover:border-indigo-400/80 hover:bg-slate-900/80"
+              ? "border-[#F6851B] bg-orange-500/15 scale-[1.01] shadow-2xl shadow-orange-500/25"
+              : "border-slate-700 bg-slate-900/60 hover:border-orange-500/70 hover:bg-slate-900/90"
           }`}
         >
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-400 group-hover:scale-110 group-hover:bg-indigo-500/20 transition-all duration-300">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-orange-500/15 text-[#F6851B] group-hover:scale-110 group-hover:bg-[#F6851B] group-hover:text-white transition-all duration-300 shadow-md">
             <UploadCloud className="h-8 w-8" />
           </div>
 
-          <h3 className="mt-4 text-base font-semibold text-white">
-            Kéo thả tệp tác phẩm vào đây hoặc <span className="text-indigo-400 underline">duyệt từ máy</span>
+          <h3 className="mt-4 text-base font-bold text-white">
+            Kéo thả tệp tác phẩm vào đây hoặc <span className="text-[#F6851B] underline">duyệt từ máy</span>
           </h3>
-          <p className="mt-1 text-xs text-slate-400">
+          <p className="mt-1 text-xs text-slate-300">
             Hỗ trợ PNG, JPG, WEBP, PDF lên đến {maxSizeMB}MB
           </p>
 
-          <div className="mt-4 flex items-center gap-2 rounded-full bg-slate-800/80 px-3 py-1 text-xs text-slate-300 border border-slate-700">
-            <Sparkles className="h-3.5 w-3.5 text-emerald-400" />
+          <div className="mt-4 flex items-center gap-2 rounded-full bg-slate-800/90 px-3.5 py-1 text-xs text-slate-200 border border-slate-700">
+            <Sparkles className="h-3.5 w-3.5 text-[#F6851B]" />
             <span>Băm SHA-256 client-side tức thì (Zero-knowledge)</span>
           </div>
         </div>
       ) : (
-        <div className="rounded-2xl border border-slate-700 bg-slate-900/80 p-5 shadow-xl backdrop-blur-xl">
+        <div className="rounded-2xl border border-slate-700 bg-slate-900/90 p-5 shadow-2xl backdrop-blur-xl">
           {/* FILE HEADER INFO */}
           <div className="flex items-center justify-between border-b border-slate-800 pb-4">
             <div className="flex items-center gap-3">
@@ -212,12 +207,12 @@ export default function FileDropzone({
                   />
                 </div>
               ) : (
-                <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-slate-700 bg-slate-800 text-indigo-400">
+                <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-slate-700 bg-slate-800 text-orange-400">
                   <FileText className="h-7 w-7" />
                 </div>
               )}
               <div>
-                <h4 className="text-sm font-semibold text-white break-all">{file.name}</h4>
+                <h4 className="text-sm font-bold text-white break-all">{file.name}</h4>
                 <div className="mt-1 flex items-center gap-2 text-xs text-slate-400">
                   <span>{formatFileSize(file.size)}</span>
                   <span>•</span>
@@ -228,7 +223,7 @@ export default function FileDropzone({
 
             <button
               onClick={reset}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-300 transition hover:bg-slate-700 hover:text-white"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-200 transition hover:bg-slate-700 hover:text-white border border-slate-700"
               title="Chọn tệp tin khác"
             >
               <RotateCcw className="h-3.5 w-3.5" />
@@ -239,12 +234,12 @@ export default function FileDropzone({
           {/* HASH STATUS & TIMING */}
           <div className="mt-4 space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                <Hash className="h-3.5 w-3.5 text-indigo-400" /> Dấu vân tay số (SHA-256)
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                <Hash className="h-3.5 w-3.5 text-[#F6851B]" /> Dấu vân tay số (SHA-256)
               </span>
 
               {durationSec && !isHashing && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-400 ring-1 ring-inset ring-emerald-500/20">
+                <span className="inline-flex items-center gap-1 rounded-full bg-orange-500/15 px-2.5 py-0.5 text-xs font-bold text-orange-400 ring-1 ring-inset ring-orange-500/30">
                   <Clock className="h-3 w-3" />
                   <span>Băm hoàn tất trong {durationSec}s</span>
                 </span>
@@ -253,19 +248,19 @@ export default function FileDropzone({
 
             {isHashing ? (
               <div className="flex items-center justify-center gap-2 rounded-xl bg-slate-950/80 p-4 border border-slate-800">
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-orange-500 border-t-transparent" />
                 <span className="text-xs text-slate-300">Đang tính toán mã SHA-256 nhị phân...</span>
               </div>
             ) : hash ? (
               <div className="space-y-2">
                 {/* 64-CHAR SHA256 DISPLAY WITH 1-CLICK COPY */}
-                <div className="relative group rounded-xl border border-indigo-500/30 bg-slate-950 p-3 shadow-inner">
-                  <p className="font-mono text-xs text-emerald-400 break-all select-all leading-relaxed font-semibold">
+                <div className="relative group rounded-xl border border-orange-500/30 bg-slate-950 p-3 shadow-inner">
+                  <p className="font-mono text-xs text-orange-300 break-all select-all leading-relaxed font-bold">
                     {hash}
                   </p>
                   <button
                     onClick={() => copyToClipboard(hash)}
-                    className="absolute top-2.5 right-2.5 flex items-center gap-1 rounded-md bg-slate-800/90 px-2 py-1 text-[11px] font-medium text-slate-300 transition hover:bg-indigo-600 hover:text-white"
+                    className="absolute top-2.5 right-2.5 flex items-center gap-1 rounded-lg bg-slate-850 px-2.5 py-1 text-[11px] font-bold text-white transition hover:bg-[#F6851B] border border-slate-700"
                   >
                     {copied ? (
                       <>
@@ -283,7 +278,7 @@ export default function FileDropzone({
 
                 {/* SOLIDITY BYTES32 EQUIVALENT */}
                 {bytes32 && (
-                  <div className="rounded-lg bg-slate-800/40 px-3 py-2 text-[11px] text-slate-400 border border-slate-800">
+                  <div className="rounded-lg bg-slate-950/60 px-3 py-2 text-[11px] text-slate-400 border border-slate-800">
                     <span className="text-slate-500 font-mono">Solidity bytes32: </span>
                     <span className="font-mono text-slate-300 break-all">{bytes32}</span>
                   </div>
@@ -293,8 +288,8 @@ export default function FileDropzone({
           </div>
 
           {/* NOTICE FOOTER */}
-          <div className="mt-4 flex items-center gap-2 rounded-lg bg-indigo-500/10 px-3 py-2 text-xs text-indigo-300 border border-indigo-500/20">
-            <FileCheck className="h-4 w-4 text-emerald-400 shrink-0" />
+          <div className="mt-4 flex items-center gap-2 rounded-xl bg-purple-500/10 px-3 py-2 text-xs text-purple-200 border border-purple-500/20">
+            <FileCheck className="h-4 w-4 text-[#F6851B] shrink-0" />
             <span>
               Mã băm được tính trực tiếp từ Web Crypto API tại trình duyệt của bạn và sẽ đối chiếu bất biến với Smart Contract.
             </span>

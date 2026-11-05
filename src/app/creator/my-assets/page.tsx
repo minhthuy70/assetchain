@@ -183,14 +183,14 @@ export default function MyAssetsDashboard() {
       {/* HEADER */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-800 pb-6">
         <div>
-          <div className="flex items-center gap-2 text-indigo-400 text-xs font-semibold uppercase tracking-wider">
-            <LayoutDashboard className="h-4 w-4" />
+          <div className="flex items-center gap-2 text-orange-400 text-xs font-bold uppercase tracking-wider">
+            <LayoutDashboard className="h-4 w-4 text-[#F6851B]" />
             <span>Không Gian Làm Việc Tác Giả (Creator Portal)</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white mt-1">
+          <h1 className="text-2xl sm:text-3xl font-black text-white mt-1">
             Bảng Điều Khiển Quản Lý Quyền Tác Phẩm
           </h1>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+          <p className="text-xs sm:text-sm text-slate-300 mt-1">
             Theo dõi tiến độ thẩm định, khắc dấu NFT ERC-721 on-chain và quản lý quyền sở hữu số.
           </p>
         </div>
@@ -198,15 +198,14 @@ export default function MyAssetsDashboard() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => fetchMyAssets(wallet)}
-            disabled={loading}
-            className="inline-flex items-center gap-2 rounded-xl bg-slate-800/80 px-4 py-2.5 text-xs font-semibold text-slate-300 hover:bg-slate-700 hover:text-white transition disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 border border-slate-750 px-3.5 py-2 text-xs font-bold text-slate-300 hover:text-white hover:border-orange-500 transition"
           >
-            <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin text-indigo-400" : ""}`} />
+            <RefreshCw className="h-3.5 w-3.5 text-orange-400" />
             <span>Làm mới</span>
           </button>
           <Link
             href="/creator/register"
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 via-indigo-600 to-violet-600 px-4 py-2.5 text-xs font-bold text-white shadow-lg shadow-indigo-500/25 hover:brightness-110 transition"
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#F6851B] to-[#E2761B] px-4 py-2 text-xs font-bold text-white shadow-lg shadow-orange-500/25 hover:brightness-110 transition"
           >
             <PlusCircle className="h-4 w-4" />
             <span>Đăng ký tác phẩm mới</span>
@@ -214,32 +213,46 @@ export default function MyAssetsDashboard() {
         </div>
       </div>
 
-      {/* METRIC CARDS */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 backdrop-blur-xl">
+      {/* WALLET BANNER */}
+      <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs">
+        <div className="flex items-center gap-3">
+          <span className="flex h-3 w-3 rounded-full bg-emerald-400 ring-4 ring-emerald-400/20" />
+          <span className="text-slate-300">
+            Ví tác giả đang kích hoạt:{" "}
+            <strong className="font-mono text-white text-xs">{wallet || "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"}</strong>
+          </span>
+        </div>
+        <span className="text-orange-400 font-bold bg-orange-500/10 px-2.5 py-1 rounded-lg border border-orange-500/20">
+          Mạng Hardhat Local (Chain ID 31337)
+        </span>
+      </div>
+
+      {/* STATS OVERVIEW CARDS */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 backdrop-blur-xl">
           <div className="text-xs text-slate-400 font-medium">Tổng tác phẩm</div>
-          <div className="text-2xl font-extrabold text-white mt-1">{totalCount}</div>
+          <div className="text-2xl font-black text-white mt-1">{totalCount}</div>
         </div>
 
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 backdrop-blur-xl">
-          <div className="text-xs text-emerald-400 font-medium flex items-center gap-1.5">
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 backdrop-blur-xl">
+          <div className="text-xs text-emerald-400 font-bold flex items-center gap-1.5">
             <Sparkles className="h-3.5 w-3.5" /> Đã Lên Blockchain
           </div>
-          <div className="text-2xl font-extrabold text-emerald-400 mt-1">{registeredCount}</div>
+          <div className="text-2xl font-black text-emerald-400 mt-1">{registeredCount}</div>
         </div>
 
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 backdrop-blur-xl">
-          <div className="text-xs text-amber-400 font-medium flex items-center gap-1.5">
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 backdrop-blur-xl">
+          <div className="text-xs text-amber-400 font-bold flex items-center gap-1.5">
             <Clock className="h-3.5 w-3.5" /> Chờ Thẩm Định
           </div>
-          <div className="text-2xl font-extrabold text-amber-400 mt-1">{pendingCount}</div>
+          <div className="text-2xl font-black text-amber-400 mt-1">{pendingCount}</div>
         </div>
 
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 backdrop-blur-xl">
-          <div className="text-xs text-blue-400 font-medium flex items-center gap-1.5">
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 backdrop-blur-xl">
+          <div className="text-xs text-orange-400 font-bold flex items-center gap-1.5">
             <CheckCircle2 className="h-3.5 w-3.5" /> Sẵn Sàng Mint NFT
           </div>
-          <div className="text-2xl font-extrabold text-blue-400 mt-1">{approvedCount}</div>
+          <div className="text-2xl font-black text-orange-400 mt-1">{approvedCount}</div>
         </div>
       </div>
 
@@ -256,10 +269,10 @@ export default function MyAssetsDashboard() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`rounded-xl px-3.5 py-1.5 text-xs font-semibold transition ${
+              className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition ${
                 activeTab === tab.id
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
-                  : "bg-slate-800/60 text-slate-400 hover:bg-slate-800 hover:text-white"
+                  ? "bg-gradient-to-r from-[#F6851B] to-[#E2761B] text-white shadow-md shadow-orange-500/25"
+                  : "bg-slate-900 text-slate-300 hover:bg-slate-850 hover:text-white border border-slate-750"
               }`}
             >
               {tab.label}
@@ -268,13 +281,13 @@ export default function MyAssetsDashboard() {
         </div>
 
         <div className="relative w-full sm:w-64">
-          <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-500" />
+          <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Tìm theo tiêu đề hoặc hash..."
-            className="w-full rounded-xl border border-slate-800 bg-slate-950 py-2 pl-9 pr-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="w-full rounded-xl border border-slate-750 bg-slate-950 py-2 pl-9 pr-3 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 font-medium"
           />
         </div>
       </div>
@@ -294,8 +307,8 @@ export default function MyAssetsDashboard() {
           ))}
         </div>
       ) : filteredAssets.length === 0 ? (
-        <div className="rounded-3xl border border-dashed border-slate-800 p-12 text-center space-y-4">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-800/80 text-slate-400">
+        <div className="rounded-3xl border border-dashed border-slate-800 p-12 text-center space-y-4 bg-slate-900/40">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-850 text-slate-400">
             <LayoutDashboard className="h-7 w-7" />
           </div>
           <div>
@@ -306,7 +319,7 @@ export default function MyAssetsDashboard() {
           </div>
           <Link
             href="/creator/register"
-            className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-xs font-bold text-white hover:bg-indigo-500 transition"
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#F6851B] to-[#E2761B] px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-orange-500/25 transition"
           >
             <PlusCircle className="h-4 w-4" />
             <span>Nộp tác phẩm ngay</span>
@@ -323,7 +336,7 @@ export default function MyAssetsDashboard() {
             return (
               <div
                 key={asset.id}
-                className="group flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-800 bg-slate-900/60 backdrop-blur-xl shadow-xl transition-all duration-300 hover:border-slate-700 hover:shadow-2xl"
+                className="group flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-800 bg-slate-900/80 backdrop-blur-xl shadow-xl transition-all duration-300 hover:border-orange-500/60 hover:shadow-2xl"
               >
                 <div>
                   {/* IMAGE PREVIEW */}
@@ -336,7 +349,7 @@ export default function MyAssetsDashboard() {
                       unoptimized
                     />
                     <div className="absolute top-3 right-3">
-                      <span className="rounded-full bg-slate-950/80 px-2.5 py-1 text-[11px] font-semibold text-slate-300 backdrop-blur-md border border-slate-700/80">
+                      <span className="rounded-full bg-slate-950/85 px-2.5 py-1 text-[11px] font-bold text-orange-400 backdrop-blur-md border border-orange-500/30">
                         {asset.category}
                       </span>
                     </div>
@@ -350,33 +363,33 @@ export default function MyAssetsDashboard() {
 
                     <div className="flex items-center gap-2">
                       {isPending && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2.5 py-0.5 text-xs font-semibold text-amber-400 ring-1 ring-inset ring-amber-500/30">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2.5 py-0.5 text-xs font-bold text-amber-300 ring-1 ring-inset ring-amber-500/30">
                           <Clock className="h-3 w-3" /> Chờ Admin duyệt
                         </span>
                       )}
                       {isApproved && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/10 px-2.5 py-0.5 text-xs font-semibold text-blue-400 ring-1 ring-inset ring-blue-500/30">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-orange-500/15 px-2.5 py-0.5 text-xs font-bold text-orange-400 ring-1 ring-inset ring-orange-500/30">
                           <CheckCircle2 className="h-3 w-3" /> Đã duyệt • Sẵn sàng mint
                         </span>
                       )}
                       {isRegistered && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold text-emerald-400 ring-1 ring-inset ring-emerald-500/30">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-xs font-bold text-emerald-400 ring-1 ring-inset ring-emerald-500/30">
                           <Sparkles className="h-3 w-3" /> Token #{asset.tokenId} On-Chain
                         </span>
                       )}
                       {isRejected && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 px-2.5 py-0.5 text-xs font-semibold text-rose-400 ring-1 ring-inset ring-rose-500/30">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/15 px-2.5 py-0.5 text-xs font-bold text-rose-400 ring-1 ring-inset ring-rose-500/30">
                           <XCircle className="h-3 w-3" /> Bị từ chối
                         </span>
                       )}
                     </div>
 
                     {/* HASH SNIPPET */}
-                    <div className="flex items-center justify-between rounded-lg bg-slate-950 p-2 text-[11px] font-mono text-slate-400 border border-slate-800">
+                    <div className="flex items-center justify-between rounded-xl bg-slate-950 p-2.5 text-[11px] font-mono text-slate-300 border border-slate-800">
                       <span>{shortenHash(asset.fileHash)}</span>
                       <button
                         onClick={() => copyToClipboard(asset.fileHash)}
-                        className="text-slate-500 hover:text-white"
+                        className="text-slate-400 hover:text-white"
                         title="Sao chép SHA-256"
                       >
                         {copiedHash === asset.fileHash ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
@@ -384,7 +397,7 @@ export default function MyAssetsDashboard() {
                     </div>
 
                     {asset.rejectionReason && (
-                      <p className="text-[11px] text-rose-400 bg-rose-500/10 p-2 rounded-lg border border-rose-500/20">
+                      <p className="text-[11px] text-rose-300 bg-rose-500/10 p-2 rounded-xl border border-rose-500/20">
                         Lý do từ chối: {asset.rejectionReason}
                       </p>
                     )}
@@ -392,12 +405,12 @@ export default function MyAssetsDashboard() {
                 </div>
 
                 {/* CARD FOOTER ACTIONS */}
-                <div className="border-t border-slate-800/80 p-4 bg-slate-950/40 space-y-2">
+                <div className="border-t border-slate-800 p-4 bg-slate-950/60 space-y-2">
                   {isApproved && (
                     <button
                       onClick={() => handleMintOnChain(asset)}
                       disabled={mintingId === asset.id}
-                      className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-blue-500/20 hover:brightness-110 transition disabled:opacity-50"
+                      className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#F6851B] via-[#E2761B] to-[#CD6116] px-4 py-2.5 text-xs font-bold text-white shadow-lg shadow-orange-500/25 hover:brightness-110 transition disabled:opacity-50"
                     >
                       <Sparkles className="h-4 w-4" />
                       <span>{mintingId === asset.id ? "Đang ký MetaMask..." : "Đưa Lên Blockchain (Mint NFT)"}</span>
@@ -411,15 +424,15 @@ export default function MyAssetsDashboard() {
                           href={`/api/certificate/${asset.id}`}
                           target="_blank"
                           rel="noreferrer"
-                          className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 px-3 py-2 text-xs font-semibold text-emerald-400 hover:bg-emerald-500/25 transition"
+                          className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-slate-850 border border-slate-700 px-3 py-2 text-xs font-bold text-slate-200 hover:bg-slate-800 hover:text-white transition"
                         >
-                          <FileCheck2 className="h-3.5 w-3.5" />
+                          <FileCheck2 className="h-3.5 w-3.5 text-orange-400" />
                           <span>Chứng nhận PDF</span>
                         </a>
 
                         <Link
                           href={`/creator/transfer?assetId=${asset.id}`}
-                          className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-indigo-500/15 border border-indigo-500/30 px-3 py-2 text-xs font-semibold text-indigo-400 hover:bg-indigo-500/25 transition"
+                          className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-purple-500/15 border border-purple-500/30 px-3 py-2 text-xs font-bold text-purple-300 hover:bg-purple-500/25 transition"
                           title="Chuyển nhượng quyền sở hữu"
                         >
                           <Send className="h-3.5 w-3.5" />
@@ -430,14 +443,14 @@ export default function MyAssetsDashboard() {
                       <div className="flex items-center justify-between text-[11px] pt-1">
                         <Link
                           href={`/creator/assets/${asset.id}`}
-                          className="inline-flex items-center gap-1 text-slate-400 hover:text-indigo-400 transition"
+                          className="inline-flex items-center gap-1 text-slate-400 hover:text-orange-400 transition"
                         >
                           <History className="h-3.5 w-3.5" />
                           <span>Xem Lịch Sử Nguồn Gốc</span>
                         </Link>
                         <Link
                           href={`/verify?hash=${asset.fileHash}`}
-                          className="text-slate-500 hover:text-white transition"
+                          className="text-slate-400 hover:text-white transition"
                         >
                           Tra cứu on-chain
                         </Link>
@@ -446,7 +459,7 @@ export default function MyAssetsDashboard() {
                   )}
 
                   {isPending && (
-                    <p className="text-center text-[11px] text-slate-500 italic py-1">
+                    <p className="text-center text-[11px] text-slate-400 italic py-1">
                       Đang đợi hội đồng Admin xét duyệt hồ sơ
                     </p>
                   )}
@@ -454,7 +467,7 @@ export default function MyAssetsDashboard() {
                   {isRejected && (
                     <Link
                       href="/creator/register"
-                      className="block text-center text-xs font-semibold text-rose-400 hover:underline py-1"
+                      className="block text-center text-xs font-bold text-rose-400 hover:underline py-1"
                     >
                       Nộp lại hồ sơ chỉnh sửa
                     </Link>
