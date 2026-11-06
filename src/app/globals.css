@@ -1,12 +1,12 @@
-@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap");
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --background: #140026;
-  --foreground: #faf5ff;
+  --background: #090A0F;
+  --foreground: #F3F4F6;
 }
 
 html {
@@ -16,78 +16,72 @@ html {
 body {
   color: var(--foreground);
   background-color: var(--background);
-  background-image: 
-    radial-gradient(circle at 50% -10%, rgba(168, 85, 247, 0.18) 0%, transparent 60%),
-    radial-gradient(circle at 90% 20%, rgba(246, 133, 27, 0.08) 0%, transparent 45%);
-  background-attachment: fixed;
   font-family: "Plus Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  letter-spacing: -0.012em;
+  letter-spacing: -0.011em;
 }
 
-/* Custom Scrollbar styled for MetaMask Theme */
+/* Scrollbar tinh tế chuẩn SaaS */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #140026;
+  background: #090A0F;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #3d086a;
+  background: #1E222F;
   border-radius: 9999px;
-  border: 2px solid #140026;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #f6851b;
+  background: #363C50;
 }
 
-/* High-contrast selection */
+/* Selection */
 ::selection {
-  background: #f6851b;
-  color: #ffffff;
+  background: rgba(246, 133, 27, 0.25);
+  color: #FFFFFF;
 }
 
-/* Reusable MetaMask Button Styles */
-.btn-metamask-orange {
-  background: linear-gradient(135deg, #f6851b 0%, #e2761b 100%);
-  color: #ffffff;
-  font-weight: 700;
-  box-shadow: 0 8px 24px -4px rgba(246, 133, 27, 0.4);
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.btn-metamask-orange:hover {
-  background: linear-gradient(135deg, #ff9838 0%, #f6851b 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 12px 28px -4px rgba(246, 133, 27, 0.55);
-}
+/* Standardized Component Utility Classes */
+@layer components {
+  /* Button Primary: Cam MetaMask phẳng, dứt khoát, không shadow lòe loẹt */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-[#F6851B] px-4 py-2 text-xs font-semibold text-white transition-colors duration-150 hover:bg-[#E2761B] active:bg-[#CD6116] disabled:opacity-50 disabled:pointer-events-none;
+  }
 
-.btn-metamask-white {
-  background: #ffffff;
-  color: #140026;
-  font-weight: 700;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.btn-metamask-white:hover {
-  background: #f1e2fe;
-  transform: translateY(-1px);
-}
+  /* Button Secondary: Nền tối viền mảnh, tương phản cao */
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-slate-800 bg-slate-900 px-4 py-2 text-xs font-medium text-slate-200 transition-colors duration-150 hover:bg-slate-850 hover:text-white hover:border-slate-700 active:bg-slate-800 disabled:opacity-50 disabled:pointer-events-none;
+  }
 
-.btn-metamask-dark {
-  background: #1f0238;
-  color: #faf5ff;
-  border: 1px solid #581294;
-  font-weight: 600;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.btn-metamask-dark:hover {
-  background: #2a054a;
-  border-color: #f6851b;
-  color: #ffffff;
+  /* Button Ghost: Tối giản */
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-slate-400 transition-colors duration-150 hover:text-white hover:bg-slate-850 disabled:opacity-50;
+  }
+
+  /* Button Danger */
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-rose-600 px-4 py-2 text-xs font-semibold text-white transition-colors duration-150 hover:bg-rose-700 active:bg-rose-800 disabled:opacity-50;
+  }
+
+  /* Card Surface: Bo góc 12px chuẩn, 1px viền tối tế vi */
+  .card-surface {
+    @apply rounded-xl border border-slate-800 bg-slate-900;
+  }
+
+  /* Input Field */
+  .input-base {
+    @apply w-full rounded-lg border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-white placeholder-slate-500 transition-colors focus:border-[#F6851B] focus:outline-none focus:ring-1 focus:ring-[#F6851B] disabled:opacity-50;
+  }
+
+  /* Table Container */
+  .table-container {
+    @apply w-full overflow-hidden rounded-xl border border-slate-800 bg-slate-900/60;
+  }
 }

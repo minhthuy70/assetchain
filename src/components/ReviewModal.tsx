@@ -10,10 +10,8 @@ import {
   Copy,
   Check,
   AlertTriangle,
-  Clock,
   User,
-  ShieldAlert,
-  Hash,
+  ShieldCheck,
 } from "lucide-react";
 
 interface AssetRecord {
@@ -135,47 +133,45 @@ export default function ReviewModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-10">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
       {/* BACKDROP */}
       <div
-        className="fixed inset-0 bg-[#0B0014]/80 backdrop-blur-md transition-opacity"
+        className="fixed inset-0 bg-black/75 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
 
       {/* MODAL DIALOG */}
-      <div className="relative z-10 w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl border border-slate-750 bg-[#1F0238] p-6 sm:p-8 text-white shadow-2xl shadow-purple-950/50">
+      <div className="relative z-10 w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-xl border border-slate-800 bg-slate-900 p-6 text-white shadow-xl">
         {/* HEADER */}
-        <div className="flex items-center justify-between border-b border-slate-750 pb-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500/15 text-orange-400 ring-1 ring-orange-500/30">
-              <ShieldAlert className="h-5 w-5" />
-            </div>
+        <div className="flex items-center justify-between border-b border-slate-800 pb-3.5">
+          <div className="flex items-center gap-2.5">
+            <ShieldCheck className="h-5 w-5 text-[#F6851B]" />
             <div>
-              <h2 className="text-lg font-bold text-white">Thẩm Định Hồ Sơ Tác Phẩm Số</h2>
-              <p className="text-xs text-slate-400">Xem xét tính nguyên bản và cấp phép đưa lên chuỗi khối EVM</p>
+              <h2 className="text-sm font-bold text-white">Thẩm Định Hồ Sơ Tác Phẩm Số</h2>
+              <p className="text-[11px] text-slate-400">Kiểm tra tính toàn vẹn và cấp phép phát hành chứng nhận</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="rounded-xl p-2 text-slate-400 hover:bg-slate-800 hover:text-white transition"
+            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4" />
           </button>
         </div>
 
         {/* ERROR NOTIFICATION */}
         {errorMsg && (
-          <div className="mt-4 flex items-center gap-2 rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-300">
+          <div className="mt-3 flex items-center gap-2 rounded-lg border border-rose-500/30 bg-rose-500/10 p-2.5 text-xs text-rose-300">
             <AlertTriangle className="h-4 w-4 shrink-0 text-rose-400" />
             <span>{errorMsg}</span>
           </div>
         )}
 
-        {/* BODY CONTENT */}
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* CỘT TRÁI: PREVIEW FILE & HÌNH ẢNH */}
-          <div className="space-y-4">
-            <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-slate-750 bg-slate-950">
+        {/* BODY */}
+        <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-5 text-xs">
+          {/* CỘT TRÁI: PREVIEW FILE */}
+          <div className="space-y-3">
+            <div className="relative aspect-video w-full overflow-hidden rounded-lg border border-slate-800 bg-slate-950">
               {asset.filePath && asset.mimeType.startsWith("image/") ? (
                 <Image
                   src={asset.filePath}
@@ -185,103 +181,94 @@ export default function ReviewModal({
                   unoptimized
                 />
               ) : (
-                <div className="flex h-full flex-col items-center justify-center p-6 text-center text-slate-400">
-                  <FileText className="h-12 w-12 text-slate-500 mb-2" />
-                  <p className="text-xs font-semibold">{asset.fileName}</p>
-                  <p className="text-[11px] text-slate-500">{asset.mimeType}</p>
+                <div className="flex h-full flex-col items-center justify-center p-4 text-center text-slate-500">
+                  <FileText className="h-8 w-8 text-slate-600 mb-1.5" />
+                  <p className="text-xs font-medium text-slate-400">{asset.fileName}</p>
+                  <p className="text-[10px] text-slate-500">{asset.mimeType}</p>
                 </div>
               )}
             </div>
 
-            <div className="rounded-2xl border border-slate-750 bg-slate-850 p-4 space-y-2 text-xs">
+            <div className="rounded-lg border border-slate-800 bg-slate-950 p-3 space-y-1.5 text-[11px]">
               <div className="flex justify-between text-slate-400">
                 <span>Tên tệp gốc:</span>
-                <span className="font-semibold text-slate-200 truncate max-w-[200px]" title={asset.fileName}>
+                <span className="font-mono text-slate-200 truncate max-w-[180px]" title={asset.fileName}>
                   {asset.fileName}
                 </span>
               </div>
               <div className="flex justify-between text-slate-400">
                 <span>Dung lượng:</span>
-                <span className="font-semibold text-slate-200">{formatFileSize(asset.fileSize)}</span>
+                <span className="text-slate-200">{formatFileSize(asset.fileSize)}</span>
               </div>
               <div className="flex justify-between text-slate-400">
                 <span>Định dạng:</span>
-                <span className="font-semibold text-slate-200">{asset.mimeType}</span>
+                <span className="text-slate-200">{asset.mimeType}</span>
               </div>
               <div className="flex justify-between text-slate-400">
                 <span>Ngày nộp:</span>
-                <span className="font-semibold text-slate-200">
+                <span className="text-slate-200">
                   {new Date(asset.createdAt).toLocaleString("vi-VN")}
                 </span>
               </div>
             </div>
           </div>
 
-          {/* CỘT PHẢI: THÔNG TIN HỒ SƠ & MÃ BĂM SHA-256 */}
-          <div className="space-y-4">
+          {/* CỘT PHẢI: CHI TIẾT TÁC GIẢ & HASH */}
+          <div className="space-y-3">
             <div>
-              <span className="inline-block rounded-full bg-slate-800 px-2.5 py-0.5 text-[10px] font-semibold text-slate-300 border border-slate-700 mb-1.5">
+              <span className="inline-block rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-semibold text-slate-300 mb-1">
                 {asset.category}
               </span>
-              <h3 className="text-xl font-bold text-white">{asset.title}</h3>
-              <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+              <h3 className="text-base font-bold text-white">{asset.title}</h3>
+              <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">
                 {asset.description || "Không có mô tả chi tiết."}
               </p>
             </div>
 
-            <div className="rounded-2xl border border-slate-750 bg-slate-850 p-4 space-y-3">
-              <div className="space-y-1">
-                <span className="text-[11px] font-semibold text-slate-400 flex items-center gap-1">
-                  <User className="h-3 w-3" /> Thông tin Tác giả
+            <div className="rounded-lg border border-slate-800 bg-slate-950 p-3 space-y-2">
+              <div className="space-y-0.5">
+                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                  Thông tin tác giả
                 </span>
                 <p className="text-xs font-medium text-white">
-                  {asset.creator?.fullName || "Ẩn danh"} ({asset.creator?.email || "Chưa có email"})
+                  {asset.creator?.fullName || "Ẩn danh"}
                 </p>
                 <p className="text-[11px] font-mono text-slate-400 break-all">
                   Ví nộp: {asset.currentOwnerWallet}
                 </p>
               </div>
 
-              <div className="space-y-1 border-t border-slate-750 pt-2">
+              <div className="border-t border-slate-850 pt-2 space-y-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-semibold text-orange-400 flex items-center gap-1">
-                    <Hash className="h-3 w-3" /> Vân tay số SHA-256 (Client-side)
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                    Vân tay số SHA-256
                   </span>
                   <button
                     onClick={copyHash}
-                    className="flex items-center gap-1 text-[10px] text-slate-400 hover:text-white transition"
+                    className="inline-flex items-center gap-1 text-[10px] text-slate-400 hover:text-white"
                   >
-                    {copied ? (
-                      <>
-                        <Check className="h-3 w-3 text-emerald-400" />
-                        <span className="text-emerald-400">Đã chép</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="h-3 w-3" />
-                        <span>Sao chép</span>
-                      </>
-                    )}
+                    {copied ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
+                    <span>{copied ? "Đã chép" : "Chép"}</span>
                   </button>
                 </div>
-                <div className="rounded-xl bg-slate-950 p-2.5 font-mono text-[11px] text-emerald-400 border border-slate-800 break-all leading-relaxed">
+                <div className="rounded bg-slate-900 p-2 font-mono text-[10px] text-slate-300 break-all border border-slate-850">
                   {asset.fileHash}
                 </div>
               </div>
             </div>
 
-            {/* FORM LÝ DO TỪ CHỐI (KHI BẤM NÚT TỪ CHỐI) */}
+            {/* FORM TỪ CHỐI */}
             {rejecting && (
-              <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4 space-y-2">
-                <label className="text-xs font-semibold text-rose-300">
-                  Lý do từ chối hồ sơ (Gửi phản hồi cho tác giả):
+              <div className="rounded-lg border border-rose-500/30 bg-rose-500/5 p-3 space-y-1.5">
+                <label className="text-[11px] font-semibold text-rose-300">
+                  Lý do từ chối hồ sơ (Phản hồi cho tác giả):
                 </label>
                 <textarea
-                  rows={3}
+                  rows={2}
                   value={rejectionReason}
                   onChange={(e) => setRejectionReason(e.target.value)}
-                  placeholder="Ví dụ: Tác phẩm có dấu hiệu trùng lặp vân tay số với tài sản đã đăng ký; Hình ảnh vi phạm bản quyền..."
-                  className="w-full rounded-xl border border-rose-500/30 bg-slate-950 p-2.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-rose-500"
+                  placeholder="Nhập lý do chi tiết..."
+                  className="w-full rounded-lg border border-slate-800 bg-slate-950 p-2 text-xs text-white focus:outline-none focus:border-rose-500"
                 />
               </div>
             )}
@@ -289,12 +276,12 @@ export default function ReviewModal({
         </div>
 
         {/* FOOTER ACTIONS */}
-        <div className="mt-8 flex flex-col sm:flex-row items-center justify-end gap-3 border-t border-slate-750 pt-4">
+        <div className="mt-6 flex items-center justify-end gap-2.5 border-t border-slate-800 pt-4">
           <button
             type="button"
             onClick={onClose}
             disabled={loading}
-            className="w-full sm:w-auto rounded-xl border border-slate-700 bg-slate-800 px-5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-slate-750 hover:text-white transition"
+            className="btn-secondary"
           >
             Đóng
           </button>
@@ -305,20 +292,20 @@ export default function ReviewModal({
                 type="button"
                 onClick={() => setRejecting(true)}
                 disabled={loading}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-xl border border-rose-500/40 bg-rose-500/10 px-5 py-2.5 text-xs font-bold text-rose-300 hover:bg-rose-500/20 transition"
+                className="btn-ghost text-rose-400 hover:text-rose-300 hover:bg-rose-500/10"
               >
-                <XCircle className="h-4 w-4" />
-                <span>Từ Chối Hồ Sơ</span>
+                <XCircle className="h-3.5 w-3.5" />
+                <span>Từ chối</span>
               </button>
 
               <button
                 type="button"
                 onClick={handleApprove}
                 disabled={loading}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#F6851B] to-[#CD6116] px-6 py-2.5 text-xs font-bold text-white shadow-lg shadow-orange-500/30 hover:brightness-110 transition disabled:opacity-50"
+                className="btn-primary"
               >
-                <CheckCircle2 className="h-4 w-4" />
-                <span>{loading ? "Đang Phê Duyệt..." : "Phê Duyệt & Cấp Chứng Nhận"}</span>
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                <span>{loading ? "Đang xử lý..." : "Phê duyệt & Cấp E-Cert"}</span>
               </button>
             </>
           ) : (
@@ -327,19 +314,19 @@ export default function ReviewModal({
                 type="button"
                 onClick={() => setRejecting(false)}
                 disabled={loading}
-                className="w-full sm:w-auto rounded-xl border border-slate-750 bg-slate-800 px-4 py-2 text-xs font-medium text-slate-300 hover:text-white"
+                className="btn-secondary"
               >
-                Hủy từ chối
+                Hủy
               </button>
 
               <button
                 type="button"
                 onClick={handleReject}
                 disabled={loading}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-xl bg-rose-600 px-6 py-2.5 text-xs font-bold text-white shadow-lg shadow-rose-600/30 hover:bg-rose-700 transition disabled:opacity-50"
+                className="btn-danger"
               >
-                <XCircle className="h-4 w-4" />
-                <span>{loading ? "Đang Gửi..." : "Xác Nhận Từ Chối"}</span>
+                <XCircle className="h-3.5 w-3.5" />
+                <span>{loading ? "Đang gửi..." : "Xác nhận từ chối"}</span>
               </button>
             </>
           )}

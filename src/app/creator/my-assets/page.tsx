@@ -7,21 +7,13 @@ import { ethers } from "ethers";
 import {
   LayoutDashboard,
   PlusCircle,
-  Clock,
-  CheckCircle2,
-  Sparkles,
-  XCircle,
   FileCheck2,
-  ArrowRight,
-  ExternalLink,
   RefreshCw,
   Copy,
   Check,
   Send,
   History,
-  ShieldCheck,
   Search,
-  Filter,
 } from "lucide-react";
 import { hexToBytes32, shortenAddress, shortenHash } from "@/lib/crypto";
 import contractInfo from "@/contracts/AssetRegistry.json";
@@ -34,7 +26,6 @@ export default function MyAssetsDashboard() {
   const [mintError, setMintError] = useState<string | null>(null);
   const [copiedHash, setCopiedHash] = useState<string | null>(null);
 
-  // Tab & Search state
   const [activeTab, setActiveTab] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
@@ -97,7 +88,6 @@ export default function MyAssetsDashboard() {
 
       const contract = new ethers.Contract(contractInfo.address, contractInfo.abi, signer);
       const bytes32Hash = hexToBytes32(asset.fileHash);
-
       const metadataUri = JSON.stringify({
         title: asset.title,
         description: asset.description,
@@ -105,11 +95,9 @@ export default function MyAssetsDashboard() {
         fileHash: asset.fileHash,
       });
 
-      // 1. Gọi giao dịch registerAsset trên Smart Contract
       const tx = await contract.registerAsset(userAddress, metadataUri, bytes32Hash);
       const receipt = await tx.wait();
 
-      // 2. Tìm Token ID từ event
       let tokenId = 1;
       for (const log of receipt.logs) {
         try {
@@ -121,7 +109,6 @@ export default function MyAssetsDashboard() {
         } catch {}
       }
 
-      // 3. Đồng bộ lại vào SQLite Database
       const syncRes = await fetch(`/api/assets/${asset.id}/sync-onchain`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -138,7 +125,6 @@ export default function MyAssetsDashboard() {
         throw new Error(syncData.error || "Lỗi đồng bộ dữ liệu sau khi mint");
       }
 
-      // 4. Tải lại danh sách
       await fetchMyAssets(wallet);
     } catch (err: any) {
       console.error("Lỗi mint on-chain:", err);
@@ -154,14 +140,12 @@ export default function MyAssetsDashboard() {
     setTimeout(() => setCopiedHash(null), 2000);
   };
 
-  // Thống kê nhanh
   const totalCount = assets.length;
   const registeredCount = assets.filter((a) => a.status === "REGISTERED").length;
   const pendingCount = assets.filter((a) => a.status === "PENDING_APPROVAL").length;
   const approvedCount = assets.filter((a) => a.status === "APPROVED").length;
   const rejectedCount = assets.filter((a) => a.status === "REJECTED").length;
 
-  // Lọc theo tab & từ khóa
   const filteredAssets = assets.filter((a) => {
     if (activeTab === "REGISTERED" && a.status !== "REGISTERED") return false;
     if (activeTab === "PENDING_APPROVAL" && a.status !== "PENDING_APPROVAL") return false;
@@ -179,86 +163,75 @@ export default function MyAssetsDashboard() {
   });
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 space-y-8">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
       {/* HEADER */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-800 pb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-800 pb-5">
         <div>
-          <div className="flex items-center gap-2 text-orange-400 text-xs font-bold uppercase tracking-wider">
-            <LayoutDashboard className="h-4 w-4 text-[#F6851B]" />
-            <span>Không Gian Làm Việc Tác Giả (Creator Portal)</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white mt-1">
-            Bảng Điều Khiển Quản Lý Quyền Tác Phẩm
+          <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+            Creator Dashboard
+          </span>
+          <h1 className="text-xl sm:text-2xl font-bold text-white mt-1">
+            Bảng Điều Khiển Tác Phẩm Của Tôi
           </h1>
-          <p className="text-xs sm:text-sm text-slate-300 mt-1">
-            Theo dõi tiến độ thẩm định, khắc dấu NFT ERC-721 on-chain và quản lý quyền sở hữu số.
+          <p className="text-xs text-slate-400 mt-0.5">
+            Quản lý hồ sơ, thực hiện giao dịch đưa lên chuỗi khối và tải chứng nhận quyền sở hữu số.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <button
             onClick={() => fetchMyAssets(wallet)}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 border border-slate-750 px-3.5 py-2 text-xs font-bold text-slate-300 hover:text-white hover:border-orange-500 transition"
+            className="btn-secondary"
           >
-            <RefreshCw className="h-3.5 w-3.5 text-orange-400" />
+            <RefreshCw className="h-3.5 w-3.5" />
             <span>Làm mới</span>
           </button>
           <Link
             href="/creator/register"
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#F6851B] to-[#E2761B] px-4 py-2 text-xs font-bold text-white shadow-lg shadow-orange-500/25 hover:brightness-110 transition"
+            className="btn-primary"
           >
-            <PlusCircle className="h-4 w-4" />
-            <span>Đăng ký tác phẩm mới</span>
+            <PlusCircle className="h-3.5 w-3.5" />
+            <span>Đăng ký mới</span>
           </Link>
         </div>
       </div>
 
-      {/* WALLET BANNER */}
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs">
-        <div className="flex items-center gap-3">
-          <span className="flex h-3 w-3 rounded-full bg-emerald-400 ring-4 ring-emerald-400/20" />
-          <span className="text-slate-300">
-            Ví tác giả đang kích hoạt:{" "}
-            <strong className="font-mono text-white text-xs">{wallet || "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"}</strong>
-          </span>
+      {/* WALLET STRIP */}
+      <div className="rounded-lg border border-slate-800 bg-slate-900/60 px-4 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-2">
+        <div className="flex items-center gap-2 text-slate-300">
+          <span className="h-2 w-2 rounded-full bg-emerald-400" />
+          <span>Ví đang hoạt động:</span>
+          <span className="font-mono text-white font-medium">{wallet || "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"}</span>
         </div>
-        <span className="text-orange-400 font-bold bg-orange-500/10 px-2.5 py-1 rounded-lg border border-orange-500/20">
-          Mạng Hardhat Local (Chain ID 31337)
-        </span>
+        <span className="text-[11px] font-mono text-slate-400">Hardhat Local (31337)</span>
       </div>
 
       {/* STATS OVERVIEW CARDS */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 backdrop-blur-xl">
-          <div className="text-xs text-slate-400 font-medium">Tổng tác phẩm</div>
-          <div className="text-2xl font-black text-white mt-1">{totalCount}</div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="card-surface p-3.5">
+          <div className="text-[11px] font-medium text-slate-400">Tổng tác phẩm</div>
+          <div className="text-xl font-bold text-white font-mono mt-0.5">{totalCount}</div>
         </div>
 
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 backdrop-blur-xl">
-          <div className="text-xs text-emerald-400 font-bold flex items-center gap-1.5">
-            <Sparkles className="h-3.5 w-3.5" /> Đã Lên Blockchain
-          </div>
-          <div className="text-2xl font-black text-emerald-400 mt-1">{registeredCount}</div>
+        <div className="card-surface p-3.5 border-emerald-500/20">
+          <div className="text-[11px] font-medium text-emerald-400">Đã lên Blockchain</div>
+          <div className="text-xl font-bold text-emerald-400 font-mono mt-0.5">{registeredCount}</div>
         </div>
 
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 backdrop-blur-xl">
-          <div className="text-xs text-amber-400 font-bold flex items-center gap-1.5">
-            <Clock className="h-3.5 w-3.5" /> Chờ Thẩm Định
-          </div>
-          <div className="text-2xl font-black text-amber-400 mt-1">{pendingCount}</div>
+        <div className="card-surface p-3.5 border-amber-500/20">
+          <div className="text-[11px] font-medium text-amber-400">Chờ thẩm định</div>
+          <div className="text-xl font-bold text-amber-400 font-mono mt-0.5">{pendingCount}</div>
         </div>
 
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 backdrop-blur-xl">
-          <div className="text-xs text-orange-400 font-bold flex items-center gap-1.5">
-            <CheckCircle2 className="h-3.5 w-3.5" /> Sẵn Sàng Mint NFT
-          </div>
-          <div className="text-2xl font-black text-orange-400 mt-1">{approvedCount}</div>
+        <div className="card-surface p-3.5 border-[#F6851B]/20">
+          <div className="text-[11px] font-medium text-[#F6851B]">Sẵn sàng mint</div>
+          <div className="text-xl font-bold text-[#F6851B] font-mono mt-0.5">{approvedCount}</div>
         </div>
       </div>
 
-      {/* FILTER & TABS SECTION */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
-        <div className="flex flex-wrap items-center gap-2">
+      {/* FILTER & TABS */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-1.5">
           {[
             { id: "ALL", label: `Tất cả (${totalCount})` },
             { id: "REGISTERED", label: `On-Chain (${registeredCount})` },
@@ -269,10 +242,10 @@ export default function MyAssetsDashboard() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition ${
+              className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
                 activeTab === tab.id
-                  ? "bg-gradient-to-r from-[#F6851B] to-[#E2761B] text-white shadow-md shadow-orange-500/25"
-                  : "bg-slate-900 text-slate-300 hover:bg-slate-850 hover:text-white border border-slate-750"
+                  ? "bg-slate-800 text-white font-semibold border border-slate-700"
+                  : "text-slate-400 hover:text-white hover:bg-slate-850"
               }`}
             >
               {tab.label}
@@ -281,52 +254,50 @@ export default function MyAssetsDashboard() {
         </div>
 
         <div className="relative w-full sm:w-64">
-          <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
+          <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-500" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Tìm theo tiêu đề hoặc hash..."
-            className="w-full rounded-xl border border-slate-750 bg-slate-950 py-2 pl-9 pr-3 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 font-medium"
+            className="input-base pl-8"
           />
         </div>
       </div>
 
-      {/* MINT ERROR TOAST */}
+      {/* MINT ERROR BANNER */}
       {mintError && (
-        <div className="flex items-center gap-2 rounded-xl bg-rose-500/10 p-4 text-xs text-rose-300 border border-rose-500/30">
+        <div className="rounded-lg bg-rose-500/10 p-3 text-xs text-rose-300 border border-rose-500/20">
           <span>{mintError}</span>
         </div>
       )}
 
       {/* ASSET GRID */}
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {[1, 2, 3].map((n) => (
-            <div key={n} className="h-72 rounded-3xl border border-slate-800 bg-slate-900/40 animate-pulse" />
+            <div key={n} className="h-64 rounded-xl border border-slate-800 bg-slate-900/40 animate-pulse" />
           ))}
         </div>
       ) : filteredAssets.length === 0 ? (
-        <div className="rounded-3xl border border-dashed border-slate-800 p-12 text-center space-y-4 bg-slate-900/40">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-850 text-slate-400">
-            <LayoutDashboard className="h-7 w-7" />
-          </div>
+        <div className="rounded-xl border border-dashed border-slate-800 p-12 text-center space-y-3 bg-slate-900/30">
+          <LayoutDashboard className="h-8 w-8 mx-auto text-slate-600" />
           <div>
-            <h3 className="text-base font-bold text-white">Chưa có tác phẩm nào phù hợp</h3>
-            <p className="text-xs text-slate-400 mt-1">
+            <h3 className="text-xs font-semibold text-white">Chưa có tác phẩm nào phù hợp</h3>
+            <p className="text-[11px] text-slate-400 mt-0.5">
               {searchQuery ? "Không tìm thấy kết quả phù hợp với từ khóa." : "Bắt đầu đăng ký tác phẩm đầu tiên của bạn!"}
             </p>
           </div>
           <Link
             href="/creator/register"
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#F6851B] to-[#E2761B] px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-orange-500/25 transition"
+            className="btn-primary"
           >
-            <PlusCircle className="h-4 w-4" />
-            <span>Nộp tác phẩm ngay</span>
+            <PlusCircle className="h-3.5 w-3.5" />
+            <span>Nộp tác phẩm</span>
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredAssets.map((asset) => {
             const isPending = asset.status === "PENDING_APPROVAL";
             const isApproved = asset.status === "APPROVED";
@@ -336,60 +307,60 @@ export default function MyAssetsDashboard() {
             return (
               <div
                 key={asset.id}
-                className="group flex flex-col justify-between overflow-hidden rounded-3xl border border-slate-800 bg-slate-900/80 backdrop-blur-xl shadow-xl transition-all duration-300 hover:border-orange-500/60 hover:shadow-2xl"
+                className="card-surface overflow-hidden flex flex-col justify-between hover:border-slate-750 transition-colors"
               >
                 <div>
-                  {/* IMAGE PREVIEW */}
-                  <div className="relative h-48 w-full overflow-hidden bg-slate-950">
+                  {/* PREVIEW */}
+                  <div className="relative h-44 w-full overflow-hidden bg-slate-950">
                     <Image
                       src={asset.filePath}
                       alt={asset.title}
                       fill
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      className="object-cover"
                       unoptimized
                     />
-                    <div className="absolute top-3 right-3">
-                      <span className="rounded-full bg-slate-950/85 px-2.5 py-1 text-[11px] font-bold text-orange-400 backdrop-blur-md border border-orange-500/30">
+                    <div className="absolute top-2 right-2">
+                      <span className="rounded bg-black/70 px-2 py-0.5 text-[10px] font-medium text-slate-200 border border-white/10 backdrop-blur-sm">
                         {asset.category}
                       </span>
                     </div>
                   </div>
 
-                  {/* BODY INFO */}
-                  <div className="p-5 space-y-3">
+                  {/* BODY */}
+                  <div className="p-4 space-y-2.5">
                     <div className="flex items-start justify-between gap-2">
-                      <h3 className="text-sm font-bold text-white line-clamp-1">{asset.title}</h3>
+                      <h3 className="text-sm font-semibold text-white line-clamp-1">{asset.title}</h3>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div>
                       {isPending && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2.5 py-0.5 text-xs font-bold text-amber-300 ring-1 ring-inset ring-amber-500/30">
-                          <Clock className="h-3 w-3" /> Chờ Admin duyệt
+                        <span className="inline-flex items-center rounded bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-400 border border-amber-500/20">
+                          Chờ Admin duyệt
                         </span>
                       )}
                       {isApproved && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-orange-500/15 px-2.5 py-0.5 text-xs font-bold text-orange-400 ring-1 ring-inset ring-orange-500/30">
-                          <CheckCircle2 className="h-3 w-3" /> Đã duyệt • Sẵn sàng mint
+                        <span className="inline-flex items-center rounded bg-[#F6851B]/10 px-2 py-0.5 text-[11px] font-medium text-[#F6851B] border border-[#F6851B]/20">
+                          Đã duyệt • Sẵn sàng mint
                         </span>
                       )}
                       {isRegistered && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-xs font-bold text-emerald-400 ring-1 ring-inset ring-emerald-500/30">
-                          <Sparkles className="h-3 w-3" /> Token #{asset.tokenId} On-Chain
+                        <span className="inline-flex items-center rounded bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-400 border border-emerald-500/20">
+                          Token #{asset.tokenId} On-Chain
                         </span>
                       )}
                       {isRejected && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/15 px-2.5 py-0.5 text-xs font-bold text-rose-400 ring-1 ring-inset ring-rose-500/30">
-                          <XCircle className="h-3 w-3" /> Bị từ chối
+                        <span className="inline-flex items-center rounded bg-rose-500/10 px-2 py-0.5 text-[11px] font-medium text-rose-400 border border-rose-500/20">
+                          Bị từ chối
                         </span>
                       )}
                     </div>
 
-                    {/* HASH SNIPPET */}
-                    <div className="flex items-center justify-between rounded-xl bg-slate-950 p-2.5 text-[11px] font-mono text-slate-300 border border-slate-800">
+                    {/* HASH */}
+                    <div className="flex items-center justify-between rounded-lg bg-slate-950 px-2.5 py-1.5 text-[11px] font-mono text-slate-400 border border-slate-800">
                       <span>{shortenHash(asset.fileHash)}</span>
                       <button
                         onClick={() => copyToClipboard(asset.fileHash)}
-                        className="text-slate-400 hover:text-white"
+                        className="text-slate-500 hover:text-white"
                         title="Sao chép SHA-256"
                       >
                         {copiedHash === asset.fileHash ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
@@ -397,60 +368,58 @@ export default function MyAssetsDashboard() {
                     </div>
 
                     {asset.rejectionReason && (
-                      <p className="text-[11px] text-rose-300 bg-rose-500/10 p-2 rounded-xl border border-rose-500/20">
+                      <p className="text-[11px] text-rose-300 bg-rose-500/10 p-2 rounded-lg border border-rose-500/20">
                         Lý do từ chối: {asset.rejectionReason}
                       </p>
                     )}
                   </div>
                 </div>
 
-                {/* CARD FOOTER ACTIONS */}
-                <div className="border-t border-slate-800 p-4 bg-slate-950/60 space-y-2">
+                {/* FOOTER ACTIONS */}
+                <div className="border-t border-slate-800 p-3 bg-slate-950/40 space-y-2">
                   {isApproved && (
                     <button
                       onClick={() => handleMintOnChain(asset)}
                       disabled={mintingId === asset.id}
-                      className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#F6851B] via-[#E2761B] to-[#CD6116] px-4 py-2.5 text-xs font-bold text-white shadow-lg shadow-orange-500/25 hover:brightness-110 transition disabled:opacity-50"
+                      className="btn-primary w-full py-2"
                     >
-                      <Sparkles className="h-4 w-4" />
                       <span>{mintingId === asset.id ? "Đang ký MetaMask..." : "Đưa Lên Blockchain (Mint NFT)"}</span>
                     </button>
                   )}
 
                   {isRegistered && (
-                    <div className="space-y-2">
+                    <div className="space-y-1.5">
                       <div className="flex items-center gap-2">
                         <a
                           href={`/api/certificate/${asset.id}`}
                           target="_blank"
                           rel="noreferrer"
-                          className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-slate-850 border border-slate-700 px-3 py-2 text-xs font-bold text-slate-200 hover:bg-slate-800 hover:text-white transition"
+                          className="btn-secondary flex-1 py-1.5 text-[11px]"
                         >
-                          <FileCheck2 className="h-3.5 w-3.5 text-orange-400" />
-                          <span>Chứng nhận PDF</span>
+                          <FileCheck2 className="h-3 w-3" />
+                          <span>E-Cert PDF</span>
                         </a>
 
                         <Link
                           href={`/creator/transfer?assetId=${asset.id}`}
-                          className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-purple-500/15 border border-purple-500/30 px-3 py-2 text-xs font-bold text-purple-300 hover:bg-purple-500/25 transition"
+                          className="btn-secondary flex-1 py-1.5 text-[11px]"
                           title="Chuyển nhượng quyền sở hữu"
                         >
-                          <Send className="h-3.5 w-3.5" />
+                          <Send className="h-3 w-3" />
                           <span>Chuyển nhượng</span>
                         </Link>
                       </div>
 
-                      <div className="flex items-center justify-between text-[11px] pt-1">
+                      <div className="flex items-center justify-between text-[11px] text-slate-400 pt-0.5">
                         <Link
                           href={`/creator/assets/${asset.id}`}
-                          className="inline-flex items-center gap-1 text-slate-400 hover:text-orange-400 transition"
+                          className="hover:text-slate-200 transition-colors"
                         >
-                          <History className="h-3.5 w-3.5" />
-                          <span>Xem Lịch Sử Nguồn Gốc</span>
+                          Lịch sử nguồn gốc →
                         </Link>
                         <Link
                           href={`/verify?hash=${asset.fileHash}`}
-                          className="text-slate-400 hover:text-white transition"
+                          className="hover:text-slate-200 transition-colors"
                         >
                           Tra cứu on-chain
                         </Link>
@@ -459,15 +428,15 @@ export default function MyAssetsDashboard() {
                   )}
 
                   {isPending && (
-                    <p className="text-center text-[11px] text-slate-400 italic py-1">
-                      Đang đợi hội đồng Admin xét duyệt hồ sơ
+                    <p className="text-center text-[11px] text-slate-500 py-0.5">
+                      Đang đợi hội đồng Admin thẩm định
                     </p>
                   )}
 
                   {isRejected && (
                     <Link
                       href="/creator/register"
-                      className="block text-center text-xs font-bold text-rose-400 hover:underline py-1"
+                      className="block text-center text-xs text-rose-400 hover:underline py-0.5"
                     >
                       Nộp lại hồ sơ chỉnh sửa
                     </Link>

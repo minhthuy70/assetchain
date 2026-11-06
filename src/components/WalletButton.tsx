@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { ethers } from "ethers";
-import { Wallet, AlertCircle, CheckCircle2, ChevronDown, ExternalLink } from "lucide-react";
+import { Wallet, AlertCircle, CheckCircle2, ChevronDown } from "lucide-react";
 
 const HARDHAT_CHAIN_ID_HEX = "0x7a69"; // 31337 in hex
 const HARDHAT_RPC_URL = process.env.NEXT_PUBLIC_BLOCKCHAIN_RPC_URL || "http://127.0.0.1:8545";
@@ -87,7 +87,7 @@ export default function WalletButton() {
 
   async function connectWallet() {
     if (typeof window === "undefined" || !(window as any).ethereum) {
-      alert("Vui lòng cài đặt tiện ích mở rộng MetaMask trên trình duyệt Chrome/Edge!");
+      alert("Vui lòng cài đặt tiện ích mở rộng MetaMask trên trình duyệt!");
       return;
     }
 
@@ -101,9 +101,6 @@ export default function WalletButton() {
       }
     } catch (err: any) {
       console.error("Lỗi kết nối ví:", err);
-      if (err.code !== 4001) {
-        alert("Lỗi khi kết nối ví MetaMask. Vui lòng kiểm tra lại tiện ích!");
-      }
     } finally {
       setIsConnecting(false);
     }
@@ -139,8 +136,6 @@ export default function WalletButton() {
         } catch (addError) {
           console.error("Lỗi thêm mạng Hardhat:", addError);
         }
-      } else {
-        console.error("Lỗi chuyển mạng:", switchError);
       }
     }
   }
@@ -149,10 +144,10 @@ export default function WalletButton() {
     return (
       <button
         onClick={switchNetwork}
-        className="inline-flex items-center gap-2 rounded-xl bg-amber-500/15 border border-amber-500/40 px-3.5 py-2 text-xs font-bold text-amber-300 shadow-sm transition-all hover:bg-amber-500/25"
+        className="inline-flex items-center gap-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 text-xs font-semibold text-amber-300 hover:bg-amber-500/20 transition-colors"
       >
-        <AlertCircle className="h-4 w-4 animate-pulse text-amber-400" />
-        <span>Chuyển sang mạng Hardhat (31337)</span>
+        <AlertCircle className="h-3.5 w-3.5 text-amber-400" />
+        <span>Đổi mạng Hardhat</span>
       </button>
     );
   }
@@ -162,39 +157,39 @@ export default function WalletButton() {
       <div className="relative">
         <button
           onClick={() => setMenuOpen(!menuOpen)}
-          className="inline-flex items-center gap-2 rounded-xl bg-slate-900 border border-slate-750 px-3.5 py-2 text-xs font-semibold text-white shadow-sm backdrop-blur transition-all hover:border-orange-500/60 hover:bg-slate-850"
+          className="inline-flex items-center gap-2 rounded-lg bg-slate-900 border border-slate-800 px-3 py-1.5 text-xs font-medium text-slate-200 hover:bg-slate-850 hover:border-slate-700 transition-colors"
         >
-          <span className="flex h-2 w-2 rounded-full bg-emerald-400 ring-4 ring-emerald-400/20" />
-          <span className="font-mono font-bold tracking-tight">
+          <span className="h-2 w-2 rounded-full bg-emerald-400" />
+          <span className="font-mono text-xs">
             {account.slice(0, 6)}...{account.slice(-4)}
           </span>
           {balance !== null && (
-            <span className="rounded-lg bg-orange-500/15 border border-orange-500/30 px-2 py-0.5 text-[11px] font-bold text-orange-400">
+            <span className="rounded bg-slate-800 px-1.5 py-0.5 text-[11px] font-mono text-slate-300">
               {balance} ETH
             </span>
           )}
-          <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+          <ChevronDown className="h-3 w-3 text-slate-400" />
         </button>
 
         {menuOpen && (
-          <div className="absolute right-0 mt-2 w-72 rounded-2xl border border-slate-700 bg-slate-950/98 p-3.5 shadow-2xl backdrop-blur-2xl z-50 animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between pb-2.5 border-b border-slate-800">
-              <span className="text-[11px] uppercase tracking-wider text-slate-400 font-bold">
-                Ví MetaMask Đã Kết Nối
+          <div className="absolute right-0 mt-2 w-64 rounded-xl border border-slate-800 bg-slate-900 p-3 shadow-xl z-50">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+              <span className="text-[11px] font-medium text-slate-400">
+                Ví MetaMask
               </span>
-              <span className="flex items-center gap-1 text-[11px] font-semibold text-emerald-400">
-                <CheckCircle2 className="h-3.5 w-3.5" /> Chain 31337
+              <span className="flex items-center gap-1 text-[11px] text-emerald-400 font-mono">
+                <CheckCircle2 className="h-3 w-3" /> 31337
               </span>
             </div>
-            <div className="mt-3">
-              <p className="text-[11px] text-slate-400 font-medium">Địa chỉ ví công khai:</p>
-              <p className="mt-1 break-all font-mono text-xs text-white bg-slate-900/90 p-2 rounded-xl border border-slate-800 select-all">
+            <div className="mt-2.5">
+              <p className="text-[11px] text-slate-500">Địa chỉ:</p>
+              <p className="mt-0.5 break-all font-mono text-[11px] text-slate-200 bg-slate-950 p-2 rounded-lg border border-slate-800 select-all">
                 {account}
               </p>
             </div>
-            <div className="mt-3 flex items-center justify-between text-xs bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
-              <span className="text-slate-300">Số dư khả dụng:</span>
-              <span className="font-bold text-orange-400 text-sm">{balance} ETH</span>
+            <div className="mt-2.5 flex items-center justify-between text-xs bg-slate-950 p-2 rounded-lg border border-slate-800">
+              <span className="text-slate-400 text-[11px]">Số dư:</span>
+              <span className="font-mono font-semibold text-white">{balance} ETH</span>
             </div>
             <button
               onClick={() => {
@@ -202,9 +197,9 @@ export default function WalletButton() {
                 setBalance(null);
                 setMenuOpen(false);
               }}
-              className="mt-3.5 w-full rounded-xl bg-rose-500/10 border border-rose-500/20 py-2 text-xs font-semibold text-rose-300 transition hover:bg-rose-500/20 hover:text-white"
+              className="mt-2.5 w-full rounded-lg bg-rose-500/10 border border-rose-500/20 py-1.5 text-xs font-medium text-rose-300 hover:bg-rose-500/20 transition-colors"
             >
-              Ngắt kết nối phiên làm việc
+              Ngắt kết nối
             </button>
           </div>
         )}
@@ -216,10 +211,10 @@ export default function WalletButton() {
     <button
       onClick={connectWallet}
       disabled={isConnecting}
-      className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#F6851B] via-[#E2761B] to-[#CD6116] px-4 py-2 text-xs font-bold text-white shadow-lg shadow-orange-500/25 transition-all hover:scale-105 hover:brightness-110 hover:shadow-orange-500/40 active:scale-95 disabled:opacity-50"
+      className="btn-primary"
     >
-      <Wallet className="h-4 w-4" />
-      <span>{isConnecting ? "Đang kết nối..." : "Kết nối MetaMask"}</span>
+      <Wallet className="h-3.5 w-3.5" />
+      <span>{isConnecting ? "Đang kết nối..." : "Kết nối Ví"}</span>
     </button>
   );
 }

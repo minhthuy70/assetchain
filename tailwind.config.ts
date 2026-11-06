@@ -11,39 +11,34 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
-        // Chuyển toàn bộ hệ thống slate xám lạnh sang Tông Tím Hoàng Gia MetaMask sâu thẳm
+        // Hệ màu Slate chuẩn SaaS: Tối sâu, trung tính, thanh lịch, chống mỏi mắt
         slate: {
-          950: "#140026", // Nền chính sâu nhất (Deep Royal Purple)
-          900: "#1F0238", // Nền thẻ / surfaces card (MetaMask Dark Plum)
-          850: "#2A054A", // Thẻ nổi nhẹ / card surface elevated
-          800: "#3D086A", // Đường viền thẻ & đường phân cách
-          700: "#581294", // Viền hover & input border nổi
-          600: "#7C1DCB", // Tím trung tính nhấn mạnh
-          500: "#A855F7", // Tím sáng (Electric Violet)
-          400: "#C48DF6", // Tím nhạt cho văn bản phụ
-          300: "#E2C8FD", // Chữ nội dung dễ đọc, sáng và êm mắt
-          200: "#F0E2FE", // Chữ tiêu đề phụ
-          100: "#FAF5FF", // Gần trắng tinh khiết
-          50:  "#FDFAFF",
+          950: "#090A0F", // Nền chính (Deep Canvas)
+          900: "#11131A", // Nền thẻ / card surface chuẩn
+          850: "#171A23", // Card elevated / row hover
+          800: "#1E222F", // Đường viền chuẩn (Subtle 1px border)
+          750: "#272D3D", // Đường viền nổi / input focus ring
+          700: "#363C50", // Viền input bình thường
+          600: "#4B5569", // Icon phụ / phân cách
+          500: "#6B7280", // Placeholder / nhãn mờ
+          400: "#9CA3AF", // Văn bản phụ (Secondary text)
+          300: "#D1D5DB", // Văn bản nội dung (Body text)
+          200: "#E5E7EB", // Tiêu đề phụ (Subheadings)
+          100: "#F3F4F6", // Tiêu đề chính (Headings)
+          50:  "#FAFAFA",
         },
-        // Bảng màu nhận diện thương hiệu MetaMask (Fox Orange & Lilac)
-        metamask: {
+        // Điểm nhấn thương hiệu (Brand Accent): Cam MetaMask sắc sảo, dùng có chọn lọc
+        brand: {
           orange: "#F6851B",
           hover: "#E2761B",
-          glow: "#FF9838",
-          light: "#FA9F5A",
-          dark: "#8A2E05",
-          purple: {
-            DEFAULT: "#240046",
-            dark: "#140026",
-            card: "#1F0238",
-            border: "#3D086A",
-          },
-          lilac: {
-            DEFAULT: "#EEDCFF",
-            text: "#2B0054",
-            hover: "#E5CBFF",
-          },
+          active: "#CD6116",
+          subtle: "rgba(246, 133, 27, 0.12)",
+          border: "rgba(246, 133, 27, 0.35)",
+        },
+        // Điểm nhấn phụ (Subtle Royal Accent): Tím đậm nhận diện Web3
+        accent: {
+          purple: "#7C3AED",
+          purpleSubtle: "rgba(124, 58, 237, 0.12)",
         },
       },
       fontFamily: {
@@ -58,6 +53,11 @@ const config: Config = {
           "Arial",
           "sans-serif",
         ],
+      },
+      borderRadius: {
+        // Chuẩn SaaS: Tối đa xl (12-14px) cho cards, tránh bo tròn quá đà 3xl
+        card: "12px",
+        btn: "8px",
       },
     },
   },

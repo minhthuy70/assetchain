@@ -4,15 +4,11 @@ import { useState, useRef, useCallback } from "react";
 import Image from "next/image";
 import {
   UploadCloud,
-  FileCheck,
-  Clock,
   Copy,
   Check,
   RotateCcw,
-  Sparkles,
   FileText,
   AlertCircle,
-  Hash,
 } from "lucide-react";
 import { computeFileHashSHA256, hexToBytes32 } from "@/lib/crypto";
 
@@ -52,7 +48,6 @@ export default function FileDropzone({
     async (selectedFile: File) => {
       setError(null);
 
-      // Kiểm tra dung lượng
       const maxBytes = maxSizeMB * 1024 * 1024;
       if (selectedFile.size > maxBytes) {
         setError(`Dung lượng tệp vượt quá mức cho phép (${maxSizeMB}MB). Vui lòng chọn tệp nhỏ hơn.`);
@@ -141,9 +136,7 @@ export default function FileDropzone({
       await navigator.clipboard.writeText(text);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error("Lỗi copy clipboard:", err);
-    }
+    } catch {}
   };
 
   const formatFileSize = (bytes: number) => {
@@ -162,42 +155,39 @@ export default function FileDropzone({
         className="hidden"
       />
 
-      {/* DROP AREA / ACTIVE CONTAINER */}
       {!file ? (
         <div
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
-          className={`relative group cursor-pointer flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-10 text-center transition-all duration-300 ${
+          className={`cursor-pointer flex flex-col items-center justify-center rounded-xl border border-dashed p-8 text-center transition-colors ${
             isDragging
-              ? "border-[#F6851B] bg-orange-500/15 scale-[1.01] shadow-2xl shadow-orange-500/25"
-              : "border-slate-700 bg-slate-900/60 hover:border-orange-500/70 hover:bg-slate-900/90"
+              ? "border-[#F6851B] bg-slate-900"
+              : "border-slate-800 bg-slate-900/40 hover:border-slate-700 hover:bg-slate-900/60"
           }`}
         >
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-orange-500/15 text-[#F6851B] group-hover:scale-110 group-hover:bg-[#F6851B] group-hover:text-white transition-all duration-300 shadow-md">
-            <UploadCloud className="h-8 w-8" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-800 text-slate-300 mb-3">
+            <UploadCloud className="h-5 w-5 text-slate-300" />
           </div>
 
-          <h3 className="mt-4 text-base font-bold text-white">
-            Kéo thả tệp tác phẩm vào đây hoặc <span className="text-[#F6851B] underline">duyệt từ máy</span>
-          </h3>
-          <p className="mt-1 text-xs text-slate-300">
-            Hỗ trợ PNG, JPG, WEBP, PDF lên đến {maxSizeMB}MB
+          <p className="text-xs font-medium text-slate-200">
+            Kéo thả tệp tin vào đây hoặc <span className="text-[#F6851B]">duyệt từ máy tính</span>
           </p>
-
-          <div className="mt-4 flex items-center gap-2 rounded-full bg-slate-800/90 px-3.5 py-1 text-xs text-slate-200 border border-slate-700">
-            <Sparkles className="h-3.5 w-3.5 text-[#F6851B]" />
-            <span>Băm SHA-256 client-side tức thì (Zero-knowledge)</span>
-          </div>
+          <p className="mt-1 text-[11px] text-slate-500">
+            Hỗ trợ PNG, JPG, WEBP, PDF tối đa {maxSizeMB}MB
+          </p>
+          <p className="mt-2 text-[10px] font-mono text-slate-500">
+            Băm nhị phân SHA-256 thực thi trực tiếp trên trình duyệt (0-Knowledge)
+          </p>
         </div>
       ) : (
-        <div className="rounded-2xl border border-slate-700 bg-slate-900/90 p-5 shadow-2xl backdrop-blur-xl">
-          {/* FILE HEADER INFO */}
-          <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+        <div className="card-surface p-4 space-y-4">
+          {/* FILE HEADER */}
+          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
             <div className="flex items-center gap-3">
               {previewUrl ? (
-                <div className="relative h-14 w-14 overflow-hidden rounded-xl border border-slate-700 bg-slate-950">
+                <div className="relative h-11 w-11 overflow-hidden rounded-lg border border-slate-800 bg-slate-950">
                   <Image
                     src={previewUrl}
                     alt="Preview"
@@ -207,60 +197,56 @@ export default function FileDropzone({
                   />
                 </div>
               ) : (
-                <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-slate-700 bg-slate-800 text-orange-400">
-                  <FileText className="h-7 w-7" />
+                <div className="flex h-11 w-11 items-center justify-center rounded-lg border border-slate-800 bg-slate-950 text-slate-400">
+                  <FileText className="h-5 w-5" />
                 </div>
               )}
               <div>
-                <h4 className="text-sm font-bold text-white break-all">{file.name}</h4>
-                <div className="mt-1 flex items-center gap-2 text-xs text-slate-400">
+                <h4 className="text-xs font-semibold text-white break-all">{file.name}</h4>
+                <div className="mt-0.5 flex items-center gap-2 text-[11px] text-slate-400">
                   <span>{formatFileSize(file.size)}</span>
                   <span>•</span>
-                  <span className="uppercase">{file.type || "binary"}</span>
+                  <span className="uppercase">{file.type || "file"}</span>
+                  {durationSec && (
+                    <>
+                      <span>•</span>
+                      <span className="font-mono text-slate-400">{durationSec}s</span>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
 
             <button
               onClick={reset}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-200 transition hover:bg-slate-700 hover:text-white border border-slate-700"
+              className="btn-ghost"
               title="Chọn tệp tin khác"
             >
-              <RotateCcw className="h-3.5 w-3.5" />
+              <RotateCcw className="h-3 w-3" />
               <span>Đổi tệp</span>
             </button>
           </div>
 
-          {/* HASH STATUS & TIMING */}
-          <div className="mt-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
-                <Hash className="h-3.5 w-3.5 text-[#F6851B]" /> Dấu vân tay số (SHA-256)
-              </span>
-
-              {durationSec && !isHashing && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-orange-500/15 px-2.5 py-0.5 text-xs font-bold text-orange-400 ring-1 ring-inset ring-orange-500/30">
-                  <Clock className="h-3 w-3" />
-                  <span>Băm hoàn tất trong {durationSec}s</span>
-                </span>
-              )}
+          {/* HASH RESULTS */}
+          <div>
+            <div className="flex items-center justify-between text-[11px] font-medium text-slate-400 mb-1.5">
+              <span>Mã băm SHA-256 (Client-side)</span>
             </div>
 
             {isHashing ? (
-              <div className="flex items-center justify-center gap-2 rounded-xl bg-slate-950/80 p-4 border border-slate-800">
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-orange-500 border-t-transparent" />
-                <span className="text-xs text-slate-300">Đang tính toán mã SHA-256 nhị phân...</span>
+              <div className="flex items-center justify-center gap-2 rounded-lg bg-slate-950 p-3 border border-slate-800">
+                <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#F6851B] border-t-transparent" />
+                <span className="text-xs text-slate-400">Đang tính toán mã băm nhị phân...</span>
               </div>
             ) : hash ? (
               <div className="space-y-2">
-                {/* 64-CHAR SHA256 DISPLAY WITH 1-CLICK COPY */}
-                <div className="relative group rounded-xl border border-orange-500/30 bg-slate-950 p-3 shadow-inner">
-                  <p className="font-mono text-xs text-orange-300 break-all select-all leading-relaxed font-bold">
+                <div className="relative rounded-lg border border-slate-800 bg-slate-950 p-2.5">
+                  <p className="font-mono text-[11px] text-slate-200 break-all select-all pr-16 leading-relaxed">
                     {hash}
                   </p>
                   <button
                     onClick={() => copyToClipboard(hash)}
-                    className="absolute top-2.5 right-2.5 flex items-center gap-1 rounded-lg bg-slate-850 px-2.5 py-1 text-[11px] font-bold text-white transition hover:bg-[#F6851B] border border-slate-700"
+                    className="absolute top-2 right-2 inline-flex items-center gap-1 rounded bg-slate-850 px-2 py-0.5 text-[10px] font-medium text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-750 transition-colors"
                   >
                     {copied ? (
                       <>
@@ -270,37 +256,27 @@ export default function FileDropzone({
                     ) : (
                       <>
                         <Copy className="h-3 w-3" />
-                        <span>Sao chép</span>
+                        <span>Chép</span>
                       </>
                     )}
                   </button>
                 </div>
 
-                {/* SOLIDITY BYTES32 EQUIVALENT */}
                 {bytes32 && (
-                  <div className="rounded-lg bg-slate-950/60 px-3 py-2 text-[11px] text-slate-400 border border-slate-800">
-                    <span className="text-slate-500 font-mono">Solidity bytes32: </span>
-                    <span className="font-mono text-slate-300 break-all">{bytes32}</span>
+                  <div className="rounded-lg bg-slate-950 px-2.5 py-1.5 text-[10px] font-mono text-slate-400 border border-slate-800 flex items-center justify-between">
+                    <span className="text-slate-500">bytes32:</span>
+                    <span className="truncate max-w-[420px] text-slate-400">{bytes32}</span>
                   </div>
                 )}
               </div>
             ) : null}
           </div>
-
-          {/* NOTICE FOOTER */}
-          <div className="mt-4 flex items-center gap-2 rounded-xl bg-purple-500/10 px-3 py-2 text-xs text-purple-200 border border-purple-500/20">
-            <FileCheck className="h-4 w-4 text-[#F6851B] shrink-0" />
-            <span>
-              Mã băm được tính trực tiếp từ Web Crypto API tại trình duyệt của bạn và sẽ đối chiếu bất biến với Smart Contract.
-            </span>
-          </div>
         </div>
       )}
 
-      {/* ERROR MESSAGE */}
       {error && (
-        <div className="mt-3 flex items-center gap-2 rounded-xl bg-rose-500/10 p-3 text-xs text-rose-300 border border-rose-500/30">
-          <AlertCircle className="h-4 w-4 shrink-0 text-rose-400" />
+        <div className="mt-2.5 flex items-center gap-2 rounded-lg bg-rose-500/10 p-2.5 text-xs text-rose-300 border border-rose-500/20">
+          <AlertCircle className="h-3.5 w-3.5 shrink-0 text-rose-400" />
           <span>{error}</span>
         </div>
       )}

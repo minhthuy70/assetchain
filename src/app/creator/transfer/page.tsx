@@ -10,11 +10,7 @@ import {
   AlertTriangle,
   CheckCircle2,
   ArrowLeft,
-  Sparkles,
-  ShieldAlert,
   Wallet,
-  Clock,
-  ExternalLink,
 } from "lucide-react";
 import { shortenAddress, shortenHash } from "@/lib/crypto";
 import { transferAssetOnChain } from "@/lib/onchain";
@@ -33,7 +29,6 @@ function TransferContent() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successData, setSuccessData] = useState<any | null>(null);
 
-  // 1. Nhận diện ví MetaMask & lấy danh sách tác phẩm On-Chain
   useEffect(() => {
     async function loadData() {
       setLoading(true);
@@ -104,13 +99,11 @@ function TransferContent() {
         throw new Error("Vui lòng kết nối ví MetaMask để thực hiện giao dịch chuyển nhượng on-chain!");
       }
 
-      // A. Gọi Smart Contract on-chain
       const receipt = await transferAssetOnChain(
         toWallet.trim(),
         selectedAsset.tokenId
       );
 
-      // B. Đồng bộ vào SQLite Backend
       const res = await fetch(`/api/assets/${selectedAsset.id}/transfer`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -142,64 +135,63 @@ function TransferContent() {
   };
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8 space-y-8">
-      {/* HEADER SECTION */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-800 pb-6">
+    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
+      {/* HEADER */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-800 pb-5">
         <div>
-          <div className="flex items-center gap-2 text-orange-400 text-xs font-bold uppercase tracking-wider">
-            <Send className="h-4 w-4 text-[#F6851B]" />
-            <span>Chuyển Giao Quyền Tác Phẩm & NFT On-Chain</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white mt-1">
+          <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+            Quyền Sở Hữu On-Chain
+          </span>
+          <h1 className="text-xl sm:text-2xl font-bold text-white mt-1">
             Chuyển Nhượng Quyền Sở Hữu Tác Phẩm
           </h1>
-          <p className="text-xs sm:text-sm text-slate-300 mt-1">
-            Chuyển nhượng Token NFT ERC-721 trực tiếp trên Blockchain EVM và lưu vết bất biến trong lịch sử nguồn gốc (Provenance).
+          <p className="text-xs text-slate-400 mt-0.5">
+            Chuyển giao NFT ERC-721 trực tiếp trên EVM và cập nhật chuỗi sở hữu (Provenance).
           </p>
         </div>
 
         <Link
           href="/creator/my-assets"
-          className="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 border border-slate-750 px-3.5 py-2 text-xs font-bold text-slate-200 hover:text-white hover:border-orange-500 transition self-start sm:self-auto"
+          className="btn-secondary self-start sm:self-auto"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
-          <span>Quay lại danh sách</span>
+          <span>Danh sách</span>
         </Link>
       </div>
 
       {/* SUCCESS SCREEN */}
       {successData ? (
-        <div className="rounded-3xl border-2 border-emerald-500/80 bg-slate-900/95 p-8 text-center space-y-6 shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95">
-          <div className="flex h-16 w-16 mx-auto items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-400 ring-2 ring-emerald-500/40">
-            <CheckCircle2 className="h-8 w-8" />
+        <div className="card-surface p-8 text-center space-y-4">
+          <div className="flex h-12 w-12 mx-auto items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-400">
+            <CheckCircle2 className="h-6 w-6" />
           </div>
 
-          <div className="space-y-2 max-w-md mx-auto">
-            <h2 className="text-2xl font-black text-white">Chuyển Nhượng On-Chain Thành Công!</h2>
-            <p className="text-xs text-slate-300">
-              Quyền sở hữu tác phẩm <strong className="text-white">&ldquo;{successData.assetTitle}&rdquo;</strong> (Token #{successData.tokenId}) đã được chuyển nhượng thành công trên Blockchain.
+          <div className="space-y-1">
+            <h2 className="text-base font-bold text-white">Chuyển Nhượng On-Chain Thành Công</h2>
+            <p className="text-xs text-slate-400">
+              Quyền sở hữu tác phẩm &ldquo;{successData.assetTitle}&rdquo; (Token #{successData.tokenId}) đã được bàn giao thành công.
             </p>
           </div>
 
-          <div className="rounded-2xl bg-slate-950 p-4 border border-slate-800 text-left max-w-lg mx-auto space-y-2 text-xs">
-            <div className="flex justify-between py-1 border-b border-slate-800">
-              <span className="text-slate-400">Ví chủ sở hữu mới:</span>
-              <span className="font-mono text-orange-400 font-bold">{shortenAddress(successData.toWallet)}</span>
+          <div className="rounded-lg bg-slate-950 p-3.5 border border-slate-800 text-left max-w-md mx-auto space-y-1.5 text-xs">
+            <div className="flex justify-between py-1 border-b border-slate-850">
+              <span className="text-slate-500">Chủ sở hữu mới:</span>
+              <span className="font-mono text-slate-200">{shortenAddress(successData.toWallet)}</span>
             </div>
-            <div className="flex justify-between py-1 border-b border-slate-800">
-              <span className="text-slate-400">Khối giao dịch (Block):</span>
-              <span className="text-white font-mono">#{successData.blockNumber}</span>
+            <div className="flex justify-between py-1 border-b border-slate-850">
+              <span className="text-slate-500">Khối Block:</span>
+              <span className="font-mono text-slate-300">#{successData.blockNumber}</span>
             </div>
             <div className="flex justify-between py-1">
-              <span className="text-slate-400">Transaction Hash:</span>
-              <span className="font-mono text-emerald-400 font-bold">{shortenHash(successData.txHash)}</span>
+              <span className="text-slate-500">Transaction Hash:</span>
+              <span className="font-mono text-slate-300">{shortenHash(successData.txHash)}</span>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-3 pt-4">
+          <div className="flex items-center justify-center gap-2.5 pt-2">
             <Link
               href="/creator/my-assets"
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#F6851B] to-[#E2761B] px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-orange-500/25 hover:brightness-110"
+              className="btn-primary"
             >
               <span>Về bảng điều khiển</span>
             </Link>
@@ -208,51 +200,47 @@ function TransferContent() {
                 setSuccessData(null);
                 setToWallet("");
               }}
-              className="inline-flex items-center gap-2 rounded-xl bg-slate-850 border border-slate-700 px-5 py-2.5 text-xs font-bold text-slate-200 hover:bg-slate-800 hover:text-white"
+              className="btn-secondary"
             >
-              <span>Chuyển nhượng tác phẩm khác</span>
+              <span>Chuyển nhượng thêm</span>
             </button>
           </div>
         </div>
       ) : (
         /* TRANSFER FORM */
-        <form onSubmit={handleTransfer} className="space-y-6">
-          {/* SENDER WALLET BADGE */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs">
-            <div className="flex items-center gap-2.5">
-              <Wallet className="h-4 w-4 text-[#F6851B]" />
-              <span className="text-slate-300">
-                Ví người gửi (Chủ sở hữu hiện tại):{" "}
-                <strong className="font-mono text-white text-xs">{currentWallet || "Chưa kết nối MetaMask"}</strong>
-              </span>
+        <form onSubmit={handleTransfer} className="space-y-5">
+          {/* SENDER WALLET */}
+          <div className="rounded-lg border border-slate-800 bg-slate-900/60 px-4 py-2.5 flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2 text-slate-300">
+              <Wallet className="h-3.5 w-3.5 text-slate-400" />
+              <span>Ví người gửi:</span>
+              <span className="font-mono text-white font-medium">{currentWallet || "Chưa kết nối MetaMask"}</span>
             </div>
-            <span className="text-orange-400 font-bold bg-orange-500/10 px-2 py-0.5 rounded-lg border border-orange-500/20">
-              Hardhat 31337
-            </span>
+            <span className="text-[10px] font-mono text-slate-500">Hardhat 31337</span>
           </div>
 
           {/* CHOOSE ASSET */}
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-6 sm:p-8 backdrop-blur-xl shadow-xl space-y-4">
-            <div className="flex items-center gap-2 text-xs uppercase font-bold text-slate-300">
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#F6851B] text-[10px] text-white font-bold">1</span>
-              <span>Chọn Tác Phẩm Cần Chuyển Nhượng</span>
+          <div className="card-surface p-5 space-y-3">
+            <div className="flex items-center gap-2 text-xs font-semibold text-slate-200">
+              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#F6851B] text-[10px] text-white font-mono">1</span>
+              <span>Chọn tác phẩm cần chuyển nhượng</span>
             </div>
 
             {loading ? (
-              <div className="h-20 rounded-2xl bg-slate-850 animate-pulse" />
+              <div className="h-12 rounded-lg bg-slate-950 animate-pulse" />
             ) : assets.length === 0 ? (
-              <div className="p-6 text-center text-xs text-slate-300 bg-slate-950/70 rounded-2xl border border-slate-800">
-                Bạn chưa có tác phẩm nào ở trạng thái <span className="text-emerald-400 font-bold">REGISTERED</span> trên Blockchain. Hãy mint NFT trước!
+              <div className="p-4 text-center text-xs text-slate-400 bg-slate-950 rounded-lg border border-slate-800">
+                Chưa có tác phẩm nào đạt trạng thái REGISTERED trên Blockchain.
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <select
                   value={selectedAsset?.id || ""}
                   onChange={(e) => {
                     const a = assets.find((item) => item.id === e.target.value);
                     setSelectedAsset(a || null);
                   }}
-                  className="w-full rounded-xl border border-slate-750 bg-slate-950 p-3 text-xs text-white focus:outline-none focus:ring-2 focus:ring-orange-500 font-semibold"
+                  className="input-base cursor-pointer font-medium"
                 >
                   {assets.map((a) => (
                     <option key={a.id} value={a.id}>
@@ -262,8 +250,8 @@ function TransferContent() {
                 </select>
 
                 {selectedAsset && (
-                  <div className="flex items-center gap-4 rounded-2xl border border-slate-800 bg-slate-950 p-4">
-                    <div className="relative h-16 w-16 overflow-hidden rounded-xl bg-slate-900 border border-slate-800 shrink-0">
+                  <div className="flex items-center gap-3 rounded-lg border border-slate-800 bg-slate-950 p-3">
+                    <div className="relative h-12 w-12 overflow-hidden rounded-md bg-slate-900 border border-slate-850 shrink-0">
                       <Image
                         src={selectedAsset.filePath}
                         alt={selectedAsset.title}
@@ -272,13 +260,10 @@ function TransferContent() {
                         unoptimized
                       />
                     </div>
-                    <div className="space-y-1 min-w-0">
-                      <h4 className="text-sm font-bold text-white truncate">{selectedAsset.title}</h4>
-                      <p className="text-xs text-slate-400 font-mono">
+                    <div className="space-y-0.5 min-w-0 text-xs">
+                      <h4 className="font-semibold text-white truncate">{selectedAsset.title}</h4>
+                      <p className="text-[11px] text-slate-400 font-mono">
                         Hash: {shortenHash(selectedAsset.fileHash)} • Token #{selectedAsset.tokenId}
-                      </p>
-                      <p className="text-[11px] text-orange-300 font-mono">
-                        Chủ sở hữu hiện tại: {shortenAddress(selectedAsset.currentOwnerWallet)}
                       </p>
                     </div>
                   </div>
@@ -287,58 +272,53 @@ function TransferContent() {
             )}
           </div>
 
-          {/* RECIPIENT WALLET & WARNING */}
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-6 sm:p-8 backdrop-blur-xl shadow-xl space-y-5">
-            <div className="flex items-center gap-2 text-xs uppercase font-bold text-slate-300">
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#F6851B] text-[10px] text-white font-bold">2</span>
-              <span>Địa Chỉ Ví Người Nhận Mới</span>
+          {/* RECIPIENT WALLET */}
+          <div className="card-surface p-5 space-y-4">
+            <div className="flex items-center gap-2 text-xs font-semibold text-slate-200">
+              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#F6851B] text-[10px] text-white font-mono">2</span>
+              <span>Địa chỉ ví người nhận mới</span>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-200">
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-slate-300 block">
                 Địa chỉ ví Ethereum / EVM đích (*):
               </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  required
-                  value={toWallet}
-                  onChange={(e) => setToWallet(e.target.value)}
-                  placeholder="VD: 0x90F79bf6EB2c4f870365E785982E1f101E93b906 (Collector test #3)"
-                  className="w-full rounded-xl border border-slate-750 bg-slate-950 p-3 text-xs text-white font-mono placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                />
-              </div>
-              <p className="text-[11px] text-slate-400">
-                Nhập địa chỉ ví Ethereum công khai gồm 42 ký tự (Bắt đầu bằng `0x`).
+              <input
+                type="text"
+                required
+                value={toWallet}
+                onChange={(e) => setToWallet(e.target.value)}
+                placeholder="0x..."
+                className="input-base font-mono"
+              />
+              <p className="text-[11px] text-slate-500">
+                Địa chỉ ví công khai gồm 42 ký tự (Bắt đầu bằng `0x`).
               </p>
             </div>
 
             {/* CAUTION WARNING */}
-            <div className="flex items-start gap-3 rounded-2xl bg-amber-500/10 p-4 border border-amber-500/25 text-xs text-amber-200">
-              <AlertTriangle className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
-              <div className="space-y-1">
-                <span className="font-bold text-amber-300">Lưu ý tính bất biến của Blockchain:</span>
-                <p className="leading-relaxed text-[11px]">
-                  Hành động chuyển nhượng là vĩnh viễn và không thể đảo ngược trên Smart Contract EVM. Người nhận mới sẽ trở thành chủ sở hữu độc quyền của NFT bản quyền này.
-                </p>
+            <div className="rounded-lg bg-amber-500/5 p-3 border border-amber-500/20 text-xs flex items-start gap-2.5">
+              <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+              <div className="text-[11px] text-slate-400 leading-relaxed">
+                <span className="text-amber-300 font-semibold">Tính bất biến: </span>
+                Giao dịch chuyển nhượng trên Smart Contract là vĩnh viễn và không thể hoàn tác.
               </div>
             </div>
 
             {errorMsg && (
-              <div className="flex items-center gap-2 rounded-xl bg-rose-500/10 p-4 text-xs text-rose-300 border border-rose-500/30">
-                <ShieldAlert className="h-4 w-4 shrink-0 text-rose-400" />
+              <div className="rounded-lg bg-rose-500/10 p-2.5 text-xs text-rose-300 border border-rose-500/20">
                 <span>{errorMsg}</span>
               </div>
             )}
 
-            <div className="pt-2 flex justify-end">
+            <div className="pt-1 flex justify-end">
               <button
                 type="submit"
                 disabled={transferring || !selectedAsset || !toWallet.trim()}
-                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#F6851B] via-[#E2761B] to-[#CD6116] px-6 py-3 text-xs font-bold text-white shadow-xl shadow-orange-500/25 transition hover:brightness-110 disabled:opacity-50"
+                className="btn-primary"
               >
-                <Send className="h-4 w-4" />
-                <span>{transferring ? "Đang ký giao dịch trên MetaMask..." : "Xác Nhận Chuyển Nhượng"}</span>
+                <Send className="h-3.5 w-3.5" />
+                <span>{transferring ? "Đang ký giao dịch MetaMask..." : "Xác Nhận Chuyển Nhượng"}</span>
               </button>
             </div>
           </div>
@@ -350,7 +330,7 @@ function TransferContent() {
 
 export default function TransferPage() {
   return (
-    <Suspense fallback={<div className="p-12 text-center text-xs text-slate-400">Đang tải trang chuyển nhượng...</div>}>
+    <Suspense fallback={<div className="p-12 text-center text-xs text-slate-500">Đang tải trang chuyển nhượng...</div>}>
       <TransferContent />
     </Suspense>
   );
