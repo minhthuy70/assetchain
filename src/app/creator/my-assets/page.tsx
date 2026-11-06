@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { hexToBytes32, shortenAddress, shortenHash } from "@/lib/crypto";
 import contractInfo from "@/contracts/AssetRegistry.json";
+import { mintAssetOnChain, parseWeb3ErrorMessage } from "@/lib/onchain";
 
 export default function MyAssetsDashboard() {
   const [assets, setAssets] = useState<any[]>([]);
@@ -76,45 +77,24 @@ export default function MyAssetsDashboard() {
     setMintError(null);
 
     try {
-      const provider = new ethers.BrowserProvider((window as any).ethereum);
-      const signer = await provider.getSigner();
-      const userAddress = await signer.getAddress();
-
-      if (!contractInfo || !contractInfo.address) {
-        throw new Error("Chưa tìm thấy Smart Contract address. Vui lòng deploy contract!");
-      }
-
-      const contract = new ethers.Contract(contractInfo.address, contractInfo.abi, signer);
-      const bytes32Hash = hexToBytes32(asset.fileHash);
-      const metadataUri = JSON.stringify({
+      // 1. Gọi giao dịch mintAssetOnChain qua Ethers helper chuẩn
+      const onchainResult = await mintAssetOnChain({
         title: asset.title,
-        description: asset.description,
-        image: asset.filePath,
+        description: asset.description || "",
+        filePath: asset.filePath,
         fileHash: asset.fileHash,
+        walletAddress: wallet,
       });
 
-      const tx = await contract.registerAsset(userAddress, metadataUri, bytes32Hash);
-      const receipt = await tx.wait();
-
-      let tokenId = 1;
-      for (const log of receipt.logs) {
-        try {
-          const parsed = contract.interface.parseLog(log);
-          if (parsed && parsed.name === "AssetRegistered") {
-            tokenId = Number(parsed.args.tokenId);
-            break;
-          }
-        } catch {}
-      }
-
+      // 2. Đồng bộ kết quả mint vào SQLite Database
       const syncRes = await fetch(`/api/assets/${asset.id}/sync-onchain`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          tokenId,
-          txHash: receipt.hash,
-          blockNumber: receipt.blockNumber,
-          ownerWallet: userAddress,
+          tokenId: onchainResult.tokenId,
+          txHash: onchainResult.txHash,
+          blockNumber: onchainResult.blockNumber,
+          ownerWallet: onchainResult.ownerAddress,
         }),
       });
 
@@ -126,7 +106,7 @@ export default function MyAssetsDashboard() {
       await fetchMyAssets(wallet);
     } catch (err: any) {
       console.error("Lỗi mint on-chain:", err);
-      setMintError(err.reason || err.message || "Giao dịch MetaMask thất bại");
+      setMintError(parseWeb3ErrorMessage(err));
     } finally {
       setMintingId(null);
     }
