@@ -11,23 +11,21 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
-        // Hệ màu Slate chuẩn SaaS: Tối sâu, trung tính, thanh lịch, chống mỏi mắt
         slate: {
-          950: "#090A0F", // Nền chính (Deep Canvas)
-          900: "#11131A", // Nền thẻ / card surface chuẩn
+          950: "#090A0F", // Nền chính
+          900: "#11131A", // Nền thẻ
           850: "#171A23", // Card elevated / row hover
-          800: "#1E222F", // Đường viền chuẩn (Subtle 1px border)
-          750: "#272D3D", // Đường viền nổi / input focus ring
-          700: "#363C50", // Viền input bình thường
-          600: "#4B5569", // Icon phụ / phân cách
-          500: "#6B7280", // Placeholder / nhãn mờ
-          400: "#9CA3AF", // Văn bản phụ (Secondary text)
-          300: "#D1D5DB", // Văn bản nội dung (Body text)
-          200: "#E5E7EB", // Tiêu đề phụ (Subheadings)
-          100: "#F3F4F6", // Tiêu đề chính (Headings)
+          800: "#1E222F", // Viền 1px chuẩn
+          750: "#272D3D", // Viền hover
+          700: "#363C50", // Viền input
+          600: "#4B5569", // Icon phụ
+          500: "#6B7280", // Muted label
+          400: "#9CA3AF", // Secondary text
+          300: "#D1D5DB", // Body text
+          200: "#E5E7EB", // Subheadings
+          100: "#F3F4F6", // Headings
           50:  "#FAFAFA",
         },
-        // Điểm nhấn thương hiệu (Brand Accent): Cam MetaMask sắc sảo, dùng có chọn lọc
         brand: {
           orange: "#F6851B",
           hover: "#E2761B",
@@ -35,16 +33,11 @@ const config: Config = {
           subtle: "rgba(246, 133, 27, 0.12)",
           border: "rgba(246, 133, 27, 0.35)",
         },
-        // Điểm nhấn phụ (Subtle Royal Accent): Tím đậm nhận diện Web3
-        accent: {
-          purple: "#7C3AED",
-          purpleSubtle: "rgba(124, 58, 237, 0.12)",
-        },
       },
       fontFamily: {
         sans: [
-          "Plus Jakarta Sans",
-          "system-ui",
+          "var(--font-inter)",
+          "Inter",
           "-apple-system",
           "BlinkMacSystemFont",
           "Segoe UI",
@@ -53,9 +46,29 @@ const config: Config = {
           "Arial",
           "sans-serif",
         ],
+        mono: [
+          "ui-monospace",
+          "SFMono-Regular",
+          "Menlo",
+          "Monaco",
+          "Consolas",
+          "Liberation Mono",
+          "Courier New",
+          "monospace",
+        ],
+      },
+      fontSize: {
+        // Typography Hierarchy Tokens
+        "display": ["2.25rem", { lineHeight: "2.75rem", letterSpacing: "-0.025em" }], // 36px / 44px
+        "h1": ["1.75rem", { lineHeight: "2.25rem", letterSpacing: "-0.02em" }],      // 28px / 36px
+        "h2": ["1.375rem", { lineHeight: "1.875rem", letterSpacing: "-0.018em" }],   // 22px / 30px
+        "h3": ["1.0625rem", { lineHeight: "1.5rem", letterSpacing: "-0.014em" }],     // 17px / 24px
+        "subhead": ["0.875rem", { lineHeight: "1.375rem", letterSpacing: "-0.01em" }],// 14px / 22px
+        "body": ["0.8125rem", { lineHeight: "1.25rem", letterSpacing: "-0.006em" }],  // 13px / 20px
+        "caption": ["0.6875rem", { lineHeight: "1rem", letterSpacing: "0.01em" }],    // 11px / 16px
+        "label": ["0.6875rem", { lineHeight: "1rem", letterSpacing: "0.05em" }],      // 11px uppercase
       },
       borderRadius: {
-        // Chuẩn SaaS: Tối đa xl (12-14px) cho cards, tránh bo tròn quá đà 3xl
         card: "12px",
         btn: "8px",
       },

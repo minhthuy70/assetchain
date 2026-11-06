@@ -5,11 +5,9 @@ import Link from "next/link";
 import { ethers } from "ethers";
 import {
   ShieldAlert,
-  AlertTriangle,
   Lock,
   Wallet,
   ArrowRight,
-  ShieldCheck,
 } from "lucide-react";
 import contractInfo from "@/contracts/AssetRegistry.json";
 import { shortenAddress } from "@/lib/crypto";
@@ -173,20 +171,20 @@ export default function AdminRevokePage() {
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
       {/* HEADER */}
       <div className="border-b border-slate-800 pb-5">
-        <span className="text-xs font-semibold uppercase tracking-wider text-rose-400">
+        <span className="type-label text-rose-400">
           Quyền Hạn Đặc Biệt
         </span>
-        <h1 className="text-xl sm:text-2xl font-bold text-white mt-1">
+        <h1 className="type-h1 mt-1">
           Thu Hồi Quyền Bản Quyền Tác Phẩm (Revoke)
         </h1>
-        <p className="text-xs text-slate-400 mt-0.5">
+        <p className="type-subhead mt-1">
           Hủy bỏ hiệu lực chứng nhận on-chain đối với các tác phẩm phát hiện vi phạm bản quyền hoặc có tranh chấp pháp lý.
         </p>
       </div>
 
       {/* ADMIN STATUS BANNER */}
       {checkingAuth ? (
-        <div className="card-surface p-3 flex items-center gap-2.5 text-xs text-slate-400">
+        <div className="card-surface p-3.5 flex items-center gap-2.5 type-caption text-slate-400">
           <div className="h-3 w-3 rounded-full border-2 border-slate-400 border-t-transparent animate-spin" />
           <span>Đang kiểm tra quyền hạn ví Admin...</span>
         </div>
@@ -195,8 +193,8 @@ export default function AdminRevokePage() {
           <div className="flex items-center gap-3">
             <Lock className="h-5 w-5 text-amber-400 shrink-0" />
             <div>
-              <p className="text-xs font-semibold text-white">Yêu Cầu Kết Nối Ví Quản Trị Viên (Admin)</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">
+              <p className="type-h3 text-white">Yêu Cầu Kết Nối Ví Quản Trị Viên (Admin)</p>
+              <p className="type-caption text-slate-400 mt-0.5">
                 Lệnh thu hồi yêu cầu quyền hạn Deployer/Owner của Smart Contract.
               </p>
             </div>
@@ -214,8 +212,8 @@ export default function AdminRevokePage() {
           <div className="flex items-center gap-3">
             <ShieldAlert className="h-5 w-5 text-rose-400 shrink-0" />
             <div>
-              <p className="text-xs font-semibold text-rose-400">Từ Chối Quyền Truy Cập (403 Forbidden)</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">
+              <p className="type-h3 text-rose-400">Từ Chối Quyền Truy Cập (403 Forbidden)</p>
+              <p className="type-caption text-slate-400 mt-0.5">
                 Ví hiện tại ({shortenAddress(connectedWallet)}) không có quyền thu hồi tài sản.
               </p>
             </div>
@@ -232,24 +230,24 @@ export default function AdminRevokePage() {
         <div className="rounded-lg border border-slate-800 bg-slate-900/60 px-4 py-2.5 flex items-center justify-between text-xs">
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-emerald-400" />
-            <span className="font-semibold text-slate-200">Ví Admin đã kết nối:</span>
-            <span className="font-mono text-slate-400">{connectedWallet}</span>
+            <span className="type-caption font-medium text-slate-200">Ví Admin đã kết nối:</span>
+            <span className="type-code text-slate-400">{connectedWallet}</span>
           </div>
-          <span className="text-[11px] font-mono text-emerald-400 font-medium">ADMIN PRIVILEGE</span>
+          <span className="type-label text-emerald-400 font-medium">ADMIN PRIVILEGE</span>
         </div>
       )}
 
       {/* FORM CARD */}
       <div className="card-surface p-5 space-y-4">
         <div>
-          <h3 className="text-xs font-semibold text-white uppercase tracking-wider">Lệnh thu hồi trên Smart Contract</h3>
-          <p className="text-xs text-slate-400 mt-0.5">Hành động này sẽ cập nhật `isRevoked = true` trong Smart Contract</p>
+          <h3 className="type-h3">Lệnh thu hồi trên Smart Contract</h3>
+          <p className="type-caption text-slate-400 mt-0.5">Hành động này sẽ cập nhật `isRevoked = true` trong Smart Contract</p>
         </div>
 
-        <form onSubmit={handleRevoke} className="space-y-3.5">
+        <form onSubmit={handleRevoke} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="text-xs font-medium text-slate-300 mb-1 block">Token ID (*):</label>
+              <label className="type-caption font-medium text-slate-300 mb-1.5 block">Token ID (*):</label>
               <input
                 type="number"
                 required
@@ -262,7 +260,7 @@ export default function AdminRevokePage() {
             </div>
 
             <div className="sm:col-span-2">
-              <label className="text-xs font-medium text-slate-300 mb-1 block">Lý do thu hồi bản quyền (*):</label>
+              <label className="type-caption font-medium text-slate-300 mb-1.5 block">Lý do thu hồi bản quyền (*):</label>
               <input
                 type="text"
                 required
@@ -302,25 +300,25 @@ export default function AdminRevokePage() {
 
       {/* QUICK SELECTION LIST */}
       <div className="card-surface p-4 space-y-3">
-        <h3 className="text-[11px] uppercase font-semibold text-slate-400 tracking-wider">
+        <h3 className="type-label">
           Tác phẩm đã ghi danh on-chain
         </h3>
         {registeredAssets.length === 0 ? (
-          <p className="text-xs text-slate-500">Chưa có tác phẩm nào ở trạng thái REGISTERED.</p>
+          <p className="type-caption text-slate-500">Chưa có tác phẩm nào ở trạng thái REGISTERED.</p>
         ) : (
           <div className="divide-y divide-slate-800 text-xs">
             {registeredAssets.map((asset) => (
-              <div key={asset.id} className="py-2 flex items-center justify-between">
+              <div key={asset.id} className="py-2.5 flex items-center justify-between">
                 <div>
-                  <span className="font-mono font-bold text-white mr-2">Token #{asset.tokenId}:</span>
-                  <span className="text-slate-300">{asset.title}</span>
-                  <span className="text-slate-500 font-mono text-[10px] ml-2">({shortenAddress(asset.currentOwnerWallet)})</span>
+                  <span className="type-code text-white font-medium mr-2">Token #{asset.tokenId}:</span>
+                  <span className="type-body text-slate-300">{asset.title}</span>
+                  <span className="type-code text-slate-500 text-[10px] ml-2">({shortenAddress(asset.currentOwnerWallet)})</span>
                 </div>
                 <button
                   type="button"
                   disabled={!isAdmin}
                   onClick={() => setTokenId(String(asset.tokenId))}
-                  className="btn-ghost py-1 px-2 text-[11px]"
+                  className="btn-ghost py-1 px-2 type-caption"
                 >
                   Chọn #{asset.tokenId}
                 </button>

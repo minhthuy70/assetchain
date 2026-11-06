@@ -107,10 +107,6 @@ export default function FileDropzone({
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      processFile(e.dataTransfer.files[0]);
-    }
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -171,13 +167,13 @@ export default function FileDropzone({
             <UploadCloud className="h-5 w-5 text-slate-300" />
           </div>
 
-          <p className="text-xs font-medium text-slate-200">
+          <p className="type-body font-medium text-slate-200">
             Kéo thả tệp tin vào đây hoặc <span className="text-[#F6851B]">duyệt từ máy tính</span>
           </p>
-          <p className="mt-1 text-[11px] text-slate-500">
+          <p className="mt-1 type-caption text-slate-500">
             Hỗ trợ PNG, JPG, WEBP, PDF tối đa {maxSizeMB}MB
           </p>
-          <p className="mt-2 text-[10px] font-mono text-slate-500">
+          <p className="mt-2 type-caption font-mono text-slate-500">
             Băm nhị phân SHA-256 thực thi trực tiếp trên trình duyệt (0-Knowledge)
           </p>
         </div>
@@ -202,8 +198,8 @@ export default function FileDropzone({
                 </div>
               )}
               <div>
-                <h4 className="text-xs font-semibold text-white break-all">{file.name}</h4>
-                <div className="mt-0.5 flex items-center gap-2 text-[11px] text-slate-400">
+                <h4 className="type-body font-medium text-white break-all">{file.name}</h4>
+                <div className="mt-0.5 flex items-center gap-2 type-caption text-slate-400">
                   <span>{formatFileSize(file.size)}</span>
                   <span>•</span>
                   <span className="uppercase">{file.type || "file"}</span>
@@ -229,24 +225,24 @@ export default function FileDropzone({
 
           {/* HASH RESULTS */}
           <div>
-            <div className="flex items-center justify-between text-[11px] font-medium text-slate-400 mb-1.5">
+            <div className="type-label mb-1.5">
               <span>Mã băm SHA-256 (Client-side)</span>
             </div>
 
             {isHashing ? (
               <div className="flex items-center justify-center gap-2 rounded-lg bg-slate-950 p-3 border border-slate-800">
                 <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#F6851B] border-t-transparent" />
-                <span className="text-xs text-slate-400">Đang tính toán mã băm nhị phân...</span>
+                <span className="type-caption text-slate-400">Đang tính toán mã băm nhị phân...</span>
               </div>
             ) : hash ? (
               <div className="space-y-2">
                 <div className="relative rounded-lg border border-slate-800 bg-slate-950 p-2.5">
-                  <p className="font-mono text-[11px] text-slate-200 break-all select-all pr-16 leading-relaxed">
+                  <p className="type-code text-slate-200 break-all select-all pr-16 leading-relaxed">
                     {hash}
                   </p>
                   <button
                     onClick={() => copyToClipboard(hash)}
-                    className="absolute top-2 right-2 inline-flex items-center gap-1 rounded bg-slate-850 px-2 py-0.5 text-[10px] font-medium text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-750 transition-colors"
+                    className="absolute top-2 right-2 inline-flex items-center gap-1 rounded bg-slate-850 px-2 py-0.5 type-caption font-medium text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-750 transition-colors"
                   >
                     {copied ? (
                       <>
@@ -263,8 +259,8 @@ export default function FileDropzone({
                 </div>
 
                 {bytes32 && (
-                  <div className="rounded-lg bg-slate-950 px-2.5 py-1.5 text-[10px] font-mono text-slate-400 border border-slate-800 flex items-center justify-between">
-                    <span className="text-slate-500">bytes32:</span>
+                  <div className="rounded-lg bg-slate-950 px-2.5 py-1.5 type-code text-slate-400 border border-slate-800 flex items-center justify-between">
+                    <span className="type-caption">bytes32:</span>
                     <span className="truncate max-w-[420px] text-slate-400">{bytes32}</span>
                   </div>
                 )}

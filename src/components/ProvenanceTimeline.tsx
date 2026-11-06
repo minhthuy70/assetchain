@@ -5,7 +5,6 @@ import {
   ShieldCheck,
   CheckCircle2,
   Send,
-  Layers,
   ArrowRight,
 } from "lucide-react";
 import { shortenAddress, shortenHash } from "@/lib/crypto";
@@ -60,10 +59,10 @@ export default function ProvenanceTimeline({
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-        <span className="text-xs font-semibold text-white uppercase tracking-wider">
+        <span className="type-label text-white">
           Lịch Sử Nguồn Gốc & Chuỗi Sở Hữu (Provenance)
         </span>
-        <span className="text-[11px] text-slate-500 font-mono">
+        <span className="type-code text-slate-500">
           EVM Ledger
         </span>
       </div>
@@ -77,13 +76,13 @@ export default function ProvenanceTimeline({
 
           <div className="rounded-lg border border-slate-800 bg-slate-950 p-3.5 space-y-1.5 text-xs">
             <div className="flex items-center justify-between">
-              <span className="font-semibold text-white">Khởi tạo & Băm Client-side SHA-256</span>
-              <span className="text-[11px] text-slate-500 font-mono">{formatDate(asset.createdAt)}</span>
+              <span className="type-body font-medium text-white">Khởi tạo & Băm Client-side SHA-256</span>
+              <span className="type-caption font-mono">{formatDate(asset.createdAt)}</span>
             </div>
-            <p className="text-slate-400">
-              Tác giả <strong className="text-slate-200">{asset.creator?.fullName || "Tác giả"}</strong> ({shortenAddress(asset.creator?.walletAddress || asset.currentOwnerWallet)}) đã băm SHA-256 trong trình duyệt và nộp hồ sơ.
+            <p className="type-body text-slate-400">
+              Tác giả <strong className="text-slate-200 font-medium">{asset.creator?.fullName || "Tác giả"}</strong> ({shortenAddress(asset.creator?.walletAddress || asset.currentOwnerWallet)}) đã băm SHA-256 trong trình duyệt và nộp hồ sơ.
             </p>
-            <div className="rounded bg-slate-900 p-2 font-mono text-[10px] text-slate-300 break-all border border-slate-850">
+            <div className="rounded bg-slate-900 p-2 type-code text-slate-300 break-all border border-slate-850">
               Mã băm: {asset.fileHash}
             </div>
           </div>
@@ -99,14 +98,14 @@ export default function ProvenanceTimeline({
 
           <div className="rounded-lg border border-slate-800 bg-slate-950 p-3.5 space-y-1.5 text-xs">
             <div className="flex items-center justify-between">
-              <span className="font-semibold text-white">Thẩm Định & Cấp Phép Bản Quyền</span>
+              <span className="type-body font-medium text-white">Thẩm Định & Cấp Phép Bản Quyền</span>
               {isApproved && (
-                <span className="rounded bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-400 border border-emerald-500/20">
+                <span className="type-label rounded bg-emerald-500/10 px-1.5 py-0.5 text-emerald-400 border border-emerald-500/20">
                   APPROVED
                 </span>
               )}
             </div>
-            <p className="text-slate-400">
+            <p className="type-body text-slate-400">
               {isApproved
                 ? "Hội đồng Quản trị AssetChain đã đối chiếu tính nguyên bản và cấp phép phát hành chứng nhận."
                 : "Hồ sơ đang trong hàng đợi thẩm định của Hội đồng Quản trị."}
@@ -123,21 +122,21 @@ export default function ProvenanceTimeline({
 
             <div className="rounded-lg border border-slate-800 bg-slate-950 p-3.5 space-y-2 text-xs">
               <div className="flex items-center justify-between">
-                <span className="font-semibold text-white">Khắc Dấu On-Chain (Mint NFT ERC-721)</span>
-                <span className="text-[11px] text-slate-500 font-mono">{formatDate(asset.registeredAt || asset.createdAt)}</span>
+                <span className="type-body font-medium text-white">Khắc Dấu On-Chain (Mint NFT ERC-721)</span>
+                <span className="type-caption font-mono">{formatDate(asset.registeredAt || asset.createdAt)}</span>
               </div>
-              <p className="text-slate-400">
-                Khắc dấu quyền sở hữu vĩnh viễn trên Smart Contract với định danh <strong className="text-white">Token #{asset.tokenId}</strong>.
+              <p className="type-body text-slate-400">
+                Khắc dấu quyền sở hữu vĩnh viễn trên Smart Contract với định danh <strong className="text-white font-medium">Token #{asset.tokenId}</strong>.
               </p>
 
               {history.length > 0 && history[0].txHash && (
-                <div className="rounded bg-slate-900 p-2 font-mono text-[11px] text-slate-400 border border-slate-850 space-y-0.5">
+                <div className="rounded bg-slate-900 p-2 type-code text-slate-400 border border-slate-850 space-y-1">
                   <div className="flex justify-between">
-                    <span>Block:</span>
+                    <span className="type-caption">Block:</span>
                     <span className="text-slate-200">#{history[0].blockNumber}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>TxHash:</span>
+                    <span className="type-caption">TxHash:</span>
                     <span className="text-slate-300">{shortenHash(history[0].txHash)}</span>
                   </div>
                 </div>
@@ -157,23 +156,23 @@ export default function ProvenanceTimeline({
 
               <div className="rounded-lg border border-slate-800 bg-slate-950 p-3.5 space-y-2 text-xs">
                 <div className="flex items-center justify-between">
-                  <span className="font-semibold text-white">Chuyển Nhượng Quyền Sở Hữu #{idx + 1}</span>
-                  <span className="text-[11px] text-slate-500 font-mono">{formatDate(transfer.createdAt)}</span>
+                  <span className="type-body font-medium text-white">Chuyển Nhượng Quyền Sở Hữu #{idx + 1}</span>
+                  <span className="type-caption font-mono">{formatDate(transfer.createdAt)}</span>
                 </div>
 
-                <div className="flex items-center gap-2 font-mono text-[11px] py-0.5">
+                <div className="flex items-center gap-2 type-code py-0.5">
                   <span className="text-slate-400">{shortenAddress(transfer.fromWallet)}</span>
                   <ArrowRight className="h-3 w-3 text-slate-500" />
                   <span className="text-emerald-400 font-medium">{shortenAddress(transfer.toWallet)}</span>
                 </div>
 
-                <div className="rounded bg-slate-900 p-2 font-mono text-[11px] text-slate-400 border border-slate-850 space-y-0.5">
+                <div className="rounded bg-slate-900 p-2 type-code text-slate-400 border border-slate-850 space-y-1">
                   <div className="flex justify-between">
-                    <span>Block:</span>
+                    <span className="type-caption">Block:</span>
                     <span className="text-slate-200">#{transfer.blockNumber}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>TxHash:</span>
+                    <span className="type-caption">TxHash:</span>
                     <span className="text-slate-300">{shortenHash(transfer.txHash)}</span>
                   </div>
                 </div>

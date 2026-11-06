@@ -57,7 +57,7 @@ export default function AssetDetailPage() {
   if (!asset) {
     return (
       <div className="mx-auto max-w-xl px-4 py-16 text-center space-y-3">
-        <h2 className="text-base font-bold text-white">Không tìm thấy tài sản số này</h2>
+        <h2 className="type-h2">Không tìm thấy tài sản số này</h2>
         <Link
           href="/creator/my-assets"
           className="btn-secondary"
@@ -108,28 +108,28 @@ export default function AssetDetailPage() {
         <div className="md:col-span-2 space-y-3 flex flex-col justify-between">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <span className="rounded bg-slate-800 px-2 py-0.5 text-[10px] font-semibold text-slate-300">
+              <span className="type-label rounded bg-slate-800 px-2 py-0.5 text-slate-300">
                 {asset.category}
               </span>
               {isRegistered && (
-                <span className="rounded bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-400 border border-emerald-500/20">
+                <span className="type-label rounded bg-emerald-500/10 px-2 py-0.5 text-emerald-400 border border-emerald-500/20">
                   Token #{asset.tokenId} On-Chain
                 </span>
               )}
             </div>
 
-            <h1 className="text-lg font-bold text-white">{asset.title}</h1>
-            <p className="text-xs text-slate-400 leading-relaxed">{asset.description || "Chưa có mô tả chi tiết."}</p>
+            <h1 className="type-h2">{asset.title}</h1>
+            <p className="type-body text-slate-400 leading-relaxed">{asset.description || "Chưa có mô tả chi tiết."}</p>
           </div>
 
-          <div className="space-y-1.5 pt-3 border-t border-slate-800 text-xs">
+          <div className="space-y-2 pt-3 border-t border-slate-800 text-xs">
             <div className="flex justify-between items-center text-slate-400">
-              <span>Mã SHA-256:</span>
-              <div className="flex items-center gap-1.5 font-mono text-slate-300">
+              <span className="type-caption">Mã SHA-256:</span>
+              <div className="flex items-center gap-1.5 type-code">
                 <span>{shortenHash(asset.fileHash)}</span>
                 <button
                   onClick={() => copyHash(asset.fileHash)}
-                  className="hover:text-white"
+                  className="hover:text-white transition-colors"
                   title="Sao chép"
                 >
                   {copied ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
@@ -138,13 +138,13 @@ export default function AssetDetailPage() {
             </div>
 
             <div className="flex justify-between items-center text-slate-400">
-              <span>Chủ sở hữu hiện tại:</span>
-              <span className="font-mono text-white">{shortenAddress(asset.currentOwnerWallet)}</span>
+              <span className="type-caption">Chủ sở hữu hiện tại:</span>
+              <span className="type-code text-white">{shortenAddress(asset.currentOwnerWallet)}</span>
             </div>
 
             <div className="flex justify-between items-center text-slate-400">
-              <span>Tác giả gốc:</span>
-              <span className="text-slate-300">{asset.creator?.fullName || "Ẩn danh"}</span>
+              <span className="type-caption">Tác giả gốc:</span>
+              <span className="type-body text-slate-300">{asset.creator?.fullName || "Ẩn danh"}</span>
             </div>
           </div>
         </div>

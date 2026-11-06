@@ -12,22 +12,22 @@ export default function Footer() {
               <div className="flex h-6 w-6 items-center justify-center rounded-md bg-[#F6851B] text-white">
                 <ShieldCheck className="h-3.5 w-3.5" />
               </div>
-              <span className="font-bold text-sm text-white tracking-tight">AssetChain</span>
-              <span className="rounded bg-slate-850 px-1.5 py-0.5 text-[10px] font-mono text-slate-400 border border-slate-800">
+              <span className="type-h3 text-white">AssetChain</span>
+              <span className="type-code rounded bg-slate-850 px-1.5 py-0.5 text-slate-400 border border-slate-800">
                 EVM 31337
               </span>
             </div>
-            <p className="text-xs leading-relaxed text-slate-400 max-w-sm">
+            <p className="type-caption text-slate-400 leading-relaxed max-w-sm">
               Hệ thống đăng ký, thẩm định và bảo chứng quyền sở hữu tài sản số với cơ chế Proof of Existence trên mạng EVM.
             </p>
           </div>
 
           {/* CỘT 2: ĐIỀU HƯỚNG */}
           <div className="space-y-2.5">
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-200">
+            <h4 className="type-label text-slate-200">
               Chức năng
             </h4>
-            <ul className="space-y-1.5 text-xs">
+            <ul className="space-y-2 type-caption">
               <li>
                 <Link href="/explore" className="hover:text-slate-200 transition-colors">
                   Khám phá tác phẩm
@@ -53,10 +53,10 @@ export default function Footer() {
 
           {/* CỘT 3: HỌC THUẬT & LIÊN KẾT */}
           <div className="space-y-2.5">
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-200">
+            <h4 className="type-label text-slate-200">
               Học thuật & Mã nguồn
             </h4>
-            <p className="text-xs text-slate-400">
+            <p className="type-caption text-slate-400 leading-relaxed">
               Bộ môn Mạng & Hệ thống Phân tán<br />
               Chuyên đề Blockchain 2026
             </p>
@@ -65,7 +65,7 @@ export default function Footer() {
                 href="https://github.com/minhthuy70/assetchain"
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors"
+                className="inline-flex items-center gap-1.5 type-caption text-slate-400 hover:text-white transition-colors"
               >
                 <Github className="h-3.5 w-3.5" />
                 <span>GitHub Repository</span>
@@ -75,9 +75,9 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-8 border-t border-slate-900 pt-6 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-500 gap-2">
+        <div className="mt-8 border-t border-slate-900 pt-6 flex flex-col sm:flex-row items-center justify-between type-caption text-slate-500 gap-2">
           <span>© 2026 AssetChain. Bảo vệ tác quyền số trên nền tảng Smart Contract.</span>
-          <span className="font-mono text-[10px]">Local-First Monorepo</span>
+          <span className="type-code text-[10px]">Local-First Monorepo</span>
         </div>
       </div>
     </footer>

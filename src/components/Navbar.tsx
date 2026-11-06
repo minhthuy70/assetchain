@@ -31,14 +31,14 @@ export default function Navbar() {
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* BRAND LOGO */}
         <Link href="/" className="flex items-center gap-2.5 transition opacity-95 hover:opacity-100">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#F6851B] text-white shadow-sm">
+          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-[#F6851B] text-white">
             <ShieldCheck className="h-4 w-4" />
           </div>
           <div className="flex items-baseline gap-1.5">
-            <span className="font-bold text-sm tracking-tight text-white">
+            <span className="font-semibold text-sm tracking-tight text-white">
               AssetChain
             </span>
-            <span className="text-[11px] font-mono text-slate-500">
+            <span className="type-caption font-mono">
               v1.0
             </span>
           </div>
@@ -52,12 +52,12 @@ export default function Navbar() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                className={`px-3 py-1.5 text-xs rounded-md transition-colors ${
                   isActive
-                    ? "text-white bg-slate-850 border border-slate-800"
+                    ? "text-white bg-slate-850 border border-slate-800 font-medium"
                     : item.highlight
-                    ? "text-[#F6851B] hover:text-[#E2761B] hover:bg-slate-900 font-semibold"
-                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-900"
+                    ? "text-[#F6851B] hover:text-[#E2761B] hover:bg-slate-900 font-medium"
+                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-900 font-normal"
                 }`}
               >
                 {item.name}
@@ -95,10 +95,10 @@ export default function Navbar() {
                 key={item.href}
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
-                className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium transition ${
+                className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs transition ${
                   isActive
-                    ? "bg-slate-850 text-white font-semibold"
-                    : "text-slate-400 hover:bg-slate-900 hover:text-white"
+                    ? "bg-slate-850 text-white font-medium"
+                    : "text-slate-400 hover:bg-slate-900 hover:text-white font-normal"
                 }`}
               >
                 <Icon className="h-3.5 w-3.5 text-slate-400" />

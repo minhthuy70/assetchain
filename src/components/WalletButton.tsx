@@ -144,7 +144,7 @@ export default function WalletButton() {
     return (
       <button
         onClick={switchNetwork}
-        className="inline-flex items-center gap-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 text-xs font-semibold text-amber-300 hover:bg-amber-500/20 transition-colors"
+        className="inline-flex items-center gap-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 type-caption font-medium text-amber-300 hover:bg-amber-500/20 transition-colors"
       >
         <AlertCircle className="h-3.5 w-3.5 text-amber-400" />
         <span>Đổi mạng Hardhat</span>
@@ -157,14 +157,14 @@ export default function WalletButton() {
       <div className="relative">
         <button
           onClick={() => setMenuOpen(!menuOpen)}
-          className="inline-flex items-center gap-2 rounded-lg bg-slate-900 border border-slate-800 px-3 py-1.5 text-xs font-medium text-slate-200 hover:bg-slate-850 hover:border-slate-700 transition-colors"
+          className="inline-flex items-center gap-2 rounded-lg bg-slate-900 border border-slate-800 px-3 py-1.5 type-caption font-medium text-slate-200 hover:bg-slate-850 hover:border-slate-700 transition-colors"
         >
           <span className="h-2 w-2 rounded-full bg-emerald-400" />
-          <span className="font-mono text-xs">
+          <span className="type-code text-white">
             {account.slice(0, 6)}...{account.slice(-4)}
           </span>
           {balance !== null && (
-            <span className="rounded bg-slate-800 px-1.5 py-0.5 text-[11px] font-mono text-slate-300">
+            <span className="rounded bg-slate-800 px-1.5 py-0.5 type-code text-slate-300">
               {balance} ETH
             </span>
           )}
@@ -174,22 +174,22 @@ export default function WalletButton() {
         {menuOpen && (
           <div className="absolute right-0 mt-2 w-64 rounded-xl border border-slate-800 bg-slate-900 p-3 shadow-xl z-50">
             <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-              <span className="text-[11px] font-medium text-slate-400">
+              <span className="type-caption font-medium text-slate-400">
                 Ví MetaMask
               </span>
-              <span className="flex items-center gap-1 text-[11px] text-emerald-400 font-mono">
+              <span className="flex items-center gap-1 type-code text-emerald-400">
                 <CheckCircle2 className="h-3 w-3" /> 31337
               </span>
             </div>
             <div className="mt-2.5">
-              <p className="text-[11px] text-slate-500">Địa chỉ:</p>
-              <p className="mt-0.5 break-all font-mono text-[11px] text-slate-200 bg-slate-950 p-2 rounded-lg border border-slate-800 select-all">
+              <p className="type-caption text-slate-500">Địa chỉ:</p>
+              <p className="mt-0.5 break-all type-code text-slate-200 bg-slate-950 p-2 rounded-lg border border-slate-800 select-all">
                 {account}
               </p>
             </div>
-            <div className="mt-2.5 flex items-center justify-between text-xs bg-slate-950 p-2 rounded-lg border border-slate-800">
-              <span className="text-slate-400 text-[11px]">Số dư:</span>
-              <span className="font-mono font-semibold text-white">{balance} ETH</span>
+            <div className="mt-2.5 flex items-center justify-between bg-slate-950 p-2 rounded-lg border border-slate-800">
+              <span className="type-caption text-slate-400">Số dư:</span>
+              <span className="type-code font-medium text-white">{balance} ETH</span>
             </div>
             <button
               onClick={() => {
@@ -197,7 +197,7 @@ export default function WalletButton() {
                 setBalance(null);
                 setMenuOpen(false);
               }}
-              className="mt-2.5 w-full rounded-lg bg-rose-500/10 border border-rose-500/20 py-1.5 text-xs font-medium text-rose-300 hover:bg-rose-500/20 transition-colors"
+              className="mt-2.5 w-full rounded-lg bg-rose-500/10 border border-rose-500/20 py-1.5 type-caption font-medium text-rose-300 hover:bg-rose-500/20 transition-colors"
             >
               Ngắt kết nối
             </button>

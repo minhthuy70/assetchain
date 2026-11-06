@@ -46,16 +46,16 @@ export default function ExplorePage() {
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
       {/* HEADER */}
       <div className="border-b border-slate-800 pb-5">
-        <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+        <h1 className="type-h1">
           Thư Viện Tác Phẩm Số Đã Xác Thực
         </h1>
-        <p className="text-xs text-slate-400 mt-0.5">
+        <p className="type-subhead mt-0.5">
           Danh mục tác phẩm số đã qua thẩm định và ghi nhận quyền sở hữu vĩnh viễn trên sổ cái Blockchain EVM.
         </p>
       </div>
 
       {/* FILTER & SEARCH BAR */}
-      <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
+      <div className="flex flex-col sm:flex-row gap-2.5 items-center justify-between">
         {/* CATEGORY TABS */}
         <div className="flex flex-wrap gap-1.5 w-full sm:w-auto">
           {[
@@ -68,10 +68,10 @@ export default function ExplorePage() {
             <button
               key={tab.id}
               onClick={() => setCategory(tab.id)}
-              className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+              className={`rounded-md px-3 py-1.5 text-xs transition-colors ${
                 category === tab.id
-                  ? "bg-slate-800 text-white font-semibold border border-slate-700"
-                  : "text-slate-400 hover:text-white hover:bg-slate-850"
+                  ? "bg-slate-800 text-white font-medium border border-slate-700"
+                  : "text-slate-400 hover:text-white hover:bg-slate-850 font-normal"
               }`}
             >
               {tab.label}
@@ -96,13 +96,13 @@ export default function ExplorePage() {
       {loading ? (
         <div className="py-16 text-center text-slate-500 space-y-2">
           <RefreshCw className="h-5 w-5 animate-spin mx-auto text-[#F6851B]" />
-          <p className="text-xs">Đang tải danh mục tác phẩm...</p>
+          <p className="type-caption">Đang tải danh mục tác phẩm...</p>
         </div>
       ) : assets.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-800 p-12 text-center space-y-2 bg-slate-900/30">
-          <Compass className="h-8 w-8 mx-auto text-slate-600" />
-          <h3 className="text-xs font-semibold text-white">Chưa có tác phẩm nào phù hợp</h3>
-          <p className="text-[11px] text-slate-400">
+        <div className="rounded-xl border border-dashed border-slate-800 p-12 text-center space-y-1.5 bg-slate-900/30">
+          <Compass className="h-7 w-7 mx-auto text-slate-600" />
+          <h3 className="type-h3 text-white">Chưa có tác phẩm nào phù hợp</h3>
+          <p className="type-caption text-slate-400">
             Hãy thử chọn danh mục khác hoặc xóa bộ lọc tìm kiếm.
           </p>
         </div>
@@ -129,30 +129,30 @@ export default function ExplorePage() {
                         unoptimized
                       />
                     ) : (
-                      <FileText className="h-10 w-10 text-slate-600" />
+                      <FileText className="h-8 w-8 text-slate-600" />
                     )}
-                    <span className="absolute top-2 right-2 rounded bg-black/70 px-2 py-0.5 text-[10px] font-mono font-medium backdrop-blur-sm text-slate-200 border border-white/10">
+                    <span className="absolute top-2 right-2 rounded bg-black/70 px-2 py-0.5 type-code text-slate-200 border border-white/10 backdrop-blur-sm">
                       {isRegistered ? `#Token ${asset.tokenId}` : asset.status}
                     </span>
                   </div>
 
                   {/* INFO */}
-                  <div className="p-4 space-y-2">
-                    <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                  <div className="p-4 space-y-1.5">
+                    <span className="type-label">
                       {asset.category}
-                    </div>
-                    <h3 className="text-sm font-semibold text-white line-clamp-1">
+                    </span>
+                    <h3 className="type-h3 line-clamp-1">
                       {asset.title}
                     </h3>
-                    <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
+                    <p className="type-body text-slate-400 line-clamp-2">
                       {asset.description || "Tác phẩm số đã ghi nhận bản quyền."}
                     </p>
 
-                    <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-[11px]">
-                      <span className="text-slate-300">
+                    <div className="pt-2 border-t border-slate-800 flex items-center justify-between type-caption">
+                      <span className="text-slate-300 font-medium">
                         {asset.creator?.fullName || "Tác giả"}
                       </span>
-                      <span className="font-mono text-slate-500">
+                      <span className="type-code text-slate-500">
                         {shortenAddress(asset.currentOwnerWallet)}
                       </span>
                     </div>

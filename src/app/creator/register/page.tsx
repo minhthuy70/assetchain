@@ -6,7 +6,6 @@ import { ethers } from "ethers";
 import {
   LayoutDashboard,
   CheckCircle2,
-  FileCheck2,
 } from "lucide-react";
 import FileDropzone, { HashedFileResult } from "@/components/FileDropzone";
 
@@ -93,13 +92,13 @@ export default function CreatorRegisterPage() {
       {/* HEADER */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-800 pb-5">
         <div>
-          <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+          <span className="type-label text-slate-500">
             Nộp Hồ Sơ Bản Quyền
           </span>
-          <h1 className="text-xl sm:text-2xl font-bold text-white mt-1">
+          <h1 className="type-h1 mt-1">
             Đăng Ký Quyền Sở Hữu Tác Phẩm Mới
           </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="type-subhead mt-0.5">
             Băm dấu vân tay SHA-256 trực tiếp trong RAM trình duyệt và gửi hồ sơ cho Hội đồng Quản trị thẩm định.
           </p>
         </div>
@@ -115,34 +114,34 @@ export default function CreatorRegisterPage() {
 
       {/* SUCCESS SCREEN */}
       {successAsset ? (
-        <div className="card-surface p-8 text-center space-y-4">
-          <div className="flex h-12 w-12 mx-auto items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-400">
-            <CheckCircle2 className="h-6 w-6" />
+        <div className="card-surface p-8 text-center space-y-3.5">
+          <div className="flex h-10 w-10 mx-auto items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-400">
+            <CheckCircle2 className="h-5 w-5" />
           </div>
 
-          <div className="space-y-1">
-            <h2 className="text-base font-bold text-white">Nộp Hồ Sơ Bản Quyền Thành Công</h2>
-            <p className="text-xs text-slate-400">
+          <div>
+            <h2 className="type-h2">Nộp Hồ Sơ Bản Quyền Thành Công</h2>
+            <p className="type-subhead mt-0.5">
               Tác phẩm &ldquo;{successAsset.title}&rdquo; đã được đưa vào hàng đợi thẩm định.
             </p>
           </div>
 
-          <div className="rounded-lg bg-slate-950 p-3.5 border border-slate-800 text-left max-w-md mx-auto space-y-1.5 text-xs">
+          <div className="rounded-lg bg-slate-950 p-3.5 border border-slate-800 text-left max-w-md mx-auto space-y-1 type-body">
             <div className="flex justify-between py-1 border-b border-slate-850">
               <span className="text-slate-500">Trạng thái:</span>
-              <span className="font-semibold text-amber-400">Chờ Thẩm Định</span>
+              <span className="font-medium text-amber-400">Chờ Thẩm Định</span>
             </div>
             <div className="flex justify-between py-1 border-b border-slate-850">
               <span className="text-slate-500">Mã SHA-256:</span>
-              <span className="font-mono text-slate-300">{successAsset.fileHash.slice(0, 16)}...</span>
+              <span className="type-code text-slate-300">{successAsset.fileHash.slice(0, 16)}...</span>
             </div>
             <div className="flex justify-between py-1">
               <span className="text-slate-500">Ví tác giả:</span>
-              <span className="font-mono text-slate-300">{successAsset.currentOwnerWallet.slice(0, 10)}...</span>
+              <span className="type-code text-slate-300">{successAsset.currentOwnerWallet.slice(0, 10)}...</span>
             </div>
           </div>
 
-          <div className="flex items-center justify-center gap-2.5 pt-2">
+          <div className="flex items-center justify-center gap-2 pt-2">
             <Link
               href="/creator/my-assets"
               className="btn-primary"
@@ -167,7 +166,7 @@ export default function CreatorRegisterPage() {
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* STEP 1: FILE DROPZONE */}
           <div className="card-surface p-5 space-y-3">
-            <div className="flex items-center gap-2 text-xs font-semibold text-slate-200">
+            <div className="flex items-center gap-2 type-label text-slate-300">
               <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#F6851B] text-[10px] text-white font-mono">1</span>
               <span>Tải lên tệp gốc & băm mã SHA-256</span>
             </div>
@@ -176,14 +175,14 @@ export default function CreatorRegisterPage() {
 
           {/* STEP 2: METADATA & WALLET */}
           <div className="card-surface p-5 space-y-4">
-            <div className="flex items-center gap-2 text-xs font-semibold text-slate-200">
+            <div className="flex items-center gap-2 type-label text-slate-300">
               <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#F6851B] text-[10px] text-white font-mono">2</span>
               <span>Thông tin tác phẩm & chủ sở hữu</span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
               <div>
-                <label className="text-xs font-medium text-slate-300 mb-1 block">Tiêu đề tác phẩm (*):</label>
+                <label className="type-caption font-medium text-slate-300 mb-1 block">Tiêu đề tác phẩm (*):</label>
                 <input
                   type="text"
                   required
@@ -195,7 +194,7 @@ export default function CreatorRegisterPage() {
               </div>
 
               <div>
-                <label className="text-xs font-medium text-slate-300 mb-1 block">Tên nghệ sĩ / Tác giả:</label>
+                <label className="type-caption font-medium text-slate-300 mb-1 block">Tên nghệ sĩ / Tác giả:</label>
                 <input
                   type="text"
                   value={creatorName}
@@ -206,7 +205,7 @@ export default function CreatorRegisterPage() {
               </div>
 
               <div>
-                <label className="text-xs font-medium text-slate-300 mb-1 block">Danh mục tác phẩm:</label>
+                <label className="type-caption font-medium text-slate-300 mb-1 block">Danh mục tác phẩm:</label>
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
@@ -220,7 +219,7 @@ export default function CreatorRegisterPage() {
               </div>
 
               <div>
-                <label className="text-xs font-medium text-slate-300 mb-1 block">Địa chỉ ví MetaMask nhận quyền (*):</label>
+                <label className="type-caption font-medium text-slate-300 mb-1 block">Địa chỉ ví MetaMask nhận quyền (*):</label>
                 <input
                   type="text"
                   required
@@ -232,7 +231,7 @@ export default function CreatorRegisterPage() {
               </div>
 
               <div className="md:col-span-2">
-                <label className="text-xs font-medium text-slate-300 mb-1 block">Mô tả tác phẩm:</label>
+                <label className="type-caption font-medium text-slate-300 mb-1 block">Mô tả tác phẩm:</label>
                 <textarea
                   rows={3}
                   value={description}
@@ -244,12 +243,12 @@ export default function CreatorRegisterPage() {
             </div>
 
             {errorMsg && (
-              <div className="rounded-lg bg-rose-500/10 p-2.5 text-xs text-rose-300 border border-rose-500/20">
+              <div className="rounded-lg bg-rose-500/10 p-2.5 type-body text-rose-300 border border-rose-500/20">
                 <span>{errorMsg}</span>
               </div>
             )}
 
-            <div className="flex items-center justify-end gap-3 pt-2">
+            <div className="flex items-center justify-end gap-2.5 pt-1">
               <button
                 type="submit"
                 disabled={submitting}
