@@ -18,12 +18,26 @@ export async function POST(
       );
     }
 
+    if (!/^0x[a-fA-F0-9]{40}$/.test(toWallet) || toWallet === "0x0000000000000000000000000000000000000000") {
+      return NextResponse.json(
+        { error: "Địa chỉ ví người nhận không hợp lệ hoặc là địa chỉ rỗng (Zero Address)!" },
+        { status: 400 }
+      );
+    }
+
     const asset = await prisma.asset.findUnique({
       where: { id: assetId },
     });
 
     if (!asset) {
       return NextResponse.json({ error: "Không tìm thấy tài sản!" }, { status: 404 });
+    }
+
+    if (asset.status === "REVOKED") {
+      return NextResponse.json(
+        { error: "Tài sản này đã bị thu hồi hiệu lực trên chuỗi khối, không thể chuyển quyền sở hữu!" },
+        { status: 400 }
+      );
     }
 
     const previousOwner = asset.currentOwnerWallet;

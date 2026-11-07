@@ -82,12 +82,23 @@ function TransferContent() {
       return;
     }
 
-    if (!toWallet.trim() || !toWallet.startsWith("0x") || toWallet.length !== 42) {
-      setErrorMsg("Địa chỉ ví người nhận không hợp lệ (Phải đúng chuẩn EVM 42 ký tự 0x...)!");
+    if (selectedAsset.status === "REVOKED") {
+      setErrorMsg("Tác phẩm này đã bị thu hồi bản quyền nên không thể thực hiện chuyển nhượng!");
       return;
     }
 
-    if (toWallet.toLowerCase() === currentWallet.toLowerCase()) {
+    const cleanToWallet = toWallet.trim();
+    if (!ethers.isAddress(cleanToWallet)) {
+      setErrorMsg("Địa chỉ ví người nhận không hợp lệ (Phải đúng chuẩn định dạng Ethereum 0x...)!");
+      return;
+    }
+
+    if (cleanToWallet.toLowerCase() === ethers.ZeroAddress.toLowerCase()) {
+      setErrorMsg("Không thể chuyển nhượng tới địa chỉ rác (Zero Address 0x000...)!");
+      return;
+    }
+
+    if (currentWallet && cleanToWallet.toLowerCase() === currentWallet.toLowerCase()) {
       setErrorMsg("Không thể chuyển nhượng cho chính địa chỉ ví hiện tại!");
       return;
     }
@@ -100,7 +111,7 @@ function TransferContent() {
       }
 
       const receipt = await transferAssetOnChain(
-        toWallet.trim(),
+        cleanToWallet,
         selectedAsset.tokenId
       );
 
@@ -108,7 +119,7 @@ function TransferContent() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          toWallet: toWallet.trim(),
+          toWallet: cleanToWallet,
           txHash: receipt.txHash,
           blockNumber: receipt.blockNumber,
         }),

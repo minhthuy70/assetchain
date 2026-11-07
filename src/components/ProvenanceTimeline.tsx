@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   Send,
   ArrowRight,
+  ShieldAlert,
 } from "lucide-react";
 import { shortenAddress, shortenHash } from "@/lib/crypto";
 
@@ -30,6 +31,7 @@ interface ProvenanceTimelineProps {
     createdAt: string | Date;
     registeredAt?: string | Date | null;
     currentOwnerWallet: string;
+    rejectionReason?: string | null;
     creator?: {
       fullName: string;
       walletAddress?: string | null;
@@ -42,8 +44,9 @@ export default function ProvenanceTimeline({
   asset,
   history = [],
 }: ProvenanceTimelineProps) {
-  const isRegistered = asset.status === "REGISTERED";
+  const isRegistered = asset.status === "REGISTERED" || asset.status === "REVOKED";
   const isApproved = asset.status === "APPROVED" || isRegistered;
+  const isRevoked = asset.status === "REVOKED" || history.some((h) => h.eventType === "REVOKE");
 
   const formatDate = (date: string | Date | null | undefined) => {
     if (!date) return "";
@@ -55,6 +58,8 @@ export default function ProvenanceTimeline({
       minute: "2-digit",
     });
   };
+
+  const revokeHistoryRecord = history.find((h) => h.eventType === "REVOKE");
 
   return (
     <div className="space-y-5">
@@ -179,6 +184,47 @@ export default function ProvenanceTimeline({
               </div>
             </div>
           ))}
+
+        {/* NODE 5: THU HỒI TÁC PHẨM ON-CHAIN (NẾU CÓ - Day 11 Plan) */}
+        {isRevoked && (
+          <div className="relative">
+            <div className="absolute -left-[27px] top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-slate-900 border border-rose-500 text-rose-400">
+              <ShieldAlert className="h-2.5 w-2.5" />
+            </div>
+
+            <div className="rounded-lg border border-rose-500/30 bg-rose-950/20 p-3.5 space-y-2 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="type-body font-medium text-rose-300">Thu Hồi Chứng Nhận & Đóng Băng Quyền Sở Hữu</span>
+                <span className="type-label rounded bg-rose-500/10 px-1.5 py-0.5 text-rose-400 border border-rose-500/30">
+                  REVOKED
+                </span>
+              </div>
+              <p className="type-body text-slate-400">
+                {revokeHistoryRecord
+                  ? `Cơ quan Quản trị (${shortenAddress(revokeHistoryRecord.fromWallet)}) đã phát lệnh thu hồi on-chain.`
+                  : "Tác phẩm này đã bị Hội đồng Quản trị thu hồi do phát hiện tranh chấp hoặc vi phạm bản quyền."}
+              </p>
+              {asset.rejectionReason && (
+                <div className="rounded bg-slate-900 p-2 text-rose-300 border border-rose-500/20">
+                  <span className="font-semibold text-rose-400">Lý do thu hồi: </span>
+                  {asset.rejectionReason}
+                </div>
+              )}
+              {revokeHistoryRecord?.txHash && (
+                <div className="rounded bg-slate-900 p-2 type-code text-slate-400 border border-slate-850 space-y-1">
+                  <div className="flex justify-between">
+                    <span className="type-caption">Block:</span>
+                    <span className="text-slate-200">#{revokeHistoryRecord.blockNumber}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="type-caption">TxHash:</span>
+                    <span className="text-rose-400">{shortenHash(revokeHistoryRecord.txHash)}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
