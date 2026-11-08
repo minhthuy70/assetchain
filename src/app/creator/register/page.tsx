@@ -1,26 +1,44 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { ethers } from "ethers";
 import {
   LayoutDashboard,
   CheckCircle2,
+  AlertCircle,
+  ShieldAlert,
+  ShieldCheck,
+  Wallet,
+  Loader2,
+  RotateCcw,
 } from "lucide-react";
 import FileDropzone, { HashedFileResult } from "@/components/FileDropzone";
 
+interface HashCheckResult {
+  isDuplicate: boolean;
+  message: string;
+  existingTitle?: string;
+  existingStatus?: string;
+}
+
 export default function CreatorRegisterPage() {
   const [walletAddress, setWalletAddress] = useState<string>("");
+  const [isConnectingWallet, setIsConnectingWallet] = useState<boolean>(false);
   const [creatorName, setCreatorName] = useState<string>("");
   const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [category, setCategory] = useState<string>("ART");
   const [hashedResult, setHashedResult] = useState<HashedFileResult | null>(null);
 
+  const [isCheckingHash, setIsCheckingHash] = useState<boolean>(false);
+  const [hashCheckResult, setHashCheckResult] = useState<HashCheckResult | null>(null);
+
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successAsset, setSuccessAsset] = useState<any | null>(null);
 
+  // Tự động nhận diện tài khoản MetaMask đã kết nối
   useEffect(() => {
     async function getConnectedWallet() {
       if (typeof window !== "undefined" && (window as any).ethereum) {
@@ -36,6 +54,99 @@ export default function CreatorRegisterPage() {
       }
     }
     getConnectedWallet();
+
+    if (typeof window !== "undefined" && (window as any).ethereum?.on) {
+      const handleAccountsChanged = (accounts: string[]) => {
+        if (accounts.length > 0) {
+          setWalletAddress(accounts[0]);
+        } else {
+          setWalletAddress("");
+        }
+      };
+      (window as any).ethereum.on("accountsChanged", handleAccountsChanged);
+      return () => {
+        (window as any).ethereum.removeListener("accountsChanged", handleAccountsChanged);
+      };
+    }
+  }, []);
+
+  // Nút 1-click kết nối nhanh ví MetaMask
+  const handleConnectWallet = async () => {
+    setErrorMsg(null);
+    setIsConnectingWallet(true);
+    try {
+      if (typeof window === "undefined" || !(window as any).ethereum) {
+        throw new Error("Không phát hiện ví MetaMask! Vui lòng cài đặt tiện ích mở rộng MetaMask trên trình duyệt.");
+      }
+      const accounts = await (window as any).ethereum.request({
+        method: "eth_requestAccounts",
+      });
+      if (accounts && accounts.length > 0) {
+        setWalletAddress(accounts[0]);
+      } else {
+        const provider = new ethers.BrowserProvider((window as any).ethereum);
+        const signer = await provider.getSigner();
+        setWalletAddress(await signer.getAddress());
+      }
+    } catch (err: any) {
+      console.error("Lỗi kết nối ví MetaMask:", err);
+      if (err.code === 4001) {
+        setErrorMsg("Bạn đã hủy yêu cầu kết nối ví MetaMask.");
+      } else {
+        setErrorMsg(err.message || "Không thể kết nối với ví MetaMask.");
+      }
+    } finally {
+      setIsConnectingWallet(false);
+    }
+  };
+
+  // Kiểm tra trùng lặp thời gian thực ngay khi tính xong SHA-256
+  const handleFileHashed = useCallback(async (result: HashedFileResult) => {
+    setHashedResult(result);
+    setErrorMsg(null);
+    setHashCheckResult(null);
+
+    if (!result || !result.hash) return;
+
+    setIsCheckingHash(true);
+    try {
+      const res = await fetch("/api/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ hash: result.hash }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        const isDuplicated = Boolean(data.dbData || data.isOnchain || data.verified);
+        if (isDuplicated) {
+          const existingTitle = data.dbData?.title || (data.isOnchain ? "Tác phẩm đã đúc on-chain" : "Tác phẩm đã đăng ký");
+          const existingStatus = data.dbData?.status || (data.isOnchain ? "ONCHAIN" : "UNKNOWN");
+          setHashCheckResult({
+            isDuplicate: true,
+            message: data.dbData?.title
+              ? `Tác phẩm này đã tồn tại trong hệ thống với tiêu đề: "${data.dbData.title}" (Trạng thái: ${data.dbData.status})`
+              : "Mã băm SHA-256 này đã từng được lưu trữ trên hệ thống hoặc đã tồn tại trên sổ cái Blockchain!",
+            existingTitle,
+            existingStatus,
+          });
+        } else {
+          setHashCheckResult({
+            isDuplicate: false,
+            message: "Tác phẩm độc bản — Dấu vân tay số SHA-256 chưa từng xuất hiện trên hệ thống!",
+          });
+        }
+      } else {
+        setHashCheckResult({
+          isDuplicate: false,
+          message: "Tác phẩm độc bản — Dấu vân tay số SHA-256 hợp lệ.",
+        });
+      }
+    } catch (err) {
+      console.error("Lỗi đối chiếu mã băm thời gian thực:", err);
+    } finally {
+      setIsCheckingHash(false);
+    }
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -44,6 +155,11 @@ export default function CreatorRegisterPage() {
 
     if (!hashedResult || !hashedResult.file) {
       setErrorMsg("Vui lòng tải lên và băm mã SHA-256 tệp tác phẩm!");
+      return;
+    }
+
+    if (hashCheckResult?.isDuplicate) {
+      setErrorMsg("Không thể nộp tác phẩm đã tồn tại trong hệ thống. Vui lòng chọn tệp tin độc bản khác!");
       return;
     }
 
@@ -148,15 +264,19 @@ export default function CreatorRegisterPage() {
             >
               <span>Xem tiến độ thẩm định</span>
             </Link>
+
             <button
               onClick={() => {
                 setSuccessAsset(null);
                 setTitle("");
                 setDescription("");
                 setHashedResult(null);
+                setHashCheckResult(null);
+                setErrorMsg(null);
               }}
               className="btn-secondary"
             >
+              <RotateCcw className="h-3.5 w-3.5" />
               <span>Đăng ký thêm</span>
             </button>
           </div>
@@ -170,7 +290,46 @@ export default function CreatorRegisterPage() {
               <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#F6851B] text-[10px] text-white font-mono">1</span>
               <span>Tải lên tệp gốc & băm mã SHA-256</span>
             </div>
-            <FileDropzone onFileHashed={(result) => setHashedResult(result)} />
+            <FileDropzone onFileHashed={handleFileHashed} />
+
+            {/* REAL-TIME DUPLICATE STATUS INDICATOR */}
+            {isCheckingHash && (
+              <div className="flex items-center gap-2.5 rounded-lg bg-slate-900 border border-slate-800 p-3 text-xs text-slate-300 animate-pulse">
+                <Loader2 className="h-4 w-4 animate-spin text-[#F6851B] shrink-0" />
+                <span>Đang đối chiếu mã băm SHA-256 với hệ thống & Blockchain để kiểm tra tính độc bản...</span>
+              </div>
+            )}
+
+            {!isCheckingHash && hashCheckResult && (
+              hashCheckResult.isDuplicate ? (
+                <div className="flex items-start gap-2.5 rounded-lg bg-rose-500/10 border border-rose-500/30 p-3 text-xs text-rose-300">
+                  <ShieldAlert className="h-4 w-4 shrink-0 text-rose-400 mt-0.5" />
+                  <div className="space-y-1">
+                    <div className="font-semibold text-rose-200">
+                      Cảnh báo: Phát hiện tác phẩm trùng lặp (Đã tồn tại trong hệ thống)!
+                    </div>
+                    <p className="text-rose-300/90 leading-relaxed">
+                      {hashCheckResult.message}
+                    </p>
+                    <p className="text-slate-400 text-[11px]">
+                      Hệ thống tự động khóa nút nộp để bảo vệ bản quyền và chống hành vi tải lại các tác phẩm đã tồn tại.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 p-3 text-xs text-emerald-300">
+                  <ShieldCheck className="h-4 w-4 shrink-0 text-emerald-400" />
+                  <div className="flex items-center justify-between w-full">
+                    <span className="font-medium">
+                      ✓ {hashCheckResult.message}
+                    </span>
+                    <span className="rounded bg-emerald-500/20 px-2 py-0.5 text-[10px] font-mono text-emerald-300 border border-emerald-500/30 shrink-0 ml-2">
+                      ĐỘC BẢN
+                    </span>
+                  </div>
+                </div>
+              )
+            )}
           </div>
 
           {/* STEP 2: METADATA & WALLET */}
@@ -219,15 +378,48 @@ export default function CreatorRegisterPage() {
               </div>
 
               <div>
-                <label className="type-caption font-medium text-slate-300 mb-1 block">Địa chỉ ví MetaMask nhận quyền (*):</label>
-                <input
-                  type="text"
-                  required
-                  value={walletAddress}
-                  onChange={(e) => setWalletAddress(e.target.value)}
-                  placeholder="0x..."
-                  className="input-base font-mono"
-                />
+                <div className="flex items-center justify-between mb-1">
+                  <label className="type-caption font-medium text-slate-300">
+                    Địa chỉ ví MetaMask nhận quyền (*):
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleConnectWallet}
+                    disabled={isConnectingWallet}
+                    className="inline-flex items-center gap-1 text-[11px] text-[#F6851B] hover:text-[#e2761b] hover:underline transition-colors font-medium cursor-pointer"
+                  >
+                    {isConnectingWallet ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <Wallet className="h-3 w-3" />
+                    )}
+                    <span>{isConnectingWallet ? "Đang kết nối..." : "Lấy địa chỉ ví hiện tại"}</span>
+                  </button>
+                </div>
+                <div className="relative flex items-center">
+                  <input
+                    type="text"
+                    required
+                    value={walletAddress}
+                    onChange={(e) => setWalletAddress(e.target.value)}
+                    placeholder="0x..."
+                    className="input-base font-mono pr-28"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleConnectWallet}
+                    disabled={isConnectingWallet}
+                    className="absolute right-1.5 inline-flex items-center gap-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-750 px-2 py-1 text-xs font-medium transition-colors"
+                    title="Kết nối nhanh ví MetaMask"
+                  >
+                    {isConnectingWallet ? (
+                      <Loader2 className="h-3 w-3 animate-spin text-[#F6851B]" />
+                    ) : (
+                      <Wallet className="h-3 w-3 text-[#F6851B]" />
+                    )}
+                    <span>{walletAddress ? "Đổi ví" : "Kết nối ví"}</span>
+                  </button>
+                </div>
               </div>
 
               <div className="md:col-span-2">
@@ -243,7 +435,8 @@ export default function CreatorRegisterPage() {
             </div>
 
             {errorMsg && (
-              <div className="rounded-lg bg-rose-500/10 p-2.5 type-body text-rose-300 border border-rose-500/20">
+              <div className="rounded-lg bg-rose-500/10 p-2.5 type-body text-rose-300 border border-rose-500/20 flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 shrink-0 text-rose-400" />
                 <span>{errorMsg}</span>
               </div>
             )}
@@ -251,10 +444,27 @@ export default function CreatorRegisterPage() {
             <div className="flex items-center justify-end gap-2.5 pt-1">
               <button
                 type="submit"
-                disabled={submitting}
-                className="btn-primary"
+                disabled={submitting || isCheckingHash || hashCheckResult?.isDuplicate}
+                className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <span>{submitting ? "Đang gửi hồ sơ..." : "Nộp Hồ Sơ Bản Quyền"}</span>
+                {submitting ? (
+                  <span className="flex items-center gap-1.5">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    <span>Đang gửi hồ sơ...</span>
+                  </span>
+                ) : isCheckingHash ? (
+                  <span className="flex items-center gap-1.5">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    <span>Đang kiểm tra tính độc bản...</span>
+                  </span>
+                ) : hashCheckResult?.isDuplicate ? (
+                  <span className="flex items-center gap-1.5 text-rose-200">
+                    <ShieldAlert className="h-3.5 w-3.5" />
+                    <span>Tác phẩm bị trùng lặp (Khóa nộp)</span>
+                  </span>
+                ) : (
+                  <span>Nộp Hồ Sơ Bản Quyền</span>
+                )}
               </button>
             </div>
           </div>
