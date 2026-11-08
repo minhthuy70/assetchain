@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect, useCallback, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { ethers } from "ethers";
@@ -11,12 +11,12 @@ import {
   CheckCircle2,
   ArrowLeft,
   Wallet,
+  Loader2,
 } from "lucide-react";
 import { shortenAddress, shortenHash } from "@/lib/crypto";
 import { transferAssetOnChain } from "@/lib/onchain";
 
 function TransferContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const initialAssetId = searchParams.get("assetId");
 
@@ -25,57 +25,151 @@ function TransferContent() {
   const [currentWallet, setCurrentWallet] = useState<string>("");
   const [toWallet, setToWallet] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
+  const [isConnectingWallet, setIsConnectingWallet] = useState<boolean>(false);
   const [transferring, setTransferring] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successData, setSuccessData] = useState<any | null>(null);
 
-  useEffect(() => {
-    async function loadData() {
-      setLoading(true);
-      let walletAddr = "";
+  // Hàm tải danh sách tác phẩm thuộc sở hữu của ví đang kết nối
+  const loadAssetsForWallet = useCallback(async (walletAddr: string) => {
+    if (!walletAddr) {
+      setAssets([]);
+      setSelectedAsset(null);
+      setLoading(false);
+      return;
+    }
 
+    setLoading(true);
+    try {
+      const url = new URL("/api/assets", window.location.origin);
+      url.searchParams.set("wallet", walletAddr);
+      url.searchParams.set("status", "REGISTERED");
+
+      const res = await fetch(url.toString());
+      const data = await res.json();
+      if (data.success && Array.isArray(data.data)) {
+        // Ràng buộc kiểm tra quyền sở hữu chính xác ở client-side
+        const ownedAssets = data.data.filter(
+          (a: any) =>
+            a.currentOwnerWallet?.toLowerCase() === walletAddr.toLowerCase() &&
+            a.status === "REGISTERED"
+        );
+        setAssets(ownedAssets);
+
+        if (initialAssetId) {
+          const found = ownedAssets.find((a: any) => a.id === initialAssetId);
+          if (found) {
+            setSelectedAsset(found);
+          } else if (ownedAssets.length > 0) {
+            setSelectedAsset(ownedAssets[0]);
+          } else {
+            setSelectedAsset(null);
+          }
+        } else if (ownedAssets.length > 0) {
+          setSelectedAsset(ownedAssets[0]);
+        } else {
+          setSelectedAsset(null);
+        }
+      } else {
+        setAssets([]);
+        setSelectedAsset(null);
+      }
+    } catch (err) {
+      console.error("Lỗi nạp danh sách tài sản chuyển nhượng:", err);
+      setAssets([]);
+      setSelectedAsset(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [initialAssetId]);
+
+  // Kết nối ví MetaMask 1-Click
+  const handleConnectWallet = async () => {
+    setErrorMsg(null);
+    setIsConnectingWallet(true);
+    try {
+      if (typeof window === "undefined" || !(window as any).ethereum) {
+        throw new Error("Không tìm thấy tiện ích MetaMask trên trình duyệt! Vui lòng cài đặt tiện ích MetaMask.");
+      }
+      const provider = new ethers.BrowserProvider((window as any).ethereum);
+      const accounts = await (window as any).ethereum.request({
+        method: "eth_requestAccounts",
+      });
+      if (accounts && accounts.length > 0) {
+        const addr = accounts[0];
+        setCurrentWallet(addr);
+        await loadAssetsForWallet(addr);
+      } else {
+        const signer = await provider.getSigner();
+        const addr = await signer.getAddress();
+        setCurrentWallet(addr);
+        await loadAssetsForWallet(addr);
+      }
+    } catch (err: any) {
+      console.error("Lỗi kết nối MetaMask:", err);
+      if (err.code === 4001) {
+        setErrorMsg("Bạn đã từ chối kết nối ví MetaMask.");
+      } else {
+        setErrorMsg(err.message || "Không thể kết nối với ví MetaMask.");
+      }
+    } finally {
+      setIsConnectingWallet(false);
+    }
+  };
+
+  useEffect(() => {
+    async function initWallet() {
       if (typeof window !== "undefined" && (window as any).ethereum) {
         try {
           const provider = new ethers.BrowserProvider((window as any).ethereum);
           const accounts = await provider.listAccounts();
           if (accounts.length > 0) {
-            walletAddr = accounts[0].address;
-            setCurrentWallet(walletAddr);
+            const addr = accounts[0].address;
+            setCurrentWallet(addr);
+            await loadAssetsForWallet(addr);
+            return;
           }
         } catch (err) {
-          console.error(err);
+          console.error("Lỗi nhận diện ví MetaMask:", err);
         }
       }
-
-      try {
-        const url = new URL("/api/assets", window.location.origin);
-        if (walletAddr) url.searchParams.set("wallet", walletAddr);
-        url.searchParams.set("status", "REGISTERED");
-
-        const res = await fetch(url.toString());
-        const data = await res.json();
-        if (data.success && data.data) {
-          setAssets(data.data);
-          if (initialAssetId) {
-            const found = data.data.find((a: any) => a.id === initialAssetId);
-            if (found) setSelectedAsset(found);
-          } else if (data.data.length > 0) {
-            setSelectedAsset(data.data[0]);
-          }
-        }
-      } catch (err) {
-        console.error("Lỗi nạp danh sách tài sản chuyển nhượng:", err);
-      } finally {
-        setLoading(false);
-      }
+      // Chưa kết nối ví -> không load danh sách tác phẩm chung
+      setCurrentWallet("");
+      setAssets([]);
+      setSelectedAsset(null);
+      setLoading(false);
     }
 
-    loadData();
-  }, [initialAssetId]);
+    initWallet();
+
+    if (typeof window !== "undefined" && (window as any).ethereum?.on) {
+      const handleAccountsChanged = (accounts: string[]) => {
+        if (accounts.length > 0) {
+          setCurrentWallet(accounts[0]);
+          loadAssetsForWallet(accounts[0]);
+        } else {
+          setCurrentWallet("");
+          setAssets([]);
+          setSelectedAsset(null);
+          setLoading(false);
+        }
+      };
+
+      (window as any).ethereum.on("accountsChanged", handleAccountsChanged);
+      return () => {
+        (window as any).ethereum.removeListener("accountsChanged", handleAccountsChanged);
+      };
+    }
+  }, [loadAssetsForWallet]);
 
   const handleTransfer = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
+
+    if (!currentWallet) {
+      setErrorMsg("Vui lòng kết nối ví MetaMask trước khi chuyển nhượng!");
+      return;
+    }
 
     if (!selectedAsset) {
       setErrorMsg("Vui lòng chọn tác phẩm cần chuyển nhượng!");
@@ -84,6 +178,12 @@ function TransferContent() {
 
     if (selectedAsset.status === "REVOKED") {
       setErrorMsg("Tác phẩm này đã bị thu hồi bản quyền nên không thể thực hiện chuyển nhượng!");
+      return;
+    }
+
+    // Đảm bảo chỉ chủ sở hữu mới có thể chuyển nhượng
+    if (selectedAsset.currentOwnerWallet.toLowerCase() !== currentWallet.toLowerCase()) {
+      setErrorMsg("Bạn không phải là chủ sở hữu hiện tại của tác phẩm này!");
       return;
     }
 
@@ -133,10 +233,13 @@ function TransferContent() {
       setSuccessData({
         assetTitle: selectedAsset.title,
         tokenId: selectedAsset.tokenId,
-        toWallet: toWallet.trim(),
+        toWallet: cleanToWallet,
         txHash: receipt.txHash,
         blockNumber: receipt.blockNumber,
       });
+
+      // Tải lại danh sách sau khi đã chuyển thành công
+      await loadAssetsForWallet(currentWallet);
     } catch (err: any) {
       console.error("Lỗi chuyển nhượng:", err);
       setErrorMsg(err.reason || err.message || "Giao dịch MetaMask thất bại hoặc bị từ chối.");
@@ -220,14 +323,34 @@ function TransferContent() {
       ) : (
         /* TRANSFER FORM */
         <form onSubmit={handleTransfer} className="space-y-5">
-          {/* SENDER WALLET */}
+          {/* SENDER WALLET BAR */}
           <div className="rounded-lg border border-slate-800 bg-slate-900/60 px-4 py-2.5 flex items-center justify-between text-xs">
             <div className="flex items-center gap-2 text-slate-300">
               <Wallet className="h-3.5 w-3.5 text-slate-400" />
               <span className="type-caption">Ví người gửi:</span>
-              <span className="type-code text-white font-medium">{currentWallet || "Chưa kết nối MetaMask"}</span>
+              {currentWallet ? (
+                <span className="type-code text-white font-medium">{currentWallet}</span>
+              ) : (
+                <span className="type-code text-amber-400 font-medium">Chưa kết nối MetaMask</span>
+              )}
             </div>
-            <span className="type-code text-slate-500">Hardhat 31337</span>
+            {currentWallet ? (
+              <span className="type-code text-emerald-400">Đã kết nối</span>
+            ) : (
+              <button
+                type="button"
+                onClick={handleConnectWallet}
+                disabled={isConnectingWallet}
+                className="inline-flex items-center gap-1 rounded bg-[#F6851B] px-2 py-0.5 text-xs font-medium text-white hover:bg-[#e2761b] transition-colors"
+              >
+                {isConnectingWallet ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <Wallet className="h-3 w-3" />
+                )}
+                <span>Kết nối ví</span>
+              </button>
+            )}
           </div>
 
           {/* CHOOSE ASSET */}
@@ -238,10 +361,43 @@ function TransferContent() {
             </div>
 
             {loading ? (
-              <div className="h-12 rounded-lg bg-slate-950 animate-pulse" />
+              <div className="h-16 rounded-lg bg-slate-950 animate-pulse flex items-center justify-center">
+                <span className="type-caption text-slate-500">Đang tải danh sách tài sản...</span>
+              </div>
+            ) : !currentWallet ? (
+              /* BANNER NHẮC KẾT NỐI VÍ KHI CHƯA KẾT NỐI */
+              <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-5 text-center space-y-3">
+                <div className="flex h-10 w-10 mx-auto items-center justify-center rounded-full bg-amber-500/20 text-amber-400">
+                  <Wallet className="h-5 w-5" />
+                </div>
+                <div>
+                  <h4 className="type-body font-medium text-amber-200">
+                    Vui lòng kết nối ví MetaMask để xem tài sản của bạn
+                  </h4>
+                  <p className="type-caption text-slate-400 mt-1 max-w-md mx-auto">
+                    Hệ thống chỉ hiển thị các tác phẩm NFT thuộc quyền sở hữu của địa chỉ ví đang kết nối để bảo đảm an toàn dữ liệu bản quyền.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleConnectWallet}
+                  disabled={isConnectingWallet}
+                  className="btn-primary inline-flex items-center gap-1.5 mx-auto"
+                >
+                  {isConnectingWallet ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Wallet className="h-4 w-4" />
+                  )}
+                  <span>{isConnectingWallet ? "Đang kết nối..." : "Kết nối ví MetaMask ngay"}</span>
+                </button>
+              </div>
             ) : assets.length === 0 ? (
-              <div className="p-4 text-center type-body text-slate-400 bg-slate-950 rounded-lg border border-slate-800">
-                Chưa có tác phẩm nào đạt trạng thái REGISTERED trên Blockchain.
+              <div className="p-4 text-center type-body text-slate-400 bg-slate-950 rounded-lg border border-slate-800 space-y-1">
+                <p>Ví của bạn chưa sở hữu tác phẩm nào đạt trạng thái REGISTERED trên Blockchain.</p>
+                <p className="type-caption text-slate-500">
+                  Chỉ những tác phẩm đã được Hội đồng Quản trị phê duyệt và đúc NFT on-chain mới có thể chuyển nhượng.
+                </p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -297,10 +453,11 @@ function TransferContent() {
               <input
                 type="text"
                 required
+                disabled={!currentWallet}
                 value={toWallet}
                 onChange={(e) => setToWallet(e.target.value)}
                 placeholder="0x..."
-                className="input-base font-mono"
+                className="input-base font-mono disabled:opacity-50 disabled:cursor-not-allowed"
               />
               <p className="type-caption text-slate-500">
                 Địa chỉ ví công khai gồm 42 ký tự (Bắt đầu bằng `0x`).
@@ -325,11 +482,19 @@ function TransferContent() {
             <div className="pt-1 flex justify-end">
               <button
                 type="submit"
-                disabled={transferring || !selectedAsset || !toWallet.trim()}
-                className="btn-primary"
+                disabled={transferring || !currentWallet || !selectedAsset || !toWallet.trim()}
+                className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Send className="h-3.5 w-3.5" />
-                <span>{transferring ? "Đang ký giao dịch MetaMask..." : "Xác Nhận Chuyển Nhượng"}</span>
+                <span>
+                  {transferring
+                    ? "Đang ký giao dịch MetaMask..."
+                    : !currentWallet
+                    ? "Vui lòng kết nối ví"
+                    : !selectedAsset
+                    ? "Không có tác phẩm để chuyển"
+                    : "Xác Nhận Chuyển Nhượng"}
+                </span>
               </button>
             </div>
           </div>
