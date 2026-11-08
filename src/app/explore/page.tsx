@@ -23,6 +23,7 @@ export default function ExplorePage() {
     setLoading(true);
     try {
       const url = new URL("/api/assets", window.location.origin);
+      url.searchParams.set("status", "REGISTERED");
       if (category !== "ALL") url.searchParams.set("category", category);
       if (searchQuery.trim()) url.searchParams.set("query", searchQuery.trim());
 

@@ -62,6 +62,8 @@ export async function POST(req: NextRequest) {
 
     const isDbVerified = Boolean(dbAsset) && (dbAsset.status === "REGISTERED" || dbAsset.status === "APPROVED");
     const isRevoked = Boolean(onchainData?.isRevoked || dbAsset?.status === "REVOKED");
+    const isPending = Boolean(dbAsset) && dbAsset.status === "PENDING_APPROVAL";
+    const isRejected = Boolean(dbAsset) && dbAsset.status === "REJECTED";
     const verified = Boolean(onchainData?.registered) || isDbVerified;
 
     return NextResponse.json({
@@ -69,6 +71,8 @@ export async function POST(req: NextRequest) {
       verified,
       isOnchain: Boolean(onchainData?.registered),
       isRevoked,
+      isPending,
+      isRejected,
       hash: targetHash,
       dbData: dbAsset,
       onchainData,

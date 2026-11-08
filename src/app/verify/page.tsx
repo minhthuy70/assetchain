@@ -13,6 +13,10 @@ import {
   RotateCcw,
   Copy,
   Check,
+  Clock,
+  Sparkles,
+  XCircle,
+  FileText,
 } from "lucide-react";
 import { computeFileHashSHA256, shortenAddress, shortenHash } from "@/lib/crypto";
 
@@ -21,10 +25,39 @@ interface VerificationResponse {
   verified: boolean;
   isOnchain: boolean;
   isRevoked: boolean;
+  isPending?: boolean;
+  isRejected?: boolean;
   hash: string;
   dbData?: any;
   onchainData?: any;
 }
+
+const SAMPLE_PRESETS = [
+  {
+    label: "Token #1 (Hợp Lệ On-Chain)",
+    desc: "Đã khắc khối EVM • Sen Vàng",
+    hash: "3178b1b391477fcd50ee1d3b9bcc5370418cea33a6d4465f03f8acf5ed7390e3",
+    type: "success",
+  },
+  {
+    label: "Token #2 (Đã Thu Hồi - Revoked)",
+    desc: "Tranh chấp quyền sở hữu",
+    hash: "0a80c9eccdc654d36be98d5be949acbd3920ca7e9e793ac9940878eb33a864ad",
+    type: "revoked",
+  },
+  {
+    label: "Hồ Sơ Chờ Thẩm Định (Pending)",
+    desc: "Cyberpunk City • Đang duyệt",
+    hash: "c11e6181d4a06854c030689eb7f5cb9d9237546821f4d0de830311a7e7ca68ba",
+    type: "pending",
+  },
+  {
+    label: "Tệp Giả Mạo (Chưa Đăng Ký)",
+    desc: "Hash lạ không khớp hệ thống",
+    hash: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    type: "unknown",
+  },
+];
 
 function VerifyContent() {
   const searchParams = useSearchParams();
@@ -89,6 +122,14 @@ function VerifyContent() {
     } else if (inputTokenId.trim()) {
       performVerification(undefined, Number(inputTokenId.trim()));
     }
+  };
+
+  const handlePresetSelect = (hash: string) => {
+    setSelectedFile(null);
+    setHashingTime(null);
+    setInputHash(hash);
+    setInputTokenId("");
+    performVerification(hash);
   };
 
   const reset = () => {
@@ -167,7 +208,7 @@ function VerifyContent() {
         </div>
 
         {/* MANUAL SEARCH FORM */}
-        <div className="border-t border-slate-800 pt-3.5">
+        <div className="border-t border-slate-800 pt-3.5 space-y-3">
           <form onSubmit={handleManualSearch} className="flex flex-col sm:flex-row gap-2">
             <div className="relative flex-1">
               <input
@@ -206,6 +247,56 @@ function VerifyContent() {
               </button>
             )}
           </form>
+
+          {/* 1-CLICK VERIFICATION SAMPLE PRESETS */}
+          <div className="border-t border-slate-850 pt-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="type-caption flex items-center gap-1.5 text-slate-300 font-medium">
+                <Sparkles className="h-3.5 w-3.5 text-[#F6851B]" />
+                <span>Thử nhanh với dữ liệu mẫu (1-Click Presets):</span>
+              </span>
+              <span className="type-caption text-slate-500 font-mono text-[10px]">
+                0 Gas • Không cần tệp gốc
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+              {SAMPLE_PRESETS.map((p) => {
+                const isCurrent = inputHash === p.hash;
+                return (
+                  <button
+                    key={p.label}
+                    type="button"
+                    onClick={() => handlePresetSelect(p.hash)}
+                    className={`rounded-lg border p-2.5 text-left transition-all ${
+                      isCurrent
+                        ? "border-[#F6851B] bg-slate-850 shadow-sm"
+                        : "border-slate-800 bg-slate-900/60 hover:border-slate-750 hover:bg-slate-900"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span
+                        className={`text-[11px] font-medium ${
+                          p.type === "success"
+                            ? "text-emerald-400"
+                            : p.type === "revoked"
+                            ? "text-amber-400"
+                            : p.type === "pending"
+                            ? "text-sky-400"
+                            : "text-rose-400"
+                        }`}
+                      >
+                        {p.label}
+                      </span>
+                    </div>
+                    <p className="type-caption text-slate-400 text-[10px] mt-0.5">
+                      {p.desc}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -213,8 +304,8 @@ function VerifyContent() {
       {loading && (
         <div className="card-surface p-6 text-center space-y-1.5">
           <div className="h-4 w-4 mx-auto animate-spin rounded-full border-2 border-[#F6851B] border-t-transparent" />
-          <p className="type-body font-medium text-slate-200">Đang đối chiếu dữ liệu Smart Contract EVM...</p>
-          <p className="type-caption font-mono">Querying via local RPC provider</p>
+          <p className="type-body font-medium text-slate-200">Đang đối chiếu dữ liệu Smart Contract EVM & CSDL...</p>
+          <p className="type-caption font-mono">Querying via local RPC & SQLite multi-tier verification</p>
         </div>
       )}
 
@@ -244,9 +335,166 @@ function VerifyContent() {
                   <span className="text-slate-200">{result.dbData.rejectionReason}</span>
                 </div>
               )}
+
+              <div className="rounded-lg bg-slate-950 p-3 border border-slate-800 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="type-caption font-mono">Mã SHA-256 đối chiếu:</span>
+                  <button
+                    onClick={() => copyToClipboard(result.hash)}
+                    className="inline-flex items-center gap-1 type-caption text-slate-400 hover:text-white"
+                  >
+                    {copied ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
+                    <span>{copied ? "Đã chép" : "Sao chép"}</span>
+                  </button>
+                </div>
+                <p className="type-code text-slate-300 break-all select-all">
+                  {result.hash}
+                </p>
+              </div>
+            </div>
+          ) : result.isRejected ? (
+            /* CASE 2: REJECTED */
+            <div className="rounded-xl border border-rose-500/30 bg-rose-500/5 p-4 sm:p-5 space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-500/20 text-rose-400">
+                  <XCircle className="h-4 w-4" />
+                </div>
+                <div>
+                  <h3 className="type-h3 text-rose-400">
+                    Hồ Sơ Bản Quyền Bị Từ Chối Thẩm Định
+                  </h3>
+                  <p className="type-caption text-slate-400 mt-0.5">
+                    Hồ sơ tác phẩm này đã bị Hội đồng Quản trị từ chối cấp phép do không đáp ứng tiêu chuẩn bản quyền.
+                  </p>
+                </div>
+              </div>
+
+              {result.dbData?.rejectionReason && (
+                <div className="rounded-lg bg-slate-950 p-3 border border-slate-800 type-body">
+                  <span className="text-rose-400 font-medium">Lý do từ chối: </span>
+                  <span className="text-slate-200">{result.dbData.rejectionReason}</span>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                <div className="rounded-lg bg-slate-950 p-3.5 border border-slate-800 space-y-1.5 type-body">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Tiêu đề:</span>
+                    <span className="text-slate-200 font-medium">{result.dbData?.title || "Không rõ"}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Người nộp:</span>
+                    <span className="text-slate-300">{result.dbData?.creator?.fullName || "Tác giả"}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Trạng thái:</span>
+                    <span className="text-rose-400 font-medium">REJECTED (Bị từ chối)</span>
+                  </div>
+                </div>
+
+                <div className="rounded-lg bg-slate-950 p-3.5 border border-slate-800 space-y-1.5 type-body">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Danh mục:</span>
+                    <span className="text-slate-300">{result.dbData?.category || "ART"}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Thời điểm nộp:</span>
+                    <span className="text-slate-300">
+                      {result.dbData?.createdAt ? new Date(result.dbData.createdAt).toLocaleDateString("vi-VN") : "Gần đây"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Cấp phép On-Chain:</span>
+                    <span className="text-slate-500 font-mono">Không được duyệt</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-lg bg-slate-950 p-3 border border-slate-800 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="type-caption font-mono">Mã SHA-256 đối chiếu:</span>
+                  <button
+                    onClick={() => copyToClipboard(result.hash)}
+                    className="inline-flex items-center gap-1 type-caption text-slate-400 hover:text-white"
+                  >
+                    {copied ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
+                    <span>{copied ? "Đã chép" : "Sao chép"}</span>
+                  </button>
+                </div>
+                <p className="type-code text-slate-300 break-all select-all">
+                  {result.hash}
+                </p>
+              </div>
+            </div>
+          ) : result.isPending ? (
+            /* CASE 3: PENDING APPROVAL */
+            <div className="rounded-xl border border-sky-500/30 bg-sky-500/5 p-4 sm:p-5 space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-500/20 text-sky-400">
+                  <Clock className="h-4 w-4" />
+                </div>
+                <div>
+                  <h3 className="type-h3 text-sky-300">
+                    Hồ Sơ Đang Trong Quy Trình Thẩm Định Bản Quyền
+                  </h3>
+                  <p className="type-caption text-slate-400 mt-0.5">
+                    Dấu vân tay số SHA-256 đã được tiếp nhận và lưu trữ trong CSDL. Hồ sơ đang chờ Hội đồng Quản trị thẩm định trước khi cấp phép đưa lên chuỗi khối EVM.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                <div className="rounded-lg bg-slate-950 p-3.5 border border-slate-800 space-y-1.5 type-body">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Tiêu đề:</span>
+                    <span className="text-slate-200 font-medium">{result.dbData?.title || "Tác phẩm mới"}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Tác giả nộp:</span>
+                    <span className="text-slate-300">{result.dbData?.creator?.fullName || "Tác giả"}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Tiến độ:</span>
+                    <span className="text-amber-400 font-medium">Chờ Admin xét duyệt</span>
+                  </div>
+                </div>
+
+                <div className="rounded-lg bg-slate-950 p-3.5 border border-slate-800 space-y-1.5 type-body">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Danh mục:</span>
+                    <span className="text-slate-300">{result.dbData?.category || "ART"}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Thời điểm gửi:</span>
+                    <span className="text-slate-300">
+                      {result.dbData?.createdAt ? new Date(result.dbData.createdAt).toLocaleDateString("vi-VN") : "Hôm nay"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Khắc dấu EVM:</span>
+                    <span className="text-slate-500 font-mono">Chờ phê duyệt</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-lg bg-slate-950 p-3 border border-slate-800 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="type-caption font-mono">Mã SHA-256 đối chiếu:</span>
+                  <button
+                    onClick={() => copyToClipboard(result.hash)}
+                    className="inline-flex items-center gap-1 type-caption text-slate-400 hover:text-white"
+                  >
+                    {copied ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
+                    <span>{copied ? "Đã chép" : "Sao chép"}</span>
+                  </button>
+                </div>
+                <p className="type-code text-slate-300 break-all select-all">
+                  {result.hash}
+                </p>
+              </div>
             </div>
           ) : result.verified ? (
-            /* CASE 2: VERIFIED & AUTHENTIC */
+            /* CASE 4: VERIFIED & AUTHENTIC ON-CHAIN */
             <div className="card-surface p-5 sm:p-6 space-y-4 border-emerald-500/30">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-800 pb-4">
                 <div className="flex items-center gap-3">
@@ -349,7 +597,7 @@ function VerifyContent() {
               </div>
             </div>
           ) : (
-            /* CASE 3: NOT FOUND / ALTERED */
+            /* CASE 5: NOT FOUND / ALTERED */
             <div className="rounded-xl border border-rose-500/30 bg-rose-500/5 p-4 sm:p-5 space-y-3">
               <div className="flex items-center gap-3">
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-500/20 text-rose-400">
