@@ -62,6 +62,7 @@ const SAMPLE_PRESETS = [
 function VerifyContent() {
   const searchParams = useSearchParams();
   const hashFromUrl = searchParams.get("hash");
+  const tokenIdFromUrl = searchParams.get("tokenId") || searchParams.get("token");
 
   const [inputHash, setInputHash] = useState("");
   const [inputTokenId, setInputTokenId] = useState("");
@@ -76,8 +77,11 @@ function VerifyContent() {
     if (hashFromUrl) {
       setInputHash(hashFromUrl);
       performVerification(hashFromUrl);
+    } else if (tokenIdFromUrl && !isNaN(Number(tokenIdFromUrl))) {
+      setInputTokenId(tokenIdFromUrl);
+      performVerification(undefined, Number(tokenIdFromUrl));
     }
-  }, [hashFromUrl]);
+  }, [hashFromUrl, tokenIdFromUrl]);
 
   const performVerification = async (hash?: string, tokenId?: number) => {
     setLoading(true);

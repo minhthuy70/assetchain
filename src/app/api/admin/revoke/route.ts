@@ -48,6 +48,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (targetAsset.status !== "REGISTERED" && targetAsset.status !== "APPROVED") {
+      return NextResponse.json(
+        {
+          error: "Chỉ các tác phẩm đã được phê duyệt (APPROVED) hoặc đã cấp Token ID trên chuỗi khối (REGISTERED) mới thuộc diện thu hồi hiệu lực!",
+        },
+        { status: 400 }
+      );
+    }
+
     const updated = await prisma.asset.update({
       where: { id: targetAsset.id },
       data: {

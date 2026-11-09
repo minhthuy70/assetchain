@@ -14,6 +14,7 @@ import {
   Search,
   Wallet,
   Loader2,
+  ShieldAlert,
 } from "lucide-react";
 import { shortenAddress, shortenHash } from "@/lib/crypto";
 import { mintAssetOnChain, parseWeb3ErrorMessage } from "@/lib/onchain";
@@ -187,12 +188,14 @@ export default function MyAssetsDashboard() {
   const pendingCount = assets.filter((a) => a.status === "PENDING_APPROVAL").length;
   const approvedCount = assets.filter((a) => a.status === "APPROVED").length;
   const rejectedCount = assets.filter((a) => a.status === "REJECTED").length;
+  const revokedCount = assets.filter((a) => a.status === "REVOKED").length;
 
   const filteredAssets = assets.filter((a) => {
     if (activeTab === "REGISTERED" && a.status !== "REGISTERED") return false;
     if (activeTab === "PENDING_APPROVAL" && a.status !== "PENDING_APPROVAL") return false;
     if (activeTab === "APPROVED" && a.status !== "APPROVED") return false;
     if (activeTab === "REJECTED" && a.status !== "REJECTED") return false;
+    if (activeTab === "REVOKED" && a.status !== "REVOKED") return false;
 
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
@@ -305,6 +308,7 @@ export default function MyAssetsDashboard() {
             { id: "APPROVED", label: `Sẵn sàng mint (${approvedCount})` },
             { id: "PENDING_APPROVAL", label: `Chờ duyệt (${pendingCount})` },
             { id: "REJECTED", label: `Bị từ chối (${rejectedCount})` },
+            ...(revokedCount > 0 ? [{ id: "REVOKED", label: `Đã thu hồi (${revokedCount})` }] : []),
           ].map((tab) => (
             <button
               key={tab.id}
@@ -395,6 +399,7 @@ export default function MyAssetsDashboard() {
             const isApproved = asset.status === "APPROVED";
             const isRegistered = asset.status === "REGISTERED";
             const isRejected = asset.status === "REJECTED";
+            const isRevoked = asset.status === "REVOKED";
 
             return (
               <div
@@ -443,6 +448,11 @@ export default function MyAssetsDashboard() {
                           Bị từ chối
                         </span>
                       )}
+                      {isRevoked && (
+                        <span className="inline-flex items-center rounded bg-rose-500/10 px-2 py-0.5 text-[11px] font-medium text-rose-400 border border-rose-500/20">
+                          Đã thu hồi on-chain
+                        </span>
+                      )}
                     </div>
 
                     {/* HASH */}
@@ -459,7 +469,8 @@ export default function MyAssetsDashboard() {
 
                     {asset.rejectionReason && (
                       <p className="type-caption text-rose-300 bg-rose-500/10 p-2 rounded-lg border border-rose-500/20">
-                        Lý do từ chối: {asset.rejectionReason}
+                        {isRevoked ? "Lý do thu hồi: " : "Lý do từ chối: "}
+                        {asset.rejectionReason}
                       </p>
                     )}
                   </div>
@@ -530,6 +541,40 @@ export default function MyAssetsDashboard() {
                     >
                       Nộp lại hồ sơ chỉnh sửa
                     </Link>
+                  )}
+
+                  {isRevoked && (
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-2">
+                        {asset.certificate && (
+                          <a
+                            href={`/api/certificate/${asset.id}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="btn-secondary flex-1 py-1.5 text-[11px] text-rose-300 hover:text-rose-200"
+                          >
+                            <FileCheck2 className="h-3 w-3 text-rose-400" />
+                            <span>Bản thu hồi (PDF)</span>
+                          </a>
+                        )}
+                        <Link
+                          href={`/verify?hash=${asset.fileHash}`}
+                          className="btn-secondary flex-1 py-1.5 text-[11px]"
+                        >
+                          <ShieldAlert className="h-3 w-3 text-rose-400" />
+                          <span>Đối soát vi phạm</span>
+                        </Link>
+                      </div>
+
+                      <div className="flex items-center justify-center type-caption pt-0.5">
+                        <Link
+                          href={`/creator/assets/${asset.id}`}
+                          className="text-slate-400 hover:text-slate-200 transition-colors"
+                        >
+                          Xem lịch sử nguồn gốc & quyết định →
+                        </Link>
+                      </div>
+                    </div>
                   )}
                 </div>
               </div>

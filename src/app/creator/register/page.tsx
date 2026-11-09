@@ -314,6 +314,17 @@ export default function CreatorRegisterPage() {
                     <p className="text-slate-400 text-[11px]">
                       Hệ thống tự động khóa nút nộp để bảo vệ bản quyền và chống hành vi tải lại các tác phẩm đã tồn tại.
                     </p>
+                    {hashedResult && (
+                      <div className="pt-1">
+                        <Link
+                          href={`/verify?hash=${hashedResult.hash}`}
+                          target="_blank"
+                          className="inline-flex items-center gap-1 text-[11px] font-medium text-rose-300 hover:text-white underline"
+                        >
+                          Kiểm tra hồ sơ tác phẩm trùng lặp trên Cổng Xác Minh →
+                        </Link>
+                      </div>
+                    )}
                   </div>
                 </div>
               ) : (

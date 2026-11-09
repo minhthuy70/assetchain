@@ -77,7 +77,7 @@ export default function HomePage() {
             </p>
           </div>
 
-          <FileDropzone />
+          <FileDropzone showVerifyLink />
         </div>
       </section>
 

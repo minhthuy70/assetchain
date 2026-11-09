@@ -11,6 +11,8 @@ import {
   Check,
   ShieldAlert,
   AlertCircle,
+  FileCheck2,
+  ShieldCheck,
 } from "lucide-react";
 import ProvenanceTimeline from "@/components/ProvenanceTimeline";
 import { shortenAddress, shortenHash } from "@/lib/crypto";
@@ -75,24 +77,46 @@ export default function AssetDetailPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
       {/* TOP NAV */}
-      <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800 pb-4 gap-3">
         <Link
           href="/creator/my-assets"
-          className="btn-ghost"
+          className="btn-ghost self-start"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           <span>Danh sách tác phẩm</span>
         </Link>
 
-        {isRegistered && (
+        <div className="flex flex-wrap items-center gap-2">
+          {asset.certificate && (
+            <a
+              href={`/api/certificate/${asset.id}`}
+              target="_blank"
+              rel="noreferrer"
+              className="btn-secondary py-1.5 text-xs"
+            >
+              <FileCheck2 className="h-3.5 w-3.5" />
+              <span>{asset.status === "REVOKED" ? "E-Cert (Đã thu hồi)" : "Tải E-Certificate"}</span>
+            </a>
+          )}
+
           <Link
-            href={`/creator/transfer?assetId=${asset.id}`}
-            className="btn-primary"
+            href={`/verify?hash=${asset.fileHash}`}
+            className="btn-secondary py-1.5 text-xs"
           >
-            <Send className="h-3.5 w-3.5" />
-            <span>Chuyển nhượng NFT</span>
+            <ShieldCheck className="h-3.5 w-3.5 text-[#F6851B]" />
+            <span>Đối soát on-chain</span>
           </Link>
-        )}
+
+          {isRegistered && (
+            <Link
+              href={`/creator/transfer?assetId=${asset.id}`}
+              className="btn-primary py-1.5 text-xs"
+            >
+              <Send className="h-3.5 w-3.5" />
+              <span>Chuyển nhượng NFT</span>
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* REVOKED ALERT BANNER */}

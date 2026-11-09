@@ -36,24 +36,40 @@ export async function POST(req: NextRequest) {
     const rpcUrl = process.env.NEXT_PUBLIC_BLOCKCHAIN_RPC_URL || "http://127.0.0.1:8545";
 
     try {
-      if (targetHash && contractInfo && contractInfo.address) {
+      if (contractInfo && contractInfo.address) {
         const provider = new ethers.JsonRpcProvider(rpcUrl);
         const contract = new ethers.Contract(contractInfo.address, contractInfo.abi, provider);
-        const bytes32Hash = hexToBytes32(targetHash);
 
-        const res = await contract.getAssetByHash(bytes32Hash);
-        onchainData = {
-          registered: true,
-          tokenId: Number(res[0]),
-          creator: res[1],
-          currentOwner: res[2],
-          registeredAt: new Date(Number(res[3]) * 1000).toISOString(),
-          isRevoked: Boolean(res[4]),
-          tokenURI: res[5],
-        };
+        if (targetHash) {
+          const bytes32Hash = hexToBytes32(targetHash);
+          const res = await contract.getAssetByHash(bytes32Hash);
+          onchainData = {
+            registered: true,
+            tokenId: Number(res[0]),
+            creator: res[1],
+            currentOwner: res[2],
+            registeredAt: new Date(Number(res[3]) * 1000).toISOString(),
+            isRevoked: Boolean(res[4]),
+            tokenURI: res[5],
+          };
+        } else if (tokenId !== undefined) {
+          const res = await contract.getAssetById(Number(tokenId));
+          onchainData = {
+            registered: true,
+            tokenId: Number(res[0].tokenId),
+            creator: res[0].creator,
+            currentOwner: res[1],
+            registeredAt: new Date(Number(res[0].registeredAt) * 1000).toISOString(),
+            isRevoked: Boolean(res[0].isRevoked),
+            tokenURI: res[2],
+          };
+          if (!targetHash && res[0].contentHash) {
+            targetHash = res[0].contentHash.replace(/^0x/, "");
+          }
+        }
       }
     } catch (contractErr: any) {
-      // Contract revert nếu không tìm thấy hash
+      // Contract revert nếu không tìm thấy hash hoặc tokenId
       onchainData = {
         registered: false,
         message: "Không tìm thấy dấu vân tay số này trên sổ cái Blockchain",

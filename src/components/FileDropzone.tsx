@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import {
   UploadCloud,
   Copy,
@@ -9,6 +10,8 @@ import {
   RotateCcw,
   FileText,
   AlertCircle,
+  ArrowRight,
+  FileCheck2,
 } from "lucide-react";
 import { computeFileHashSHA256, hexToBytes32 } from "@/lib/crypto";
 
@@ -24,6 +27,7 @@ interface FileDropzoneProps {
   accept?: string;
   maxSizeMB?: number;
   className?: string;
+  showVerifyLink?: boolean;
 }
 
 export default function FileDropzone({
@@ -31,6 +35,7 @@ export default function FileDropzone({
   accept = "image/*,application/pdf",
   maxSizeMB = 50,
   className = "",
+  showVerifyLink = false,
 }: FileDropzoneProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isHashing, setIsHashing] = useState(false);
@@ -265,6 +270,19 @@ export default function FileDropzone({
                   <div className="rounded-lg bg-slate-950 px-2.5 py-1.5 type-code text-slate-400 border border-slate-800 flex items-center justify-between">
                     <span className="type-caption">bytes32:</span>
                     <span className="truncate max-w-[420px] text-slate-400">{bytes32}</span>
+                  </div>
+                )}
+
+                {showVerifyLink && (
+                  <div className="pt-1.5 flex items-center justify-end">
+                    <Link
+                      href={`/verify?hash=${hash}`}
+                      className="inline-flex items-center gap-1.5 text-xs font-medium text-[#F6851B] hover:text-[#ff9838] transition-colors"
+                    >
+                      <FileCheck2 className="h-3.5 w-3.5" />
+                      <span>Kiểm tra tác quyền tệp này ngay</span>
+                      <ArrowRight className="h-3 w-3" />
+                    </Link>
                   </div>
                 )}
               </div>

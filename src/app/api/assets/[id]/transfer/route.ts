@@ -40,6 +40,13 @@ export async function POST(
       );
     }
 
+    if (asset.status !== "REGISTERED") {
+      return NextResponse.json(
+        { error: "Chỉ các tác phẩm đã hoàn tất đăng ký và đúc NFT trên chuỗi khối (REGISTERED) mới có thể chuyển nhượng quyền sở hữu!" },
+        { status: 400 }
+      );
+    }
+
     const previousOwner = asset.currentOwnerWallet;
 
     // 1. Cập nhật chủ sở hữu mới trong bảng Asset

@@ -120,13 +120,16 @@ export default function ExplorePage() {
               >
                 <div>
                   {/* PREVIEW */}
-                  <div className="relative aspect-video w-full bg-slate-950 overflow-hidden flex items-center justify-center">
+                  <Link
+                    href={`/creator/assets/${asset.id}`}
+                    className="relative aspect-video w-full bg-slate-950 overflow-hidden flex items-center justify-center block group"
+                  >
                     {isImage ? (
                       <Image
                         src={asset.filePath}
                         alt={asset.title}
                         fill
-                        className="object-cover"
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
                         unoptimized
                       />
                     ) : (
@@ -135,16 +138,18 @@ export default function ExplorePage() {
                     <span className="absolute top-2 right-2 rounded bg-black/70 px-2 py-0.5 type-code text-slate-200 border border-white/10 backdrop-blur-sm">
                       {isRegistered ? `#Token ${asset.tokenId}` : asset.status}
                     </span>
-                  </div>
+                  </Link>
 
                   {/* INFO */}
                   <div className="p-4 space-y-1.5">
                     <span className="type-label">
                       {asset.category}
                     </span>
-                    <h3 className="type-h3 line-clamp-1">
-                      {asset.title}
-                    </h3>
+                    <Link href={`/creator/assets/${asset.id}`} className="block">
+                      <h3 className="type-h3 line-clamp-1 hover:text-[#F6851B] transition-colors">
+                        {asset.title}
+                      </h3>
+                    </Link>
                     <p className="type-body text-slate-400 line-clamp-2">
                       {asset.description || "Tác phẩm số đã ghi nhận bản quyền."}
                     </p>
