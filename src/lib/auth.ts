@@ -30,19 +30,20 @@ export async function verifyAdminWallet(address?: string | null): Promise<boolea
   // 1. Kiểm tra danh sách ví admin cấu hình trước
   if (isConfiguredAdminWallet(clean)) return true;
 
-  // 2. Tra cứu trong bảng users của SQLite
+  // 2. Tra cứu trong bảng users của SQLite (hỗ trợ nhiều tài khoản ADMIN)
   try {
-    const user = await prisma.user.findFirst({
+    const adminUsers = await prisma.user.findMany({
       where: {
         role: "ADMIN",
       },
+      select: {
+        walletAddress: true,
+      },
     });
 
-    if (user && user.walletAddress && user.walletAddress.toLowerCase() === clean) {
-      return true;
-    }
-
-    return false;
+    return adminUsers.some(
+      (u) => u.walletAddress && u.walletAddress.trim().toLowerCase() === clean
+    );
   } catch {
     return false;
   }

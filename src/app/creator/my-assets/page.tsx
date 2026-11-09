@@ -40,7 +40,7 @@ export default function MyAssetsDashboard() {
 
     setLoading(true);
     try {
-      const url = new URL("/api/assets", window.location.origin);
+      const url = new URL("/api/assets/my-assets", window.location.origin);
       url.searchParams.set("wallet", currentWallet);
 
       const res = await fetch(url.toString());
@@ -68,6 +68,7 @@ export default function MyAssetsDashboard() {
       return;
     }
 
+    setMintError(null);
     setIsConnecting(true);
     try {
       const provider = new ethers.BrowserProvider((window as any).ethereum);
@@ -83,8 +84,13 @@ export default function MyAssetsDashboard() {
         setWallet(addr);
         await fetchMyAssets(addr);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Lỗi kết nối ví MetaMask:", err);
+      if (err.code === 4001) {
+        setMintError("Bạn đã từ chối yêu cầu kết nối ví MetaMask.");
+      } else {
+        setMintError(err.message || "Không thể kết nối với ví MetaMask.");
+      }
     } finally {
       setIsConnecting(false);
     }
@@ -277,7 +283,7 @@ export default function MyAssetsDashboard() {
       </div>
 
       {/* STATS OVERVIEW CARDS */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         <div className="card-surface p-3.5">
           <div className="type-caption">Tổng tác phẩm</div>
           <div className="text-lg font-semibold text-white font-mono mt-0.5">{totalCount}</div>
@@ -288,14 +294,19 @@ export default function MyAssetsDashboard() {
           <div className="text-lg font-semibold text-emerald-400 font-mono mt-0.5">{registeredCount}</div>
         </div>
 
+        <div className="card-surface p-3.5 border-[#F6851B]/20">
+          <div className="type-caption text-[#F6851B]">Sẵn sàng mint</div>
+          <div className="text-lg font-semibold text-[#F6851B] font-mono mt-0.5">{approvedCount}</div>
+        </div>
+
         <div className="card-surface p-3.5 border-amber-500/20">
           <div className="type-caption text-amber-400">Chờ thẩm định</div>
           <div className="text-lg font-semibold text-amber-400 font-mono mt-0.5">{pendingCount}</div>
         </div>
 
-        <div className="card-surface p-3.5 border-[#F6851B]/20">
-          <div className="type-caption text-[#F6851B]">Sẵn sàng mint</div>
-          <div className="text-lg font-semibold text-[#F6851B] font-mono mt-0.5">{approvedCount}</div>
+        <div className="card-surface p-3.5 border-rose-500/20">
+          <div className="type-caption text-rose-400">Từ chối / Thu hồi</div>
+          <div className="text-lg font-semibold text-rose-400 font-mono mt-0.5">{rejectedCount + revokedCount}</div>
         </div>
       </div>
 
@@ -308,7 +319,7 @@ export default function MyAssetsDashboard() {
             { id: "APPROVED", label: `Sẵn sàng mint (${approvedCount})` },
             { id: "PENDING_APPROVAL", label: `Chờ duyệt (${pendingCount})` },
             { id: "REJECTED", label: `Bị từ chối (${rejectedCount})` },
-            ...(revokedCount > 0 ? [{ id: "REVOKED", label: `Đã thu hồi (${revokedCount})` }] : []),
+            { id: "REVOKED", label: `Đã thu hồi (${revokedCount})` },
           ].map((tab) => (
             <button
               key={tab.id}
