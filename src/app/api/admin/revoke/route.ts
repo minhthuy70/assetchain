@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { tokenId, assetId, reason, adminWallet } = body;
+    const { tokenId, assetId, reason, adminWallet, txHash, blockNumber } = body;
 
     // Xác thực quyền Admin
     const callerWallet = req.headers.get("x-admin-wallet") || adminWallet;
@@ -65,15 +65,18 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Ghi nhận lịch sử sự kiện thu hồi
+    // Ghi nhận lịch sử sự kiện thu hồi với TxHash và BlockNumber on-chain thật
+    const recordTxHash = txHash || `revoke_tx_${Date.now()}`;
+    const recordBlockNumber = blockNumber ? Number(blockNumber) : 1;
+
     await prisma.ownershipHistory.create({
       data: {
         assetId: targetAsset.id,
         tokenId: targetAsset.tokenId || 0,
-        fromWallet: targetAsset.currentOwnerWallet,
+        fromWallet: callerWallet || targetAsset.currentOwnerWallet,
         toWallet: "0x0000000000000000000000000000000000000000",
-        txHash: `revoke_tx_${Date.now()}`,
-        blockNumber: 1,
+        txHash: recordTxHash,
+        blockNumber: recordBlockNumber,
         eventType: "REVOKE",
       },
     });

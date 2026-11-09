@@ -158,9 +158,13 @@ export default function ExplorePage() {
                       <span className="text-slate-300 font-medium">
                         {asset.creator?.fullName || "Tác giả"}
                       </span>
-                      <span className="type-code text-slate-500">
-                        {shortenAddress(asset.currentOwnerWallet)}
-                      </span>
+                      <Link
+                        href={`/creator/assets/${asset.id}`}
+                        className="text-[#F6851B] hover:underline transition-colors font-medium text-[11px]"
+                        title="Xem chi tiết lịch sử nguồn gốc và dòng thời gian tác phẩm"
+                      >
+                        Lịch sử nguồn gốc →
+                      </Link>
                     </div>
                   </div>
                 </div>

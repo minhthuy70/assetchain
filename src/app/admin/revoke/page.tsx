@@ -174,6 +174,9 @@ export default function AdminRevokePage() {
     setErrorMsg(null);
     setSuccessMsg(null);
 
+    let onchainTxHash: string | undefined = undefined;
+    let onchainBlockNumber: number | undefined = undefined;
+
     try {
       if (typeof window !== "undefined" && (window as any).ethereum) {
         try {
@@ -182,7 +185,9 @@ export default function AdminRevokePage() {
           if (contractInfo && contractInfo.address) {
             const contract = new ethers.Contract(contractInfo.address, contractInfo.abi, signer);
             const tx = await contract.revokeAsset(Number(tokenId), reason.trim());
-            await tx.wait();
+            const receipt = await tx.wait();
+            onchainTxHash = receipt?.hash || tx.hash;
+            onchainBlockNumber = receipt?.blockNumber ? Number(receipt.blockNumber) : undefined;
           }
         } catch (chainErr: any) {
           console.warn("Lưu ý: Không thể ký MetaMask on-chain. Tiến hành đồng bộ off-chain.");
@@ -199,6 +204,8 @@ export default function AdminRevokePage() {
           tokenId: Number(tokenId),
           reason: reason.trim(),
           adminWallet: connectedWallet,
+          txHash: onchainTxHash,
+          blockNumber: onchainBlockNumber,
         }),
       });
 

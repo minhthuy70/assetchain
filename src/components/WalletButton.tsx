@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { ethers } from "ethers";
 import { Wallet, AlertCircle, CheckCircle2, ChevronDown, LayoutDashboard } from "lucide-react";
@@ -14,6 +14,23 @@ export default function WalletButton() {
   const [isWrongNetwork, setIsWrongNetwork] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Tự động đóng dropdown khi click ra ngoài
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+
+    if (menuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [menuOpen]);
 
   const checkNetwork = useCallback(async (provider: ethers.BrowserProvider) => {
     try {
@@ -155,7 +172,7 @@ export default function WalletButton() {
 
   if (account) {
     return (
-      <div className="relative">
+      <div className="relative" ref={menuRef}>
         <button
           onClick={() => setMenuOpen(!menuOpen)}
           className="inline-flex items-center gap-2 rounded-lg bg-slate-900 border border-slate-800 px-3 py-1.5 type-caption font-medium text-slate-200 hover:bg-slate-850 hover:border-slate-700 transition-colors"

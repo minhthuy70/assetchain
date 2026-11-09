@@ -20,6 +20,18 @@ export interface CertificateData {
 }
 
 /**
+ * Chuẩn hóa chuỗi văn bản không dấu cho thư viện jsPDF tiêu chuẩn (tránh vỡ font chữ tiếng Việt)
+ */
+export function removeVietnameseAccents(str?: string | null): string {
+  if (!str) return "";
+  return str
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D");
+}
+
+/**
  * Sinh chuỗi ảnh DataURL PNG từ URL xác thực của tác phẩm
  */
 export async function generateCertificateQRCode(verifyUrl: string): Promise<string> {
@@ -180,8 +192,9 @@ export async function generateCertificatePDF(data: CertificateData): Promise<jsP
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
   doc.setTextColor(20, 20, 20);
+  const safeTitle = removeVietnameseAccents(data.assetTitle || "Digital Creation");
   const titleDisplay =
-    data.assetTitle.length > 40 ? data.assetTitle.slice(0, 37) + "..." : data.assetTitle;
+    safeTitle.length > 40 ? safeTitle.slice(0, 37) + "..." : safeTitle;
   doc.text(titleDisplay, leftX + 46, cursorY + 12);
 
   // Mục 3: Tác giả / Chủ sở hữu
@@ -199,7 +212,7 @@ export async function generateCertificatePDF(data: CertificateData): Promise<jsP
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8.5);
     doc.setTextColor(100, 116, 139);
-    doc.text(`(Author: ${data.creatorName})`, leftX + 46, cursorY + 26);
+    doc.text(`(Author: ${removeVietnameseAccents(data.creatorName)})`, leftX + 46, cursorY + 26);
   }
 
   // Mục 4: VÙNG MÃ BĂM VÂN TAY SỐ SHA-256 (NỔI BẬT)
@@ -255,7 +268,7 @@ export async function generateCertificatePDF(data: CertificateData): Promise<jsP
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   doc.setTextColor(COLOR_DARK_GRAY.r, COLOR_DARK_GRAY.g, COLOR_DARK_GRAY.b);
-  doc.text(data.issuedAt, leftX + 46, bcY + 16);
+  doc.text(removeVietnameseAccents(data.issuedAt), leftX + 46, bcY + 16);
 
   // 5. CỘT PHẢI: MÃ QR ĐỘNG & SEAL DẤU BẢO CHỨNG
   const rightBoxX = 202;
@@ -319,7 +332,7 @@ export async function generateCertificatePDF(data: CertificateData): Promise<jsP
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
   doc.setTextColor(100, 116, 139);
-  doc.text(data.issuedBy || "AssetChain Council Authenticated", 148.5, footerY + 16, { align: "center" });
+  doc.text(removeVietnameseAccents(data.issuedBy || "AssetChain Council Authenticated"), 148.5, footerY + 16, { align: "center" });
 
   // Hệ thống mạng bên phải
   doc.setFont("helvetica", "bold");
@@ -351,7 +364,7 @@ export async function generateCertificatePDF(data: CertificateData): Promise<jsP
     doc.setFont("helvetica", "bold");
     doc.setFontSize(40);
     doc.setTextColor(225, 29, 72); // Rose/Red
-    doc.text("REVOKED / ĐÃ THU HỒI", 148.5, 115, {
+    doc.text("REVOKED / DA THU HOI", 148.5, 115, {
       align: "center",
       angle: 25,
     });
