@@ -12,14 +12,16 @@ import {
   Check,
   Send,
   Search,
+  Wallet,
+  Loader2,
 } from "lucide-react";
-import { hexToBytes32, shortenAddress, shortenHash } from "@/lib/crypto";
-import contractInfo from "@/contracts/AssetRegistry.json";
+import { shortenAddress, shortenHash } from "@/lib/crypto";
 import { mintAssetOnChain, parseWeb3ErrorMessage } from "@/lib/onchain";
 
 export default function MyAssetsDashboard() {
   const [assets, setAssets] = useState<any[]>([]);
   const [wallet, setWallet] = useState<string>("");
+  const [isConnecting, setIsConnecting] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [mintingId, setMintingId] = useState<string | null>(null);
   const [mintError, setMintError] = useState<string | null>(null);
@@ -29,22 +31,63 @@ export default function MyAssetsDashboard() {
   const [searchQuery, setSearchQuery] = useState<string>("");
 
   const fetchMyAssets = useCallback(async (currentWallet?: string) => {
+    if (!currentWallet) {
+      setAssets([]);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
       const url = new URL("/api/assets", window.location.origin);
-      if (currentWallet) url.searchParams.set("wallet", currentWallet);
+      url.searchParams.set("wallet", currentWallet);
 
       const res = await fetch(url.toString());
       const data = await res.json();
-      if (data.success) {
-        setAssets(data.data);
+      if (data.success && Array.isArray(data.data)) {
+        // Đảm bảo client-side lọc đúng theo ví
+        const myFiltered = data.data.filter(
+          (a: any) => a.currentOwnerWallet?.toLowerCase() === currentWallet.toLowerCase()
+        );
+        setAssets(myFiltered);
+      } else {
+        setAssets([]);
       }
     } catch (err) {
       console.error("Lỗi lấy danh sách tài sản:", err);
+      setAssets([]);
     } finally {
       setLoading(false);
     }
   }, []);
+
+  const connectWallet = async () => {
+    if (typeof window === "undefined" || !(window as any).ethereum) {
+      alert("Vui lòng cài đặt tiện ích mở rộng MetaMask trên trình duyệt!");
+      return;
+    }
+
+    setIsConnecting(true);
+    try {
+      const provider = new ethers.BrowserProvider((window as any).ethereum);
+      const accounts = await (window as any).ethereum.request({
+        method: "eth_requestAccounts",
+      });
+      if (accounts && accounts.length > 0) {
+        setWallet(accounts[0]);
+        await fetchMyAssets(accounts[0]);
+      } else {
+        const signer = await provider.getSigner();
+        const addr = await signer.getAddress();
+        setWallet(addr);
+        await fetchMyAssets(addr);
+      }
+    } catch (err) {
+      console.error("Lỗi kết nối ví MetaMask:", err);
+    } finally {
+      setIsConnecting(false);
+    }
+  };
 
   useEffect(() => {
     async function init() {
@@ -62,9 +105,30 @@ export default function MyAssetsDashboard() {
           console.error("Lỗi khởi tạo ví:", err);
         }
       }
-      fetchMyAssets();
+      setWallet("");
+      setAssets([]);
+      setLoading(false);
     }
+
     init();
+
+    if (typeof window !== "undefined" && (window as any).ethereum?.on) {
+      const handleAccountsChanged = (accounts: string[]) => {
+        if (accounts.length > 0) {
+          setWallet(accounts[0]);
+          fetchMyAssets(accounts[0]);
+        } else {
+          setWallet("");
+          setAssets([]);
+          setLoading(false);
+        }
+      };
+
+      (window as any).ethereum.on("accountsChanged", handleAccountsChanged);
+      return () => {
+        (window as any).ethereum.removeListener("accountsChanged", handleAccountsChanged);
+      };
+    }
   }, [fetchMyAssets]);
 
   const handleMintOnChain = async (asset: any) => {
@@ -157,13 +221,16 @@ export default function MyAssetsDashboard() {
         </div>
 
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => fetchMyAssets(wallet)}
-            className="btn-secondary"
-          >
-            <RefreshCw className="h-3.5 w-3.5" />
-            <span>Làm mới</span>
-          </button>
+          {wallet && (
+            <button
+              onClick={() => fetchMyAssets(wallet)}
+              disabled={loading}
+              className="btn-secondary"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
+              <span>Làm mới</span>
+            </button>
+          )}
           <Link
             href="/creator/register"
             className="btn-primary"
@@ -177,11 +244,33 @@ export default function MyAssetsDashboard() {
       {/* WALLET STRIP */}
       <div className="rounded-lg border border-slate-800 bg-slate-900/60 px-4 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between type-body gap-2">
         <div className="flex items-center gap-2 text-slate-300">
-          <span className="h-2 w-2 rounded-full bg-emerald-400" />
-          <span>Ví đang hoạt động:</span>
-          <span className="type-code text-white font-medium">{wallet || "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"}</span>
+          <span className={`h-2 w-2 rounded-full ${wallet ? "bg-emerald-400" : "bg-amber-400"}`} />
+          <span>Trạng thái ví:</span>
+          {wallet ? (
+            <span className="type-code text-white font-medium">{wallet}</span>
+          ) : (
+            <span className="type-code text-amber-400 font-medium">Chưa kết nối MetaMask</span>
+          )}
         </div>
-        <span className="type-caption font-mono text-slate-400">Hardhat Local (31337)</span>
+
+        <div className="flex items-center gap-2">
+          {wallet ? (
+            <span className="type-caption font-mono text-slate-400">Hardhat Local (31337)</span>
+          ) : (
+            <button
+              onClick={connectWallet}
+              disabled={isConnecting}
+              className="inline-flex items-center gap-1.5 rounded bg-[#F6851B] hover:bg-[#e2761b] px-3 py-1 text-xs font-medium text-white transition-colors"
+            >
+              {isConnecting ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Wallet className="h-3.5 w-3.5" />
+              )}
+              <span>{isConnecting ? "Đang kết nối..." : "Kết nối ví MetaMask"}</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* STATS OVERVIEW CARDS */}
@@ -257,11 +346,37 @@ export default function MyAssetsDashboard() {
             <div key={n} className="h-60 rounded-xl border border-slate-800 bg-slate-900/40 animate-pulse" />
           ))}
         </div>
+      ) : !wallet ? (
+        /* PROMPT TO CONNECT WALLET */
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-12 text-center space-y-3">
+          <div className="flex h-12 w-12 mx-auto items-center justify-center rounded-full bg-amber-500/20 text-amber-400">
+            <Wallet className="h-6 w-6" />
+          </div>
+          <div>
+            <h3 className="type-h3 text-white">Vui lòng kết nối ví MetaMask để xem tài sản của bạn</h3>
+            <p className="type-caption text-slate-400 mt-1 max-w-md mx-auto">
+              Bảng điều khiển cá nhân chỉ hiển thị các tác phẩm thuộc quyền sở hữu của địa chỉ ví bạn đang sử dụng.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={connectWallet}
+            disabled={isConnecting}
+            className="btn-primary inline-flex items-center gap-1.5 mx-auto"
+          >
+            {isConnecting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Wallet className="h-4 w-4" />
+            )}
+            <span>{isConnecting ? "Đang kết nối ví..." : "Kết nối ví MetaMask ngay"}</span>
+          </button>
+        </div>
       ) : filteredAssets.length === 0 ? (
         <div className="rounded-xl border border-dashed border-slate-800 p-12 text-center space-y-2 bg-slate-900/30">
           <h3 className="type-h3 text-white">Chưa có tác phẩm nào phù hợp</h3>
           <p className="type-caption text-slate-400">
-            {searchQuery ? "Không tìm thấy kết quả phù hợp với từ khóa." : "Bắt đầu đăng ký tác phẩm đầu tiên của bạn!"}
+            {searchQuery ? "Không tìm thấy kết quả phù hợp với từ khóa." : "Bạn chưa có tác phẩm nào trong danh mục này. Hãy bắt đầu đăng ký tác phẩm đầu tiên!"}
           </p>
           <div className="pt-2">
             <Link

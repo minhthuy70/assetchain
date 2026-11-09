@@ -46,6 +46,7 @@ export default function ProvenanceTimeline({
 }: ProvenanceTimelineProps) {
   const isRegistered = asset.status === "REGISTERED" || asset.status === "REVOKED";
   const isApproved = asset.status === "APPROVED" || isRegistered;
+  const isRejected = asset.status === "REJECTED";
   const isRevoked = asset.status === "REVOKED" || history.some((h) => h.eventType === "REVOKE");
 
   const formatDate = (date: string | Date | null | undefined) => {
@@ -96,25 +97,45 @@ export default function ProvenanceTimeline({
         {/* NODE 2: PHÊ DUYỆT THẨM ĐỊNH */}
         <div className="relative">
           <div className={`absolute -left-[27px] top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-slate-900 border ${
-            isApproved ? "border-emerald-500 text-emerald-400" : "border-slate-800 text-slate-600"
+            isApproved
+              ? "border-emerald-500 text-emerald-400"
+              : isRejected
+              ? "border-rose-500 text-rose-400"
+              : "border-slate-800 text-slate-600"
           }`}>
-            <ShieldCheck className="h-2.5 w-2.5" />
+            {isRejected ? <ShieldAlert className="h-2.5 w-2.5" /> : <ShieldCheck className="h-2.5 w-2.5" />}
           </div>
 
           <div className="rounded-lg border border-slate-800 bg-slate-950 p-3.5 space-y-1.5 text-xs">
             <div className="flex items-center justify-between">
               <span className="type-body font-medium text-white">Thẩm Định & Cấp Phép Bản Quyền</span>
-              {isApproved && (
+              {isApproved ? (
                 <span className="type-label rounded bg-emerald-500/10 px-1.5 py-0.5 text-emerald-400 border border-emerald-500/20">
                   APPROVED
+                </span>
+              ) : isRejected ? (
+                <span className="type-label rounded bg-rose-500/10 px-1.5 py-0.5 text-rose-400 border border-rose-500/20">
+                  REJECTED
+                </span>
+              ) : (
+                <span className="type-label rounded bg-amber-500/10 px-1.5 py-0.5 text-amber-400 border border-amber-500/20">
+                  PENDING
                 </span>
               )}
             </div>
             <p className="type-body text-slate-400">
               {isApproved
                 ? "Hội đồng Quản trị AssetChain đã đối chiếu tính nguyên bản và cấp phép phát hành chứng nhận."
+                : isRejected
+                ? "Hồ sơ đã bị Hội đồng Quản trị từ chối phê duyệt do không đạt tiêu chuẩn bản quyền."
                 : "Hồ sơ đang trong hàng đợi thẩm định của Hội đồng Quản trị."}
             </p>
+            {isRejected && asset.rejectionReason && (
+              <div className="rounded bg-rose-500/10 p-2 text-rose-300 border border-rose-500/20 type-caption mt-1">
+                <span className="font-semibold text-rose-400">Lý do từ chối: </span>
+                {asset.rejectionReason}
+              </div>
+            )}
           </div>
         </div>
 

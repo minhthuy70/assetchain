@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import { ethers } from "ethers";
-import { Wallet, AlertCircle, CheckCircle2, ChevronDown } from "lucide-react";
+import { Wallet, AlertCircle, CheckCircle2, ChevronDown, LayoutDashboard } from "lucide-react";
 
 const HARDHAT_CHAIN_ID_HEX = "0x7a69"; // 31337 in hex
 const HARDHAT_RPC_URL = process.env.NEXT_PUBLIC_BLOCKCHAIN_RPC_URL || "http://127.0.0.1:8545";
@@ -191,13 +192,21 @@ export default function WalletButton() {
               <span className="type-caption text-slate-400">Số dư:</span>
               <span className="type-code font-medium text-white">{balance} ETH</span>
             </div>
+            <Link
+              href="/creator/my-assets"
+              onClick={() => setMenuOpen(false)}
+              className="mt-2.5 flex items-center justify-center gap-1.5 w-full rounded-lg bg-slate-800 hover:bg-slate-750 border border-slate-700 py-1.5 type-caption font-medium text-slate-200 transition-colors"
+            >
+              <LayoutDashboard className="h-3.5 w-3.5 text-[#F6851B]" />
+              <span>Tác phẩm của tôi</span>
+            </Link>
             <button
               onClick={() => {
                 setAccount(null);
                 setBalance(null);
                 setMenuOpen(false);
               }}
-              className="mt-2.5 w-full rounded-lg bg-rose-500/10 border border-rose-500/20 py-1.5 type-caption font-medium text-rose-300 hover:bg-rose-500/20 transition-colors"
+              className="mt-2 w-full rounded-lg bg-rose-500/10 border border-rose-500/20 py-1.5 type-caption font-medium text-rose-300 hover:bg-rose-500/20 transition-colors"
             >
               Ngắt kết nối
             </button>

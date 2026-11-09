@@ -11,14 +11,16 @@ import {
   FileCheck,
   ShieldAlert,
   PlusCircle,
+  LayoutDashboard,
 } from "lucide-react";
 import WalletButton from "./WalletButton";
 
 const NAV_ITEMS = [
   { name: "Khám phá", href: "/explore", icon: Compass },
-  { name: "Đăng ký tác phẩm", href: "/creator", icon: PlusCircle },
+  { name: "Đăng ký", href: "/creator/register", icon: PlusCircle },
+  { name: "Tác phẩm của tôi", href: "/creator/my-assets", icon: LayoutDashboard },
   { name: "Xác minh tệp", href: "/verify", icon: FileCheck, highlight: true },
-  { name: "Thẩm định Admin", href: "/admin/approvals", icon: ShieldAlert },
+  { name: "Thẩm định", href: "/admin/approvals", icon: ShieldAlert },
   { name: "Thu hồi", href: "/admin/revoke", icon: ShieldAlert },
 ];
 

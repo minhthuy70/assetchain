@@ -9,6 +9,8 @@ import {
   Send,
   Copy,
   Check,
+  ShieldAlert,
+  AlertCircle,
 } from "lucide-react";
 import ProvenanceTimeline from "@/components/ProvenanceTimeline";
 import { shortenAddress, shortenHash } from "@/lib/crypto";
@@ -92,6 +94,48 @@ export default function AssetDetailPage() {
           </Link>
         )}
       </div>
+
+      {/* REVOKED ALERT BANNER */}
+      {asset.status === "REVOKED" && (
+        <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-4 flex items-start gap-3 text-xs">
+          <ShieldAlert className="h-5 w-5 text-rose-400 shrink-0 mt-0.5" />
+          <div className="space-y-0.5">
+            <h3 className="font-semibold text-rose-200">
+              Chứng Nhận Đã Bị Thu Hồi On-Chain (Revoked)
+            </h3>
+            <p className="text-rose-300/90 leading-relaxed">
+              Tác phẩm này đã bị Hội đồng Quản trị hủy bỏ hiệu lực bản quyền trên chuỗi khối. Mọi giao dịch chuyển nhượng tiếp theo đều bị đóng băng.
+            </p>
+            {asset.rejectionReason && (
+              <p className="text-slate-300 pt-1">
+                <span className="text-rose-400 font-medium">Lý do thu hồi: </span>
+                {asset.rejectionReason}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* REJECTED ALERT BANNER */}
+      {asset.status === "REJECTED" && (
+        <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-4 flex items-start gap-3 text-xs">
+          <AlertCircle className="h-5 w-5 text-rose-400 shrink-0 mt-0.5" />
+          <div className="space-y-0.5">
+            <h3 className="font-semibold text-rose-200">
+              Hồ Sơ Bị Từ Chối Thẩm Định (Rejected)
+            </h3>
+            <p className="text-rose-300/90 leading-relaxed">
+              Hồ sơ tác phẩm này đã bị Hội đồng Quản trị từ chối phê duyệt do không đạt tiêu chuẩn bản quyền.
+            </p>
+            {asset.rejectionReason && (
+              <p className="text-slate-300 pt-1">
+                <span className="text-rose-400 font-medium">Lý do từ chối: </span>
+                {asset.rejectionReason}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ASSET SUMMARY CARD */}
       <div className="card-surface p-5 sm:p-6 grid grid-cols-1 md:grid-cols-3 gap-5">
