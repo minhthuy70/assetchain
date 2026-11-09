@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { ethers } from "ethers";
 import {
@@ -8,9 +9,14 @@ import {
   Lock,
   Wallet,
   ArrowRight,
+  Search,
+  AlertTriangle,
+  CheckCircle2,
+  FileText,
+  RotateCcw,
 } from "lucide-react";
 import contractInfo from "@/contracts/AssetRegistry.json";
-import { shortenAddress } from "@/lib/crypto";
+import { shortenAddress, shortenHash } from "@/lib/crypto";
 
 export default function AdminRevokePage() {
   const [tokenId, setTokenId] = useState<string>("");
@@ -19,6 +25,8 @@ export default function AdminRevokePage() {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [registeredAssets, setRegisteredAssets] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [filterTab, setFilterTab] = useState<"ALL" | "REGISTERED" | "REVOKED">("ALL");
 
   // AUTH STATE
   const [connectedWallet, setConnectedWallet] = useState<string | null>(null);
@@ -97,17 +105,50 @@ export default function AdminRevokePage() {
 
   const fetchRegistered = useCallback(async () => {
     try {
-      const res = await fetch("/api/admin/assets?status=REGISTERED");
+      const res = await fetch("/api/admin/assets");
       const data = await res.json();
-      if (data.success) {
-        setRegisteredAssets(data.data);
+      if (data.success && Array.isArray(data.data)) {
+        // Lấy tất cả các tài sản đã có Token ID trên chuỗi (REGISTERED và REVOKED)
+        const onchainAssets = data.data.filter(
+          (a: any) => a.tokenId !== null && (a.status === "REGISTERED" || a.status === "REVOKED")
+        );
+        setRegisteredAssets(onchainAssets);
       }
-    } catch {}
+    } catch (err) {
+      console.error("Lỗi tải danh sách tài sản on-chain:", err);
+    }
   }, []);
 
   useEffect(() => {
     fetchRegistered();
   }, [fetchRegistered]);
+
+  // Tìm tài sản tương ứng với Token ID đang nhập
+  const selectedAssetPreview = useMemo(() => {
+    if (!tokenId.trim()) return null;
+    const num = Number(tokenId.trim());
+    if (isNaN(num)) return null;
+    return registeredAssets.find((a) => a.tokenId === num) || null;
+  }, [tokenId, registeredAssets]);
+
+  // Bộ lọc tìm kiếm nhanh danh sách gợi ý
+  const filteredAssets = useMemo(() => {
+    return registeredAssets.filter((asset) => {
+      if (filterTab === "REGISTERED" && asset.status !== "REGISTERED") return false;
+      if (filterTab === "REVOKED" && asset.status !== "REVOKED") return false;
+
+      if (!searchQuery.trim()) return true;
+      const q = searchQuery.toLowerCase().trim();
+      const matchTokenId = String(asset.tokenId).includes(q);
+      const matchTitle = asset.title?.toLowerCase().includes(q);
+      const matchWallet = asset.currentOwnerWallet?.toLowerCase().includes(q);
+      const matchHash = asset.fileHash?.toLowerCase().includes(q);
+      return matchTokenId || matchTitle || matchWallet || matchHash;
+    });
+  }, [registeredAssets, filterTab, searchQuery]);
+
+  const activeCount = registeredAssets.filter((a) => a.status === "REGISTERED").length;
+  const revokedCount = registeredAssets.filter((a) => a.status === "REVOKED").length;
 
   const handleRevoke = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -118,6 +159,14 @@ export default function AdminRevokePage() {
 
     if (!tokenId || !reason.trim()) {
       setErrorMsg("Vui lòng cung cấp đầy đủ Token ID và Lý do thu hồi!");
+      return;
+    }
+
+    // Chặn trùng lặp: Nếu tác phẩm đã bị thu hồi trước đó
+    if (selectedAssetPreview && selectedAssetPreview.status === "REVOKED") {
+      setErrorMsg(
+        `Tác phẩm Token #${selectedAssetPreview.tokenId} đã bị thu hồi trước đó! (Lý do: ${selectedAssetPreview.rejectionReason || "Đã hủy hiệu lực"}). Không thể thu hồi lần 2.`
+      );
       return;
     }
 
@@ -253,7 +302,10 @@ export default function AdminRevokePage() {
                 required
                 disabled={!isAdmin}
                 value={tokenId}
-                onChange={(e) => setTokenId(e.target.value)}
+                onChange={(e) => {
+                  setTokenId(e.target.value);
+                  setErrorMsg(null);
+                }}
                 placeholder="VD: 1"
                 className="input-base font-mono"
               />
@@ -267,29 +319,82 @@ export default function AdminRevokePage() {
                 disabled={!isAdmin}
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                placeholder="Nhập lý do chi tiết..."
+                placeholder="Nhập lý do chi tiết (VD: Tranh chấp bản quyền, đạo nhái...)"
                 className="input-base"
               />
             </div>
           </div>
 
+          {/* REAL-TIME PREVIEW OF SELECTED TOKEN */}
+          {selectedAssetPreview && (
+            <div
+              className={`rounded-lg p-3 border text-xs space-y-1.5 ${
+                selectedAssetPreview.status === "REVOKED"
+                  ? "bg-rose-500/10 border-rose-500/30 text-rose-300"
+                  : "bg-slate-950 border-slate-800 text-slate-300"
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {selectedAssetPreview.status === "REVOKED" ? (
+                    <AlertTriangle className="h-4 w-4 text-rose-400 shrink-0" />
+                  ) : (
+                    <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                  )}
+                  <span className="font-medium text-white">
+                    Token #{selectedAssetPreview.tokenId}: {selectedAssetPreview.title}
+                  </span>
+                </div>
+                <span
+                  className={`type-caption font-medium rounded px-1.5 py-0.5 ${
+                    selectedAssetPreview.status === "REVOKED"
+                      ? "bg-rose-500/20 text-rose-300 border border-rose-500/30"
+                      : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                  }`}
+                >
+                  {selectedAssetPreview.status === "REVOKED" ? "ĐÃ BỊ THU HỒI" : "HỢP LỆ ON-CHAIN"}
+                </span>
+              </div>
+
+              {selectedAssetPreview.status === "REVOKED" ? (
+                <p className="type-caption text-rose-400">
+                  ⚠️ Cảnh báo: Tác phẩm này đã bị thu hồi trước đó. Lý do: &ldquo;{selectedAssetPreview.rejectionReason || "Không rõ"}&rdquo;. Không thể thu hồi lại!
+                </p>
+              ) : (
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-slate-400 type-caption pt-0.5">
+                  <span>Chủ sở hữu: <code className="text-slate-300 font-mono">{shortenAddress(selectedAssetPreview.currentOwnerWallet)}</code></span>
+                  <span>Mã hash: <code className="text-slate-300 font-mono">{shortenHash(selectedAssetPreview.fileHash)}</code></span>
+                  <span>Danh mục: {selectedAssetPreview.category}</span>
+                </div>
+              )}
+            </div>
+          )}
+
           {errorMsg && (
-            <div className="rounded-lg bg-rose-500/10 p-2.5 text-xs text-rose-300 border border-rose-500/20">
-              {errorMsg}
+            <div className="rounded-lg bg-rose-500/10 p-2.5 text-xs text-rose-300 border border-rose-500/20 flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 shrink-0 text-rose-400" />
+              <span>{errorMsg}</span>
             </div>
           )}
 
           {successMsg && (
-            <div className="rounded-lg bg-emerald-500/10 p-2.5 text-xs text-emerald-300 border border-emerald-500/20">
-              {successMsg}
+            <div className="rounded-lg bg-emerald-500/10 p-2.5 text-xs text-emerald-300 border border-emerald-500/20 flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
+              <span>{successMsg}</span>
             </div>
           )}
 
           <div className="flex justify-end pt-1">
             <button
               type="submit"
-              disabled={loading || !isAdmin}
-              className="btn-danger"
+              disabled={
+                loading ||
+                !isAdmin ||
+                !tokenId ||
+                !reason.trim() ||
+                selectedAssetPreview?.status === "REVOKED"
+              }
+              className="btn-danger disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <ShieldAlert className="h-3.5 w-3.5" />
               <span>{loading ? "Đang xử lý..." : "Xác Nhận Thu Hồi Bản Quyền"}</span>
@@ -298,32 +403,166 @@ export default function AdminRevokePage() {
         </form>
       </div>
 
-      {/* QUICK SELECTION LIST */}
-      <div className="card-surface p-4 space-y-3">
-        <h3 className="type-label">
-          Tác phẩm đã ghi danh on-chain
-        </h3>
-        {registeredAssets.length === 0 ? (
-          <p className="type-caption text-slate-500">Chưa có tác phẩm nào ở trạng thái REGISTERED.</p>
-        ) : (
-          <div className="divide-y divide-slate-800 text-xs">
-            {registeredAssets.map((asset) => (
-              <div key={asset.id} className="py-2.5 flex items-center justify-between">
-                <div>
-                  <span className="type-code text-white font-medium mr-2">Token #{asset.tokenId}:</span>
-                  <span className="type-body text-slate-300">{asset.title}</span>
-                  <span className="type-code text-slate-500 text-[10px] ml-2">({shortenAddress(asset.currentOwnerWallet)})</span>
-                </div>
-                <button
-                  type="button"
-                  disabled={!isAdmin}
-                  onClick={() => setTokenId(String(asset.tokenId))}
-                  className="btn-ghost py-1 px-2 type-caption"
-                >
-                  Chọn #{asset.tokenId}
-                </button>
-              </div>
+      {/* QUICK SELECTION LIST WITH SEARCH & TABS */}
+      <div className="card-surface p-4 space-y-3.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-slate-800 pb-3">
+          <div>
+            <h3 className="type-label text-slate-200">
+              Danh mục tác phẩm on-chain ({registeredAssets.length})
+            </h3>
+            <p className="type-caption text-slate-400 mt-0.5">
+              Chọn nhanh tác phẩm để điền Token ID vào biểu mẫu thu hồi
+            </p>
+          </div>
+
+          {/* FILTER TABS */}
+          <div className="flex items-center gap-1.5">
+            {[
+              { id: "ALL", label: `Tất cả (${registeredAssets.length})` },
+              { id: "REGISTERED", label: `Có hiệu lực (${activeCount})` },
+              { id: "REVOKED", label: `Đã thu hồi (${revokedCount})` },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setFilterTab(tab.id as any)}
+                className={`rounded px-2.5 py-1 text-[11px] transition-colors ${
+                  filterTab === tab.id
+                    ? "bg-slate-800 text-white font-medium border border-slate-700"
+                    : "text-slate-400 hover:text-white hover:bg-slate-850"
+                }`}
+              >
+                {tab.label}
+              </button>
             ))}
+          </div>
+        </div>
+
+        {/* SEARCH BAR */}
+        <div className="relative">
+          <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-500" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Tìm kiếm theo Token ID (#1, #2...), tiêu đề tác phẩm, địa chỉ ví..."
+            className="input-base pl-8 text-xs"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-2.5 top-2.5 text-slate-500 hover:text-slate-300"
+            >
+              <RotateCcw className="h-3 w-3" />
+            </button>
+          )}
+        </div>
+
+        {/* ASSET LIST TABLE */}
+        {filteredAssets.length === 0 ? (
+          <div className="p-6 text-center type-caption text-slate-500 bg-slate-950/40 rounded-lg border border-slate-850">
+            {searchQuery
+              ? "Không tìm thấy tác phẩm on-chain nào khớp với từ khóa tìm kiếm."
+              : "Chưa có tác phẩm nào ghi nhận trên chuỗi khối."}
+          </div>
+        ) : (
+          <div className="divide-y divide-slate-800/80 text-xs">
+            {filteredAssets.map((asset) => {
+              const isRevoked = asset.status === "REVOKED";
+              const isSelected = String(asset.tokenId) === tokenId;
+
+              return (
+                <div
+                  key={asset.id}
+                  className={`py-2.5 px-2 flex items-center justify-between rounded-md transition-colors ${
+                    isSelected
+                      ? "bg-slate-850 border border-slate-700"
+                      : "hover:bg-slate-900/60"
+                  }`}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-md bg-slate-950 border border-slate-800 flex items-center justify-center">
+                      {asset.filePath && asset.mimeType?.startsWith("image/") ? (
+                        <Image
+                          src={asset.filePath}
+                          alt={asset.title}
+                          fill
+                          className="object-cover"
+                          unoptimized
+                        />
+                      ) : (
+                        <FileText className="h-4 w-4 text-slate-600" />
+                      )}
+                    </div>
+
+                    <div className="min-w-0 space-y-0.5">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-medium text-white">
+                          Token #{asset.tokenId}
+                        </span>
+                        <span className="text-slate-300 truncate max-w-[180px] sm:max-w-xs" title={asset.title}>
+                          {asset.title}
+                        </span>
+                        {isRevoked ? (
+                          <span
+                            className="inline-flex items-center gap-1 rounded bg-rose-500/10 px-1.5 py-0.2 text-[10px] font-medium text-rose-400 border border-rose-500/20"
+                            title={`Lý do: ${asset.rejectionReason || "Đã thu hồi"}`}
+                          >
+                            ĐÃ THU HỒI
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center rounded bg-emerald-500/10 px-1.5 py-0.2 text-[10px] font-medium text-emerald-400 border border-emerald-500/20">
+                            ON-CHAIN
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="type-caption text-slate-500 flex items-center gap-2">
+                        <span>Ví: <code className="text-slate-400">{shortenAddress(asset.currentOwnerWallet)}</code></span>
+                        <span>•</span>
+                        <span>{asset.category}</span>
+                        {isRevoked && asset.rejectionReason && (
+                          <>
+                            <span>•</span>
+                            <span className="text-rose-400 truncate max-w-[160px]" title={asset.rejectionReason}>
+                              Lý do: {asset.rejectionReason}
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="shrink-0 ml-2">
+                    {isRevoked ? (
+                      <button
+                        type="button"
+                        disabled
+                        className="rounded px-2.5 py-1 text-[11px] font-medium text-slate-500 bg-slate-900 border border-slate-800 cursor-not-allowed opacity-60"
+                      >
+                        Đã thu hồi
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled={!isAdmin}
+                        onClick={() => {
+                          setTokenId(String(asset.tokenId));
+                          setErrorMsg(null);
+                        }}
+                        className={`rounded px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                          isSelected
+                            ? "bg-[#F6851B] text-white"
+                            : "btn-secondary"
+                        }`}
+                      >
+                        {isSelected ? "Đang chọn" : `Chọn #${asset.tokenId}`}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

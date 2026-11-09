@@ -39,6 +39,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Không tìm thấy tài sản cần thu hồi" }, { status: 404 });
     }
 
+    if (targetAsset.status === "REVOKED") {
+      return NextResponse.json(
+        {
+          error: `Tác phẩm Token #${targetAsset.tokenId} này đã bị thu hồi trước đó! (Lý do: ${targetAsset.rejectionReason || "Đã hủy hiệu lực"}). Không thể thu hồi lần 2.`,
+        },
+        { status: 400 }
+      );
+    }
+
     const updated = await prisma.asset.update({
       where: { id: targetAsset.id },
       data: {
