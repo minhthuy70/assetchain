@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import contractInfo from "@/contracts/AssetRegistry.json";
 import { shortenAddress, shortenHash } from "@/lib/crypto";
+import { ensureHardhatNetwork } from "@/lib/onchain";
 
 export default function AdminRevokePage() {
   const [tokenId, setTokenId] = useState<string>("");
@@ -33,11 +34,41 @@ export default function AdminRevokePage() {
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [checkingAuth, setCheckingAuth] = useState<boolean>(true);
 
+  const fetchRegistered = useCallback(async (walletOverride?: string | null) => {
+    const targetWallet = walletOverride || connectedWallet;
+    if (!targetWallet) {
+      setRegisteredAssets([]);
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/admin/assets?wallet=${targetWallet}`, {
+        headers: {
+          "x-admin-wallet": targetWallet,
+        },
+      });
+      const data = await res.json();
+      if (data.success && Array.isArray(data.data)) {
+        // Lấy tất cả các tài sản đã có Token ID trên chuỗi (REGISTERED và REVOKED)
+        const onchainAssets = data.data.filter(
+          (a: any) => a.tokenId !== null && (a.status === "REGISTERED" || a.status === "REVOKED")
+        );
+        setRegisteredAssets(onchainAssets);
+      } else {
+        setRegisteredAssets([]);
+      }
+    } catch (err) {
+      console.error("Lỗi tải danh sách tài sản on-chain:", err);
+      setRegisteredAssets([]);
+    }
+  }, [connectedWallet]);
+
   const verifyWalletRole = useCallback(async (address: string | null) => {
     if (!address) {
       setConnectedWallet(null);
       setIsAdmin(false);
       setCheckingAuth(false);
+      setRegisteredAssets([]);
       return;
     }
 
@@ -45,14 +76,21 @@ export default function AdminRevokePage() {
       setConnectedWallet(address);
       const res = await fetch(`/api/admin/check-role?wallet=${address}`);
       const data = await res.json();
-      setIsAdmin(!!data.isAdmin);
+      const authorized = !!data.isAdmin;
+      setIsAdmin(authorized);
+      if (authorized) {
+        fetchRegistered(address);
+      } else {
+        setRegisteredAssets([]);
+      }
     } catch (err) {
       console.error("Lỗi kiểm tra quyền Admin:", err);
       setIsAdmin(false);
+      setRegisteredAssets([]);
     } finally {
       setCheckingAuth(false);
     }
-  }, []);
+  }, [fetchRegistered]);
 
   useEffect(() => {
     async function initWallet() {
@@ -102,26 +140,6 @@ export default function AdminRevokePage() {
       alert("Vui lòng cài đặt tiện ích mở rộng MetaMask trên trình duyệt!");
     }
   };
-
-  const fetchRegistered = useCallback(async () => {
-    try {
-      const res = await fetch("/api/admin/assets");
-      const data = await res.json();
-      if (data.success && Array.isArray(data.data)) {
-        // Lấy tất cả các tài sản đã có Token ID trên chuỗi (REGISTERED và REVOKED)
-        const onchainAssets = data.data.filter(
-          (a: any) => a.tokenId !== null && (a.status === "REGISTERED" || a.status === "REVOKED")
-        );
-        setRegisteredAssets(onchainAssets);
-      }
-    } catch (err) {
-      console.error("Lỗi tải danh sách tài sản on-chain:", err);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchRegistered();
-  }, [fetchRegistered]);
 
   // Tìm tài sản tương ứng với Token ID đang nhập
   const selectedAssetPreview = useMemo(() => {
@@ -180,6 +198,7 @@ export default function AdminRevokePage() {
     try {
       if (typeof window !== "undefined" && (window as any).ethereum) {
         try {
+          await ensureHardhatNetwork();
           const provider = new ethers.BrowserProvider((window as any).ethereum);
           const signer = await provider.getSigner();
           if (contractInfo && contractInfo.address) {
@@ -293,8 +312,22 @@ export default function AdminRevokePage() {
         </div>
       )}
 
-      {/* FORM CARD */}
-      <div className="card-surface p-5 space-y-4">
+      {!isAdmin ? (
+        <div className="card-surface p-12 text-center space-y-3">
+          <div className="flex h-12 w-12 mx-auto items-center justify-center rounded-xl bg-slate-800 text-slate-400 border border-slate-700">
+            <Lock className="h-6 w-6" />
+          </div>
+          <div className="space-y-1">
+            <h3 className="type-h3 text-slate-200">Chức Năng Thu Hồi Đã Được Bảo Vệ</h3>
+            <p className="type-caption text-slate-400 max-w-md mx-auto leading-relaxed">
+              Quyền thu hồi chứng nhận on-chain và đóng băng tài sản số chỉ dành riêng cho tài khoản Quản trị viên đã được xác thực trên Smart Contract.
+            </p>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* FORM CARD */}
+          <div className="card-surface p-5 space-y-4">
         <div>
           <h3 className="type-h3">Lệnh thu hồi trên Smart Contract</h3>
           <p className="type-caption text-slate-400 mt-0.5">Hành động này sẽ cập nhật `isRevoked = true` trong Smart Contract</p>
@@ -573,6 +606,8 @@ export default function AdminRevokePage() {
           </div>
         )}
       </div>
-    </div>
+    </>
+  )}
+</div>
   );
 }

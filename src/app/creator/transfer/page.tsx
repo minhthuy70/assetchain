@@ -12,6 +12,8 @@ import {
   ArrowLeft,
   Wallet,
   Loader2,
+  Copy,
+  Check,
 } from "lucide-react";
 import { shortenAddress, shortenHash } from "@/lib/crypto";
 import { transferAssetOnChain } from "@/lib/onchain";
@@ -29,6 +31,13 @@ function TransferContent() {
   const [transferring, setTransferring] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successData, setSuccessData] = useState<any | null>(null);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+
+  const copyText = (text: string, field: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(field);
+    setTimeout(() => setCopiedField(null), 2000);
+  };
 
   // Hàm tải danh sách tác phẩm thuộc sở hữu của ví đang kết nối
   const loadAssetsForWallet = useCallback(async (walletAddr: string) => {
@@ -288,17 +297,45 @@ function TransferContent() {
           </div>
 
           <div className="rounded-lg bg-slate-950 p-3.5 border border-slate-800 text-left max-w-md mx-auto space-y-2 text-xs">
-            <div className="flex justify-between py-1 border-b border-slate-850">
+            <div className="flex justify-between items-center py-1 border-b border-slate-850">
               <span className="type-caption">Chủ sở hữu mới:</span>
-              <span className="type-code text-slate-200">{shortenAddress(successData.toWallet)}</span>
+              <div className="flex items-center gap-1.5">
+                <span className="type-code text-slate-200">{shortenAddress(successData.toWallet)}</span>
+                <button
+                  type="button"
+                  onClick={() => copyText(successData.toWallet, "toWallet")}
+                  className="text-slate-400 hover:text-white transition-colors"
+                  title="Sao chép địa chỉ ví người nhận"
+                >
+                  {copiedField === "toWallet" ? (
+                    <Check className="h-3 w-3 text-emerald-400" />
+                  ) : (
+                    <Copy className="h-3 w-3" />
+                  )}
+                </button>
+              </div>
             </div>
-            <div className="flex justify-between py-1 border-b border-slate-850">
+            <div className="flex justify-between items-center py-1 border-b border-slate-850">
               <span className="type-caption">Khối Block:</span>
               <span className="type-code text-slate-300">#{successData.blockNumber}</span>
             </div>
-            <div className="flex justify-between py-1">
+            <div className="flex justify-between items-center py-1">
               <span className="type-caption">Transaction Hash:</span>
-              <span className="type-code text-slate-300">{shortenHash(successData.txHash)}</span>
+              <div className="flex items-center gap-1.5">
+                <span className="type-code text-slate-300">{shortenHash(successData.txHash)}</span>
+                <button
+                  type="button"
+                  onClick={() => copyText(successData.txHash, "txHash")}
+                  className="text-slate-400 hover:text-white transition-colors"
+                  title="Sao chép Transaction Hash"
+                >
+                  {copiedField === "txHash" ? (
+                    <Check className="h-3 w-3 text-emerald-400" />
+                  ) : (
+                    <Copy className="h-3 w-3" />
+                  )}
+                </button>
+              </div>
             </div>
           </div>
 

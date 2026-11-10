@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -13,6 +13,8 @@ import {
   AlertCircle,
   FileCheck2,
   ShieldCheck,
+  RefreshCw,
+  ExternalLink,
 } from "lucide-react";
 import ProvenanceTimeline from "@/components/ProvenanceTimeline";
 import { shortenAddress, shortenHash } from "@/lib/crypto";
@@ -23,25 +25,29 @@ export default function AssetDetailPage() {
 
   const [asset, setAsset] = useState<any | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
 
-  useEffect(() => {
-    async function loadAsset() {
-      if (!assetId) return;
-      try {
-        const res = await fetch(`/api/assets/${assetId}`);
-        const data = await res.json();
-        if (data.success && data.data) {
-          setAsset(data.data);
-        }
-      } catch (err) {
-        console.error("Lỗi lấy thông tin tài sản:", err);
-      } finally {
-        setLoading(false);
+  const loadAsset = useCallback(async () => {
+    if (!assetId) return;
+    setIsRefreshing(true);
+    try {
+      const res = await fetch(`/api/assets/${assetId}`);
+      const data = await res.json();
+      if (data.success && data.data) {
+        setAsset(data.data);
       }
+    } catch (err) {
+      console.error("Lỗi lấy thông tin tài sản:", err);
+    } finally {
+      setLoading(false);
+      setIsRefreshing(false);
     }
-    loadAsset();
   }, [assetId]);
+
+  useEffect(() => {
+    loadAsset();
+  }, [loadAsset]);
 
   const copyHash = (hash: string) => {
     navigator.clipboard.writeText(hash);
@@ -87,6 +93,17 @@ export default function AssetDetailPage() {
         </Link>
 
         <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={loadAsset}
+            disabled={isRefreshing}
+            className="btn-secondary py-1.5 text-xs"
+            title="Đồng bộ lại dữ liệu mới nhất từ hệ thống và Blockchain"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
+            <span>Đồng bộ</span>
+          </button>
+
           {asset.certificate && (
             <a
               href={`/api/certificate/${asset.id}`}
@@ -163,7 +180,7 @@ export default function AssetDetailPage() {
 
       {/* ASSET SUMMARY CARD */}
       <div className="card-surface p-5 sm:p-6 grid grid-cols-1 md:grid-cols-3 gap-5">
-        <div className="relative h-56 md:h-full w-full overflow-hidden rounded-lg bg-slate-950 border border-slate-850">
+        <div className="relative h-56 md:h-full w-full overflow-hidden rounded-lg bg-slate-950 border border-slate-850 group">
           <Image
             src={asset.filePath}
             alt={asset.title}
@@ -171,6 +188,16 @@ export default function AssetDetailPage() {
             className="object-cover"
             unoptimized
           />
+          <a
+            href={asset.filePath}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute bottom-2 right-2 rounded-md bg-black/80 hover:bg-black px-2 py-1 text-[11px] text-white backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 border border-white/10"
+            title="Mở xem ảnh gốc độ phân giải đầy đủ"
+          >
+            <ExternalLink className="h-3 w-3" />
+            <span>Ảnh gốc</span>
+          </a>
         </div>
 
         <div className="md:col-span-2 space-y-3 flex flex-col justify-between">

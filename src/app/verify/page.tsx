@@ -87,13 +87,16 @@ function VerifyContent() {
     setLoading(true);
     setResult(null);
 
+    const cleanHash = hash ? hash.trim().toLowerCase() : undefined;
+    const cleanTokenId = tokenId !== undefined && !isNaN(Number(tokenId)) ? Number(tokenId) : undefined;
+
     try {
       const res = await fetch("/api/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          hash: hash?.trim() || undefined,
-          tokenId: tokenId !== undefined ? Number(tokenId) : undefined,
+          hash: cleanHash,
+          tokenId: cleanTokenId,
         }),
       });
 
@@ -114,17 +117,21 @@ function VerifyContent() {
     const end = performance.now();
     const duration = ((end - start) / 1000).toFixed(3);
 
+    const cleanComputed = computedHash.trim().toLowerCase();
     setHashingTime(duration);
-    setInputHash(computedHash);
-    performVerification(computedHash);
+    setInputHash(cleanComputed);
+    performVerification(cleanComputed);
   };
 
   const handleManualSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (inputHash.trim()) {
-      performVerification(inputHash.trim());
-    } else if (inputTokenId.trim()) {
-      performVerification(undefined, Number(inputTokenId.trim()));
+    const cleanHash = inputHash.trim().toLowerCase();
+    const cleanToken = inputTokenId.trim();
+
+    if (cleanHash) {
+      performVerification(cleanHash);
+    } else if (cleanToken && !isNaN(Number(cleanToken))) {
+      performVerification(undefined, Number(cleanToken));
     }
   };
 

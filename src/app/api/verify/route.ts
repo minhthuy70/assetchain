@@ -10,11 +10,12 @@ export async function POST(req: NextRequest) {
   try {
     const { hash, tokenId } = await req.json();
 
-    if (!hash && tokenId === undefined) {
+    let targetHash = hash ? String(hash).trim().toLowerCase() : undefined;
+    const numericTokenId = tokenId !== undefined && !isNaN(Number(tokenId)) ? Number(tokenId) : undefined;
+
+    if (!targetHash && numericTokenId === undefined) {
       return NextResponse.json({ error: "Vui lòng cung cấp mã hash SHA-256 hoặc Token ID" }, { status: 400 });
     }
-
-    let targetHash = hash;
 
     // 1. TẦNG 1: TRUY VẤN CƠ SỞ DỮ LIỆU SQLITE
     let dbAsset: any = null;
@@ -23,12 +24,12 @@ export async function POST(req: NextRequest) {
         where: { fileHash: targetHash },
         include: { creator: true, certificate: true },
       });
-    } else if (tokenId !== undefined) {
+    } else if (numericTokenId !== undefined) {
       dbAsset = await prisma.asset.findUnique({
-        where: { tokenId: Number(tokenId) },
+        where: { tokenId: numericTokenId },
         include: { creator: true, certificate: true },
       });
-      if (dbAsset) targetHash = dbAsset.fileHash;
+      if (dbAsset) targetHash = dbAsset.fileHash.toLowerCase();
     }
 
     // 2. TẦNG 2: ĐỐI CHIẾU TRỰC TIẾP ON-CHAIN BLOCKCHAIN EVM
@@ -52,8 +53,8 @@ export async function POST(req: NextRequest) {
             isRevoked: Boolean(res[4]),
             tokenURI: res[5],
           };
-        } else if (tokenId !== undefined) {
-          const res = await contract.getAssetById(Number(tokenId));
+        } else if (numericTokenId !== undefined) {
+          const res = await contract.getAssetById(numericTokenId);
           onchainData = {
             registered: true,
             tokenId: Number(res[0].tokenId),
