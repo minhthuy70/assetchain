@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { ethers } from "ethers";
 import { prisma } from "@/lib/prisma";
+import contractInfo from "@/contracts/AssetRegistry.json";
 
 export const dynamic = "force-dynamic";
 
@@ -64,8 +66,49 @@ export async function POST(
       );
     }
 
+    // Chặn xung đột Token ID duy nhất (Tránh crash CSDL)
+    const existingWithToken = await prisma.asset.findUnique({
+      where: { tokenId: numericTokenId },
+    });
+    if (existingWithToken && existingWithToken.id !== assetId) {
+      return NextResponse.json(
+        {
+          error: `Token ID #${numericTokenId} đã được gán cho tác phẩm "${existingWithToken.title}"! Không thể gán trùng lặp.`,
+        },
+        { status: 400 }
+      );
+    }
+
+    // Bảo vệ quyền sở hữu: Khóa chặt theo ví tác giả hợp pháp ban đầu
+    const targetOwner = asset.currentOwnerWallet;
+
+    // Đối soát On-Chain kép: Xác thực sự tồn tại và tính chính chủ của Token ID trên EVM
+    const rpcUrl = process.env.NEXT_PUBLIC_BLOCKCHAIN_RPC_URL || "http://127.0.0.1:8545";
+    if (contractInfo && contractInfo.address) {
+      try {
+        const provider = new ethers.JsonRpcProvider(rpcUrl);
+        const contract = new ethers.Contract(contractInfo.address, contractInfo.abi, provider);
+        const onchainOwner = await contract.ownerOf(numericTokenId);
+        if (onchainOwner && onchainOwner.toLowerCase() !== targetOwner.toLowerCase()) {
+          return NextResponse.json(
+            {
+              error: `Đối soát on-chain thất bại: Chủ sở hữu của Token #${numericTokenId} trên Blockchain (${onchainOwner}) không khớp với ví đăng ký (${targetOwner})!`,
+            },
+            { status: 403 }
+          );
+        }
+      } catch (err: any) {
+        if (err.message?.includes("ERC721NonexistentToken") || err.message?.includes("owner query for nonexistent token")) {
+          return NextResponse.json(
+            { error: `Token ID #${numericTokenId} chưa từng tồn tại trên Smart Contract của Blockchain!` },
+            { status: 400 }
+          );
+        }
+        console.warn("Lưu ý: Bỏ qua đối soát RPC on-chain nếu mạng local chưa khởi động:", err.message);
+      }
+    }
+
     // 1. Cập nhật trạng thái sang REGISTERED
-    const targetOwner = ownerWallet || asset.currentOwnerWallet;
     const updated = await prisma.asset.update({
       where: { id: assetId },
       data: {

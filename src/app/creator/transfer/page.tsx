@@ -226,9 +226,13 @@ function TransferContent() {
 
       const res = await fetch(`/api/assets/${selectedAsset.id}/transfer`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-owner-wallet": currentWallet,
+        },
         body: JSON.stringify({
           toWallet: cleanToWallet,
+          fromWallet: currentWallet,
           txHash: receipt.txHash,
           blockNumber: receipt.blockNumber,
         }),
