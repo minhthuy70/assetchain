@@ -37,6 +37,16 @@ export async function POST(
       return NextResponse.json({ error: "Không tìm thấy hồ sơ tài sản" }, { status: 404 });
     }
 
+    // Bảo vệ Máy trạng thái: Chặn phê duyệt hoặc từ chối lại các tác phẩm đã on-chain hoặc đã thu hồi
+    if (existingAsset.status === "REGISTERED" || existingAsset.status === "REVOKED") {
+      return NextResponse.json(
+        {
+          error: `Tác phẩm đang ở trạng thái ${existingAsset.status} trên chuỗi khối, không thể thay đổi phê duyệt hoặc từ chối thông qua cổng thẩm định hồ sơ!`,
+        },
+        { status: 400 }
+      );
+    }
+
     if (action === "APPROVE") {
       const updated = await prisma.asset.update({
         where: { id: assetId },

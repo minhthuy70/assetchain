@@ -106,6 +106,13 @@ export default function CreatorRegisterPage() {
     setErrorMsg(null);
     setHashCheckResult(null);
 
+    // Tự động nhận diện danh mục tài liệu nếu là file PDF
+    if (result?.file) {
+      if (result.file.type === "application/pdf" || result.file.name.toLowerCase().endsWith(".pdf")) {
+        setCategory("DOCUMENT");
+      }
+    }
+
     if (!result || !result.hash) return;
 
     setIsCheckingHash(true);
@@ -163,8 +170,13 @@ export default function CreatorRegisterPage() {
       return;
     }
 
-    if (!title.trim()) {
-      setErrorMsg("Vui lòng nhập tiêu đề tác phẩm!");
+    if (!title.trim() || title.trim().length < 3) {
+      setErrorMsg("Vui lòng nhập tiêu đề tác phẩm (tối thiểu 3 ký tự)!");
+      return;
+    }
+
+    if (title.trim().length > 100) {
+      setErrorMsg("Tiêu đề tác phẩm không được vượt quá 100 ký tự!");
       return;
     }
 
@@ -352,15 +364,24 @@ export default function CreatorRegisterPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
               <div>
-                <label className="type-caption font-medium text-slate-300 mb-1 block">Tiêu đề tác phẩm (*):</label>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="type-caption font-medium text-slate-300">Tiêu đề tác phẩm (*):</label>
+                  <span className={`text-[10px] font-mono ${title.trim().length > 100 ? "text-rose-400" : "text-slate-500"}`}>
+                    {title.trim().length}/100
+                  </span>
+                </div>
                 <input
                   type="text"
                   required
+                  maxLength={100}
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="VD: Tranh Kỹ Thuật Số Hoàng Hôn"
                   className="input-base"
                 />
+                {title.trim().length > 0 && title.trim().length < 3 && (
+                  <p className="text-[10px] text-amber-400 mt-1">Tiêu đề cần tối thiểu 3 ký tự.</p>
+                )}
               </div>
 
               <div>

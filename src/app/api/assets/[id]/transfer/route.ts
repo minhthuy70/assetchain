@@ -102,9 +102,18 @@ export async function POST(
       },
     });
 
-    // 2. Ghi nhận sự kiện chuyển quyền vào bảng OwnershipHistory
-    const history = await prisma.ownershipHistory.create({
-      data: {
+    // 2. Ghi nhận sự kiện chuyển quyền vào bảng OwnershipHistory (Idempotent Upsert theo txHash)
+    const history = await prisma.ownershipHistory.upsert({
+      where: { txHash },
+      update: {
+        assetId,
+        tokenId: asset.tokenId || 0,
+        fromWallet: previousOwner,
+        toWallet,
+        blockNumber: blockNumber ? Number(blockNumber) : 1,
+        eventType: "TRANSFER",
+      },
+      create: {
         assetId,
         tokenId: asset.tokenId || 0,
         fromWallet: previousOwner,

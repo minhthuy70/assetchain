@@ -490,13 +490,18 @@ export default function MyAssetsDashboard() {
                 {/* FOOTER ACTIONS */}
                 <div className="border-t border-slate-800 p-3 bg-slate-950/40 space-y-2">
                   {isApproved && (
-                    <button
-                      onClick={() => handleMintOnChain(asset)}
-                      disabled={mintingId === asset.id}
-                      className="btn-primary w-full py-2"
-                    >
-                      <span>{mintingId === asset.id ? "Đang ký MetaMask..." : "Đưa Lên Blockchain (Mint NFT)"}</span>
-                    </button>
+                    <div className="space-y-1.5">
+                      <button
+                        onClick={() => handleMintOnChain(asset)}
+                        disabled={mintingId === asset.id}
+                        className="btn-primary w-full py-2"
+                      >
+                        <span>{mintingId === asset.id ? "Đang ký MetaMask..." : "Đưa Lên Blockchain (Mint NFT)"}</span>
+                      </button>
+                      <p className="text-[10px] text-center text-slate-500 font-mono">
+                        Yêu cầu một lượng nhỏ phí Gas ETH (Hardhat Localhost #31337)
+                      </p>
+                    </div>
                   )}
 
                   {isRegistered && (

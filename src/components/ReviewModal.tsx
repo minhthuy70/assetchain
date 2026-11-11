@@ -11,6 +11,7 @@ import {
   Check,
   AlertTriangle,
   ShieldCheck,
+  ShieldAlert,
   Maximize2,
   ExternalLink,
   ZoomIn,
@@ -18,6 +19,7 @@ import {
 
 interface AssetRecord {
   id: string;
+  tokenId?: number | null;
   title: string;
   description: string;
   category: string;
@@ -317,60 +319,92 @@ export default function ReviewModal({
           </div>
 
           {/* FOOTER ACTIONS */}
-          <div className="mt-5 flex items-center justify-end gap-2 border-t border-slate-800 pt-3.5">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={loading}
-              className="btn-secondary"
-            >
-              Đóng
-            </button>
-
-            {!rejecting ? (
-              <>
-                <button
-                  type="button"
-                  onClick={() => setRejecting(true)}
-                  disabled={loading}
-                  className="btn-ghost text-rose-400 hover:text-rose-300 hover:bg-rose-500/10"
-                >
-                  <XCircle className="h-3.5 w-3.5" />
-                  <span>Từ chối</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleApprove}
-                  disabled={loading}
-                  className="btn-primary"
-                >
-                  <CheckCircle2 className="h-3.5 w-3.5" />
-                  <span>{loading ? "Đang xử lý..." : "Phê duyệt & Cấp E-Cert"}</span>
-                </button>
-              </>
+          <div className="mt-5 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-800 pt-3.5">
+            {/* STATUS BADGE / EXPLANATION FOR NON-PENDING ASSETS */}
+            {asset.status === "REGISTERED" ? (
+              <div className="w-full sm:w-auto flex-1 text-left text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 rounded-lg flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
+                <span>Tác phẩm đã đúc Token #{asset.tokenId || "On-Chain"} trên Blockchain. Hiệu lực được quản lý qua phân hệ Chuyển nhượng hoặc Thu hồi.</span>
+              </div>
+            ) : asset.status === "REVOKED" ? (
+              <div className="w-full sm:w-auto flex-1 text-left text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 px-3 py-2 rounded-lg flex items-center gap-2">
+                <ShieldAlert className="h-4 w-4 shrink-0 text-rose-400" />
+                <span>Tác phẩm này đã bị Hội đồng Quản trị thu hồi bản quyền on-chain.</span>
+              </div>
+            ) : asset.status === "APPROVED" ? (
+              <div className="w-full sm:w-auto flex-1 text-left text-xs text-[#F6851B] bg-[#F6851B]/10 border border-[#F6851B]/20 px-3 py-2 rounded-lg flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-[#F6851B]" />
+                <span>Hồ sơ đã được phê duyệt. Đang chờ tác giả thực hiện giao dịch đưa lên Blockchain (Mint NFT).</span>
+              </div>
+            ) : asset.status === "REJECTED" ? (
+              <div className="w-full sm:w-auto flex-1 text-left text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 px-3 py-2 rounded-lg flex items-center gap-2">
+                <XCircle className="h-4 w-4 shrink-0 text-rose-400" />
+                <span>Hồ sơ này đã bị từ chối thẩm định. Lý do: {asset.rejectionReason || "Không đạt tiêu chuẩn bản quyền"}.</span>
+              </div>
             ) : (
-              <>
-                <button
-                  type="button"
-                  onClick={() => setRejecting(false)}
-                  disabled={loading}
-                  className="btn-secondary"
-                >
-                  Hủy
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleReject}
-                  disabled={loading}
-                  className="btn-danger"
-                >
-                  <XCircle className="h-3.5 w-3.5" />
-                  <span>{loading ? "Đang gửi..." : "Xác nhận từ chối"}</span>
-                </button>
-              </>
+              <div className="hidden sm:block flex-1 text-left text-xs text-slate-400">
+                Hồ sơ đang ở trạng thái chờ thẩm định từ Hội đồng Quản trị.
+              </div>
             )}
+
+            <div className="flex items-center justify-end gap-2 w-full sm:w-auto shrink-0">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={loading}
+                className="btn-secondary"
+              >
+                Đóng
+              </button>
+
+              {/* CHỈ HIỂN THỊ NÚT DUYỆT / TỪ CHỐI KHI HỒ SƠ LÀ PENDING_APPROVAL */}
+              {asset.status === "PENDING_APPROVAL" && (
+                !rejecting ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setRejecting(true)}
+                      disabled={loading}
+                      className="btn-ghost text-rose-400 hover:text-rose-300 hover:bg-rose-500/10"
+                    >
+                      <XCircle className="h-3.5 w-3.5" />
+                      <span>Từ chối</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleApprove}
+                      disabled={loading}
+                      className="btn-primary"
+                    >
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                      <span>{loading ? "Đang xử lý..." : "Phê duyệt & Cấp E-Cert"}</span>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setRejecting(false)}
+                      disabled={loading}
+                      className="btn-secondary"
+                    >
+                      Hủy
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleReject}
+                      disabled={loading}
+                      className="btn-danger"
+                    >
+                      <XCircle className="h-3.5 w-3.5" />
+                      <span>{loading ? "Đang gửi..." : "Xác nhận từ chối"}</span>
+                    </button>
+                  </>
+                )
+              )}
+            </div>
           </div>
         </div>
       </div>
