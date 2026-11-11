@@ -142,6 +142,20 @@ describe("AssetRegistry Smart Contract - Comprehensive Test Suite", function () 
         assetRegistry.connect(creator).transferAsset(ethers.ZeroAddress, 1)
       ).to.be.revertedWith("Cannot transfer to zero address");
     });
+
+    it("Should REVERT transfer to oneself (Cannot transfer to yourself)", async function () {
+      await expect(
+        assetRegistry.connect(creator).transferAsset(creator.address, 1)
+      ).to.be.revertedWith("Cannot transfer to yourself");
+    });
+
+    it("Should REVERT transfer if asset has been revoked (transfers are frozen)", async function () {
+      await assetRegistry.connect(owner).revokeAsset(1, "Legal dispute");
+
+      await expect(
+        assetRegistry.connect(creator).transferAsset(buyer.address, 1)
+      ).to.be.revertedWith("Asset is revoked: transfers are frozen");
+    });
   });
 
   describe("5. Admin Revocation", function () {
@@ -170,9 +184,32 @@ describe("AssetRegistry Smart Contract - Comprehensive Test Suite", function () 
         assetRegistry.connect(attacker).revokeAsset(1, "Malicious attempt")
       ).to.be.revertedWithCustomError(assetRegistry, "OwnableUnauthorizedAccount");
     });
+
+    it("Should REVERT revocation if asset is already revoked", async function () {
+      await assetRegistry.connect(owner).revokeAsset(1, "Reason 1");
+      await expect(
+        assetRegistry.connect(owner).revokeAsset(1, "Reason 2")
+      ).to.be.revertedWith("Asset already revoked");
+    });
+
+    it("Should REVERT revocation if reason is empty string", async function () {
+      await expect(
+        assetRegistry.connect(owner).revokeAsset(1, "")
+      ).to.be.revertedWith("Revocation reason cannot be empty");
+    });
   });
 
-  describe("6. Pausable Mechanism", function () {
+  describe("6. Total Assets Tracker", function () {
+    it("Should accurately track total registered assets", async function () {
+      expect(await assetRegistry.totalAssets()).to.equal(0);
+      await assetRegistry.connect(creator).registerAsset(creator.address, sampleUri1, sampleHash1);
+      expect(await assetRegistry.totalAssets()).to.equal(1);
+      await assetRegistry.connect(buyer).registerAsset(buyer.address, sampleUri2, sampleHash2);
+      expect(await assetRegistry.totalAssets()).to.equal(2);
+    });
+  });
+
+  describe("7. Pausable Mechanism", function () {
     it("Should pause and unpause properly", async function () {
       await assetRegistry.connect(owner).pause();
       expect(await assetRegistry.paused()).to.equal(true);

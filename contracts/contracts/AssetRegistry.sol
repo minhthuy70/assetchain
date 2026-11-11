@@ -228,6 +228,13 @@ contract AssetRegistry is ERC721URIStorage, Ownable, Pausable {
     }
 
     /**
+     * @notice Tổng số lượng tài sản số đã được đăng ký và đúc trên chuỗi.
+     */
+    function totalAssets() external view returns (uint256) {
+        return _nextTokenId - 1;
+    }
+
+    /**
      * @notice Chuyển nhượng quyền sở hữu tài sản số sang địa chỉ ví mới.
      * @dev Chỉ có chủ sở hữu hợp pháp hiện tại của tác phẩm (`ownerOf(tokenId) == msg.sender`)
      *      mới có quyền gọi hàm này. Giao dịch chuyển giao NFT và phát sự kiện AssetTransferred.
@@ -240,6 +247,12 @@ contract AssetRegistry is ERC721URIStorage, Ownable, Pausable {
 
         // [Kiểm tra địa chỉ]: Không được gửi vào ví đốt 0x0
         require(to != address(0), "Cannot transfer to zero address");
+
+        // [Kiểm tra an toàn]: Không cho phép tự chuyển nhượng cho chính mình
+        require(to != msg.sender, "Cannot transfer to yourself");
+
+        // [Kiểm tra hiệu lực]: Đóng băng chuyển nhượng nếu tài sản đã bị thu hồi bản quyền
+        require(!assets[tokenId].isRevoked, "Asset is revoked: transfers are frozen");
 
         // Thực hiện chuyển nhượng NFT ERC-721 an toàn
         safeTransferFrom(msg.sender, to, tokenId);
@@ -260,6 +273,8 @@ contract AssetRegistry is ERC721URIStorage, Ownable, Pausable {
      */
     function revokeAsset(uint256 tokenId, string memory reason) external onlyOwner {
         require(_ownerOf(tokenId) != address(0), "Asset does not exist");
+        require(!assets[tokenId].isRevoked, "Asset already revoked");
+        require(bytes(reason).length > 0, "Revocation reason cannot be empty");
 
         // Cập nhật trạng thái thu hồi
         assets[tokenId].isRevoked = true;
@@ -267,6 +282,23 @@ contract AssetRegistry is ERC721URIStorage, Ownable, Pausable {
 
         // Bắn sự kiện thu hồi on-chain
         emit AssetRevoked(tokenId, msg.sender, reason, block.timestamp);
+    }
+
+    /**
+     * @dev Hook kiểm soát toàn bộ giao dịch chuyển nhượng (Transfer Guard) chuẩn OpenZeppelin v5.
+     *      Nếu tác phẩm đã bị thu hồi (isRevoked == true), cấm tuyệt đối mọi hành vi chuyển nhượng on-chain!
+     */
+    function _update(
+        address to,
+        uint256 tokenId,
+        address auth
+    ) internal virtual override whenNotPaused returns (address) {
+        address from = _ownerOf(tokenId);
+        // Nếu đây là giao dịch chuyển nhượng (không phải đúc mới từ address(0))
+        if (from != address(0)) {
+            require(!assets[tokenId].isRevoked, "Asset is revoked: transfers are frozen");
+        }
+        return super._update(to, tokenId, auth);
     }
 
     // ==============================================================================
