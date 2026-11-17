@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { ethers } from "ethers";
-import { Wallet, AlertCircle, CheckCircle2, ChevronDown, LayoutDashboard } from "lucide-react";
+import { Wallet, AlertCircle, CheckCircle2, ChevronDown, LayoutDashboard, RefreshCw } from "lucide-react";
 
 const HARDHAT_CHAIN_ID_HEX = "0x7a69"; // 31337 in hex
 const HARDHAT_RPC_URL = process.env.NEXT_PUBLIC_BLOCKCHAIN_RPC_URL || "http://127.0.0.1:8545";
@@ -59,6 +59,7 @@ export default function WalletButton() {
 
   const initWallet = useCallback(async () => {
     if (typeof window === "undefined" || !(window as any).ethereum) return;
+    if (localStorage.getItem("assetchain_disconnected") === "true") return;
     try {
       const provider = new ethers.BrowserProvider((window as any).ethereum);
       const accounts = await provider.listAccounts();
@@ -82,6 +83,7 @@ export default function WalletButton() {
           setAccount(null);
           setBalance(null);
         } else {
+          localStorage.removeItem("assetchain_disconnected");
           const provider = new ethers.BrowserProvider(ethereum);
           updateAccountAndBalance(accounts[0], provider);
         }
@@ -111,9 +113,24 @@ export default function WalletButton() {
 
     try {
       setIsConnecting(true);
-      const provider = new ethers.BrowserProvider((window as any).ethereum);
-      const accounts = await provider.send("eth_requestAccounts", []);
+      localStorage.removeItem("assetchain_disconnected");
+      const ethereum = (window as any).ethereum;
+      
+      let accounts: string[] = [];
+      try {
+        await ethereum.request({
+          method: "wallet_requestPermissions",
+          params: [{ eth_accounts: {} }],
+        });
+        const provider = new ethers.BrowserProvider(ethereum);
+        const signers = await provider.listAccounts();
+        if (signers.length > 0) accounts = [signers[0].address];
+      } catch {
+        accounts = await ethereum.request({ method: "eth_requestAccounts" });
+      }
+
       if (accounts.length > 0) {
+        const provider = new ethers.BrowserProvider(ethereum);
         await checkNetwork(provider);
         await updateAccountAndBalance(accounts[0], provider);
       }
@@ -122,6 +139,34 @@ export default function WalletButton() {
     } finally {
       setIsConnecting(false);
     }
+  }
+
+  async function switchAccount() {
+    if (typeof window === "undefined" || !(window as any).ethereum) return;
+    try {
+      setMenuOpen(false);
+      localStorage.removeItem("assetchain_disconnected");
+      const ethereum = (window as any).ethereum;
+      await ethereum.request({
+        method: "wallet_requestPermissions",
+        params: [{ eth_accounts: {} }],
+      });
+      const provider = new ethers.BrowserProvider(ethereum);
+      const accounts = await provider.listAccounts();
+      if (accounts.length > 0) {
+        await checkNetwork(provider);
+        await updateAccountAndBalance(accounts[0].address, provider);
+      }
+    } catch (err: any) {
+      console.warn("Người dùng hủy đổi tài khoản:", err);
+    }
+  }
+
+  function disconnectWallet() {
+    localStorage.setItem("assetchain_disconnected", "true");
+    setAccount(null);
+    setBalance(null);
+    setMenuOpen(false);
   }
 
   async function switchNetwork() {
@@ -218,11 +263,14 @@ export default function WalletButton() {
               <span>Tác phẩm của tôi</span>
             </Link>
             <button
-              onClick={() => {
-                setAccount(null);
-                setBalance(null);
-                setMenuOpen(false);
-              }}
+              onClick={switchAccount}
+              className="mt-2.5 flex items-center justify-center gap-1.5 w-full rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 py-1.5 type-caption font-medium text-amber-300 transition-colors"
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+              <span>Đổi tài khoản ví</span>
+            </button>
+            <button
+              onClick={disconnectWallet}
               className="mt-2 w-full rounded-lg bg-rose-500/10 border border-rose-500/20 py-1.5 type-caption font-medium text-rose-300 hover:bg-rose-500/20 transition-colors"
             >
               Ngắt kết nối
