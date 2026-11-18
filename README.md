@@ -1,255 +1,370 @@
-# AssetChain - Nền Tảng Đăng Ký & Quản Lý Quyền Sở Hữu Tài Sản Số Trên Blockchain
+# AssetChain - Nền Tảng Đăng Ký & Quản Lý Quyền Sở Hữu Bản Quyền Số Trên Blockchain
 
-> **Dự án Đồ án Công nghệ Thông tin / Chuyên đề Blockchain (Nhóm 2 thành viên - 14 ngày)**  
-> **Kiến trúc:** Local-First Fullstack (Next.js 14/15 + SQLite + Prisma + Hardhat Local EVM)
-
----
-
-## 📌 1. TỔNG QUAN DỰ ÁN VÀ PHẠM VI CHỨC NĂNG
-
-### 1.1. Giới thiệu
-**AssetChain** là nền tảng số hỗ trợ các nhà sáng tạo nội dung (họa sĩ, nhà thiết kế đồ họa, nhiếp ảnh gia) đăng ký, bảo vệ và minh chứng quyền sở hữu tác phẩm số thông qua công nghệ **Blockchain EVM**. Hệ thống kết hợp cơ chế minh chứng sự tồn tại (**Proof of Existence**), quy trình thẩm định hồ sơ của hội đồng quản trị (**Admin Approval**) và phát hành **Chứng nhận điện tử (E-Certificate)** có mã QR xác thực tức thì.
-
-### 1.2. Tuyên bố pháp lý & kỹ thuật
-- **Vai trò kỹ thuật:** Blockchain đóng vai trò ghi nhận dấu vân tay số (*SHA-256 fingerprint*) và mốc thời gian không thể sửa đổi (*Timestamp*) tại thời điểm đăng ký.
-- **Giới hạn pháp lý:** Hệ thống cung cấp bằng chứng công nghệ độc lập về quyền tác giả ban đầu và lịch sử chuyển nhượng, không tuyên bố thay thế văn bằng bảo hộ sở hữu trí tuệ do cơ quan nhà nước cấp.
-- **Nguyên tắc an toàn:** Tuyệt đối **không** lưu file nhị phân dung lượng lớn, mật khẩu hay khóa riêng tư on-chain. Blockchain chỉ lưu `tokenId`, `contentHash`, địa chỉ ví và mốc thời gian.
-
-### 1.3. Phạm vi chức năng cốt lõi
-1. **Dành cho Tác giả (Creator):**
-   - Đăng ký tài sản: Tải lên tác phẩm số, băm vân tay SHA-256 trực tiếp trên trình duyệt bằng Web Crypto API.
-   - Bảng điều khiển cá nhân: Theo dõi trạng thái hồ sơ (Chờ duyệt, Đã duyệt, Đã lên chuỗi, Bị từ chối).
-   - Đưa lên Blockchain: Kích hoạt ví MetaMask ký giao dịch mint NFT ERC-721 sau khi được duyệt.
-   - Chuyển nhượng quyền sở hữu: Chuyển NFT sang ví khác an toàn kèm ghi nhận lịch sử.
-2. **Dành cho Quản trị viên (Admin):**
-   - Cổng thẩm định hồ sơ: Xem xét file gốc và thông tin tác giả.
-   - Phê duyệt / Từ chối hồ sơ kèm lý do phản hồi minh bạch.
-   - Thu hồi chứng nhận nếu phát hiện gian lận hoặc vi phạm bản quyền.
-3. **Dành cho Cộng đồng & Khách vãng lai (Public):**
-   - Xem và tải Chứng nhận điện tử (E-Certificate PDF) chứa mã QR động.
-   - **Cổng xác minh 1-Click (1-Click Verification):** Kéo thả file ảnh bất kỳ vào trang web -> Trình duyệt tự băm SHA-256 và đối chiếu trực tiếp với Smart Contract -> Báo kết quả THẬT / GIẢ trong 1 giây mà không cần tài khoản hay tốn phí gas.
+> **Học phần:** Công Nghệ Blockchain & Ứng Dụng (Đồ án Kỹ thuật Chuyên đề)  
+> **Kiến trúc:** Local-First Fullstack Web3 (Next.js 14 App Router + SQLite Prisma + Hardhat Local EVM)  
+> **Tiêu chuẩn Smart Contract:** ERC-721 (Non-Fungible Token) kế thừa OpenZeppelin Contracts v5.x  
+> **Cơ chế cốt lõi:** Proof of Existence (PoE), Zero-Gas Public Verification, Dual On-Chain Verification  
 
 ---
 
-## 🛠️ 2. BẢNG CÔNG NGHỆ CUỐI CÙNG & LÝ DO LỰA CHỌN
-
-| Thành phần | Công nghệ lựa chọn | Lý do lựa chọn (Tối ưu cho 2 người trong 14 ngày) |
-|---|---|---|
-| **Frontend** | **Next.js 14/15 + TypeScript + Tailwind CSS** | Framework hiện đại, hỗ trợ SSR/CSR linh hoạt, Tailwind CSS giúp dựng giao diện cực nhanh, đẹp mắt và đồng bộ. |
-| **Backend** | **Next.js App Router Route Handlers (`/api/*`)** | Fullstack trong 1 repository duy nhất, loại bỏ hoàn toàn NestJS riêng biệt, không cần chạy 2 server song song, tiết kiệm 40% thời gian cấu hình và tránh lỗi CORS. |
-| **Database** | **SQLite + Prisma ORM** | Không cần cài đặt PostgreSQL, không cần Docker container, cơ sở dữ liệu là 1 file duy nhất (`prisma/dev.db`), khởi động tức thì, không lo xung đột cổng. |
-| **Smart Contract** | **Solidity 0.8.x + OpenZeppelin** | Tiêu chuẩn công nghiệp cho EVM, thừa kế `ERC721URIStorage`, `Ownable`, `Pausable` an toàn tuyệt đối. |
-| **Blockchain** | **Hardhat Local Network (Port 8545)** | Mạng EVM local siêu nhẹ, Chain ID `31337`, tạo sẵn 20 ví test có 10,000 ETH, đào block tức thì trong 0 giây. |
-| **Blockchain SDK** | **Ethers.js v6** | Thư viện tương tác Web3 chuẩn mực, hỗ trợ tương tác contract, đọc event, chuyển đổi hex sang `bytes32`. |
-| **Ví Web3** | **MetaMask Extension** | Ví phổ biến nhất thế giới, dễ kết nối với mạng Hardhat Local `127.0.0.1:8545`. |
-| **Lưu trữ file** | **Local File Storage (`public/uploads`)** | Lưu trực tiếp vào thư mục tĩnh của Next.js, hiển thị ảnh ngay lập tức, không phụ thuộc internet hay tài khoản Pinata/IPFS trong giai đoạn phát triển. |
-| **Tính toàn vẹn** | **Web Crypto API (SHA-256)** | Chuẩn trình duyệt gốc, tính mã băm cực nhanh tại máy client trước khi gửi lên server, bảo mật và tiết kiệm băng thông. |
-| **Chứng nhận** | **jsPDF + qrcode** | Thư viện client/server xuất file PDF chứng nhận trang trọng và sinh mã QR động trỏ tới link xác minh. |
-
----
-
-## 🏛️ 3. KIẾN TRÚC HỆ THỐNG VÀ 6 LUỒNG NGHIỆP VỤ
-
-### 3.1. Sơ đồ kiến trúc 3 lớp
-```
-+--------------------------------------------------------------------------+
-|                       1. CLIENT TIER (Browser)                           |
-|   - Next.js UI (App Router, Tailwind CSS, Lucide Icons)                  |
-|   - Web Crypto API (SHA-256 client-side fingerprinting)                  |
-|   - MetaMask Wallet (ký giao dịch mint, transfer)                        |
-+------------------------------------+-------------------------------------+
-                                     |
-             +-----------------------+-----------------------+
-             | REST API / JSON-RPC                           | JSON-RPC (Port 8545)
-             v                                               v
-+------------------------------------+       +-----------------------------+
-|    2. APPLICATION TIER (Next.js)   |       |     3. BLOCKCHAIN TIER      |
-| - Route Handlers: /api/assets,     |       | - Hardhat Local EVM Node    |
-|   /api/admin, /api/verify          |       | - Chain ID: 31337           |
-| - Prisma ORM (Client)              |       | - AssetRegistry.sol         |
-| - PDF & QR Code Engine             |       |   (ERC-721 + Proof of       |
-+------------------+-----------------+       |    Existence)               |
-                   |                         +-----------------------------+
-      +------------+------------+
-      v                         v
-+-----------------+     +-----------------+
-|     SQLite      |     |  Local Storage  |
-| (prisma/dev.db) |     | (public/uploads)|
-+-----------------+     +-----------------+
-```
-
-### 3.2. Bảng phân định dữ liệu 3 lớp
-- **Blockchain (On-Chain):** `tokenId`, `bytes32 contentHash`, `creatorAddress`, `ownerAddress`, `registeredAt`, `tokenURI`, `isRevoked`.
-- **SQLite (Off-Chain):** Tài khoản, mật khẩu băm, tiêu đề, mô tả, danh mục, kích thước file, trạng thái duyệt (`PENDING_APPROVAL`, `APPROVED`, `REJECTED`, `REGISTERED`), lý do từ chối.
-- **Local File Storage:** File gốc tại `public/uploads/` và file chứng nhận tại `public/certificates/`.
-
-### 3.3. Tóm tắt 6 luồng dữ liệu cốt lõi
-1. **Đăng ký tài sản:** Client tính SHA-256 -> Gửi multipart lên `/api/assets` -> Lưu file vào `public/uploads/` -> Kiểm tra trùng hash -> Lưu SQLite với trạng thái `PENDING_APPROVAL`.
-2. **Xét duyệt hồ sơ:** Admin xem hồ sơ trên `/admin/approvals` -> Bấm Phê duyệt (`APPROVED`) hoặc Từ chối (`REJECTED` + lý do).
-3. **Xác nhận on-chain:** Creator bấm "Đưa lên chuỗi" -> MetaMask ký gọi `registerAsset()` trên contract -> Gửi biên nhận về `/api/assets/[id]/sync-onchain` -> Backend kiểm tra receipt qua RPC -> Đổi trạng thái sang `REGISTERED`.
-4. **Cấp & Xác minh chứng nhận:** Sinh mã số chứng nhận `CERT-2026-XXXX`, tạo mã QR link tới `/verify?hash=...`, xuất PDF -> Cổng xác minh cho phép kéo thả file để đối chiếu trực tiếp với hàm `getAssetByHash()` trên Smart Contract.
-5. **Cơ chế đồng bộ:** Client gửi `txHash` về API, backend dùng `ethers.JsonRpcProvider` đọc lại receipt và logs sự kiện từ Hardhat node để cập nhật SQLite an toàn trong 1 transaction.
-6. **Xử lý sự cố Blockchain:** Nếu giao dịch bị hủy hoặc lỗi mạng, bản ghi trong SQLite vẫn giữ nguyên `APPROVED` với nút "Thực hiện lại giao dịch", không bị mất dữ liệu đã nhập.
+## MỤC LỤC
+1. [Tổng Quan Dự Án & Triết Lý Thiết Kế](#1-tổng-quan-dự-án--triết-lý-thiết-kế)
+2. [Kiến Trúc Hệ Thống Tổng Thể](#2-kiến-trúc-hệ-thống-tổng-thể)
+3. [Chi Tiết 4 Trụ Cột Kỹ Thuật](#3-chi-tiết-4-trụ-cột-kỹ-thuật)
+   - [3.1. Blockchain & Smart Contract (Solidity & Hardhat)](#31-blockchain--smart-contract-solidity--hardhat)
+   - [3.2. Cơ Sở Dữ Liệu & Prisma ORM (Data Layer)](#32-cơ-sở-dữ-liệu--prisma-orm-data-layer)
+   - [3.3. Backend API & An Toàn Bảo Mật (Next.js Route Handlers)](#33-backend-api--an-toàn-bảo-mật-nextjs-route-handlers)
+   - [3.4. Frontend Web3 Client & Xử Lý RAM (Ethers.js v6)](#34-frontend-web3-client--xử-lý-ram-ethersjs-v6)
+4. [Hệ Thống Giao Diện (Sitemap)](#4-hệ-thống-giao-diện-sitemap)
+5. [Các Luồng Nghiệp Vụ Thực Tế (Workflows)](#5-các-luồng-nghiệp-vụ-thực-tế-workflows)
+6. [Bảng Công Nghệ Toàn Dự Án (Tech Stack)](#6-bảng-công-nghệ-toàn-dự-án-tech-stack)
+7. [Hướng Dẫn Khởi Chạy & Kịch Bản Demo Nhanh](#7-hướng-dẫn-khởi-chạy--kịch-bản-demo-nhanh)
+8. [Checklist Kiểm Thử (Unit Tests & Quality Assurance)](#8-checklist-kiểm-thử-unit-tests--quality-assurance)
 
 ---
 
-## 📂 4. CẤU TRÚC THƯ MỤC DỰ ÁN
+## 1. TỔNG QUAN DỰ ÁN & TRIẾT LÝ THIẾT KẾ
 
-Toàn bộ dự án được tổ chức theo mô hình **Monorepo Tinh Gọn (Single Next.js Root)**:
+**AssetChain** là nền tảng quản trị và bảo chứng quyền sở hữu tác phẩm kỹ thuật số (Digital Art, Thiết kế đồ họa, Nhiếp ảnh, Tài liệu bản quyền), cho phép tác giả xác lập mốc thời gian sáng tạo không thể chối cãi, bảo vệ quyền tác giả chống sao chép và chuyển nhượng quyền sở hữu minh bạch trên sổ cái Blockchain.
 
 ```
-assetchain/
-├── contracts/                     # PHẦN SMART CONTRACTS (Hardhat)
-│   ├── contracts/
-│   │   └── AssetRegistry.sol      # Hợp đồng thông minh lõi ERC-721
-│   ├── scripts/
-│   │   ├── deploy.js              # Script deploy và tự động copy ABI sang src/
-│   │   └── seed.js                # Script seed dữ liệu on-chain phục vụ demo
-│   ├── test/
-│   │   └── AssetRegistry.test.js  # 15-20 unit test cases (Chai + Ethers)
-│   └── hardhat.config.js          # Cấu hình mạng EVM local (Port 8545, chainId 31337)
-│
-├── prisma/                        # CƠ SỞ DỮ LIỆU SQLITE
-│   ├── schema.prisma              # Prisma schema models (User, Asset, History, Cert)
-│   └── dev.db                     # File database SQLite cục bộ (chỉ lưu trên máy cá nhân)
-│
-├── public/                        # STATIC ASSETS & STORAGE
-│   ├── uploads/                   # Thư mục lưu file tài sản người dùng tải lên
-│   └── certificates/              # Thư mục lưu file PDF chứng nhận đã xuất
-│
-├── src/                           # MÃ NGUỒN FULLSTACK NEXT.JS
-│   ├── app/                       # Next.js App Router
-│   │   ├── (public)/              # Landing page (/), Explore gallery
-│   │   ├── (auth)/                # Trang đăng nhập, đăng ký
-│   │   ├── creator/               # Giao diện Tác giả (Form đăng ký, Dashboard)
-│   │   ├── admin/                 # Cổng quản trị xét duyệt (/admin/approvals)
-│   │   ├── verify/                # Cổng tra cứu & Kéo thả xác minh 1-Click
-│   │   └── api/                   # BACKEND ROUTE HANDLERS
-│   │       ├── auth/              # /api/auth (login, register, me)
-│   │       ├── assets/            # /api/assets (upload, list, sync-onchain)
-│   │       ├── admin/             # /api/admin/assets (review approve/reject)
-│   │       └── verify/            # /api/verify (tra cứu hash, tokenId)
-│   ├── components/                # UI Components tái sử dụng (Navbar, WalletButton, Dropzone)
-│   ├── contracts/                 # Contract ABI & Deployed Address (sinh tự động sau deploy)
-│   │   └── AssetRegistry.json
-│   └── lib/                       # Modules tiện ích (prisma.ts, ethers.ts, hash.ts, pdf.ts)
-│
-├── .env.example                   # Mẫu cấu hình môi trường chuẩn
-├── .gitignore                     # Loại trừ file nhạy cảm và build artifacts
-├── package.json                   # Dependencies toàn dự án
-├── BLOCKCHAIN_PROJECT_PLAN_14_DAYS.md # KẾ HOẠCH DỰ ÁN 14 NGÀY DUY NHẤT & TOÀN DIỆN
-└── README.md                      # Tài liệu hướng dẫn dự án
+                    TRIẾT LÝ THIẾT KẾ CỐT LÕI (CORE PHILOSOPHY)
+┌─────────────────────────────────┐       ┌─────────────────────────────────┐
+│ BLOCKCHAIN: SINGLE SOURCE OF    │       │ DATABASE: READ-MODEL / FAST     │
+│ TRUTH (Nguồn Sự Thật Duy Nhất)  │       │ CACHE (Bản Sao Đọc Tốc Độ Cao) │
+│ • Lưu trữ mã băm SHA-256 bất    │       │ • SQLite + Prisma ORM lưu       │
+│   biến dạng bytes32.            │       │   metadata, tệp gốc off-chain.  │
+│ • Token ID độc bản (ERC-721).   │       │ • Tối ưu 100% chi phí Gas lưu   │
+│ • Mốc thời gian block.timestamp │       │   trữ, tìm kiếm & phân trang    │
+│   pháp lý không thể sửa đổi.    │       │   tức thì mà không nghẽn RPC.   │
+└────────────────┬────────────────┘       └────────────────┬────────────────┘
+                 │                                         │
+                 └───────────────────┬─────────────────────┘
+                                     │
+                                     ▼
+        ┌────────────────────────────────────────────────────────┐
+        │ HYBRID WEB2/WEB3 & PROOF OF EXISTENCE (PoE)            │
+        │ • Băm SHA-256 trực tiếp trong RAM trình duyệt (0.02s). │
+        │ • Xác minh công khai tốn 0 Gas cho cộng đồng toàn cầu. │
+        │ • Đối soát kép on-chain: Backend kiểm tra RPC trước    │
+        │   khi cập nhật CSDL để triệt tiêu lỗ hổng BOLA/IDOR.  │
+        └────────────────────────────────────────────────────────┘
+```
+
+### Nguyên tắc vận hành:
+1. **Blockchain là Nguồn Sự Thật Duy Nhất:** Mã băm SHA-256, mốc thời gian khối (`block.timestamp`), quyền sở hữu Token ERC-721 và trạng thái thu hồi (`isRevoked`) đều được khắc vĩnh viễn trên Smart Contract.
+2. **Không lưu trữ file dung lượng lớn On-Chain:** Tệp nhị phân gốc được lưu trữ tại `public/uploads/` của máy chủ. Trên Blockchain chỉ lưu trữ duy nhất 32 bytes dấu vân tay số nhị phân (`bytes32 contentHash`).
+3. **Người dùng tự nắm giữ Private Key:** Hệ thống tuyệt đối không lưu private key của người dùng trên máy chủ backend. Mọi thao tác đúc NFT (`mint`), chuyển quyền (`transfer`) hay thu hồi (`revoke`) đều do chính người dùng và quản trị viên ký trực tiếp thông qua ví **MetaMask**.
+
+---
+
+## 2. KIẾN TRÚC HỆ THỐNG TỔNG THỂ
+
+Hệ thống được tổ chức theo kiến trúc phân tầng chuyên nghiệp:
+
+```
++---------------------------------------------------------------------------------------+
+|                                1. CLIENT TIER (Browser)                               |
+|  - Next.js 14 App Router UI (Tailwind CSS, Dark Mode, Typography Inter)               |
+|  - Web Crypto API (crypto.subtle băm SHA-256 trong RAM 0.02s)                        |
+|  - MetaMask Wallet Integration (Ethers.js v6 BrowserProvider & Signer)                |
+|  - Multi-Account Switcher (wallet_requestPermissions 1-Click Fast Switch)             |
++---------------------------+-----------------------------------+-----------------------+
+                            │                                   │
+         HTTP REST API      │                                   │ JSON-RPC (Port 8545)
+         (Multipart/JSON)   │                                   │ (Ký Tx, View call)
+                            ▼                                   ▼
++-------------------------------------------+   +---------------------------------------+
+|      2. APPLICATION TIER (Next.js)        |   |         3. BLOCKCHAIN TIER            |
+|  - Route Handlers (/api/assets, /admin,   |   |  - Hardhat Local EVM Node             |
+|    /api/verify, /api/certificate)         |   |    (Chain ID: 31337, RPC: Port 8545)  |
+|  - Dual On-Chain Verification Engine      |   |  - Smart Contract: AssetRegistry.sol  |
+|    (JSON-RPC contract.ownerOf cross-check)│   |    (ERC-721 + PoE + Ownable + Pausable|
+|  - jsPDF Engine + QR Code Generator       |   |     + Transfer Freeze on Revoke)      |
++---------------------+---------------------+   +---------------------------------------+
+                      │
+         Prisma ORM   │ File System IO
+                      ▼
++---------------------+---------------------+
+|        4. PERSISTENCE TIER (Storage)      |
+|  - SQLite Database (prisma/dev.db)        |
+|  - Local File Storage (public/uploads/)   |
+|  - Certificate PDF Cache (public/certs/)  |
++-------------------------------------------+
+```
+
+### Bảng phân định ranh giới dữ liệu On-Chain vs Off-Chain:
+| Dữ liệu | Vị trí lưu trữ | Định dạng | Mục đích |
+| :--- | :--- | :--- | :--- |
+| **Dấu vân tay số (Hash)** | On-Chain (Blockchain) | `bytes32` (32 bytes) | Bảo chứng toàn vẹn, chống sửa đổi, tiết kiệm 85% gas |
+| **Mã định danh Token ID** | On-Chain (Blockchain) | `uint256` | Định danh độc bản theo chuẩn quốc tế ERC-721 |
+| **Ví tác giả & Chủ sở hữu** | On-Chain (Blockchain) | `address` (20 bytes) | Xác lập quyền sở hữu pháp lý không thể chối cãi |
+| **Mốc thời gian (Timestamp)** | On-Chain (Blockchain) | `uint256` (`block.timestamp`) | Bằng chứng tồn tại (PoE) ghi dấu thời điểm sáng tạo |
+| **Trạng thái Thu hồi** | On-Chain (Blockchain) | `bool` + `string` reason | Đóng băng chuyển nhượng vĩnh viễn khi vi phạm |
+| **Tệp nhị phân gốc (Ảnh/PDF)**| Off-Chain (Local Storage)| `/public/uploads/*` | Hiển thị xem trước, tải về, không tốn gas blockchain |
+| **Metadata & Lịch sử duyệt** | Off-Chain (SQLite CSDL)| Bảng `Asset`, `User` | Hỗ trợ tìm kiếm, lọc danh mục, phân trang siêu tốc |
+| **Văn bằng E-Certificate** | Off-Chain (PDF Engine) | File PDF + Mã QR | Cung cấp tài liệu trang trọng có thể in ấn & quét QR |
+
+---
+
+## 3. CHI TIẾT 4 TRỤ CỘT KỸ THUẬT
+
+### 3.1. Blockchain & Smart Contract (Solidity & Hardhat)
+📁 **Vị trí mã nguồn:** [`contracts/contracts/AssetRegistry.sol`](file:///d:/GITHUB/assetchain/contracts/contracts/AssetRegistry.sol)  
+Môi trường biên dịch: **Solidity `^0.8.24`**, Hardhat Local EVM (Chain ID: `31337`), OpenZeppelin Contracts v5.x.
+
+```solidity
+contract AssetRegistry is ERC721URIStorage, Ownable, Pausable
+```
+
+#### A. Cấu trúc dữ liệu On-Chain (Struct & Storage):
+* **`struct AssetRecord`**:
+  ```solidity
+  struct AssetRecord {
+      uint256 tokenId;           // Mã ID định danh NFT
+      bytes32 contentHash;       // Mã băm SHA-256 nhị phân (32 bytes)
+      address creator;           // Địa chỉ ví tác giả nộp hồ sơ
+      uint256 registeredAt;      // Mốc thời gian khối (block.timestamp)
+      bool isRevoked;            // true = Đã bị cơ quan quản trị thu hồi
+      string revocationReason;   // Lý do thu hồi nếu có tranh chấp
+  }
+  ```
+* **Bảng ánh xạ (Mappings):**
+  * `mapping(uint256 => AssetRecord) public assets`: Tra cứu thông tin chi tiết tài sản theo Token ID.
+  * `mapping(bytes32 => uint256) public hashToTokenId`: Ánh xạ ngược từ mã băm file sang Token ID (Tra cứu nhanh $O(1)$).
+  * `mapping(bytes32 => bool) public isHashRegistered`: Cờ đánh dấu kiểm tra nhanh, chặn đứng mọi nỗ lực đăng ký trùng file (*Anti-Duplication*).
+
+#### B. Các hàm nghiệp vụ lõi:
+1. **`registerAsset(address to, string memory uri, bytes32 contentHash)`**:
+   * Kiểm tra `require(!isHashRegistered[contentHash])`: Nếu hash đã tồn tại, Revert giao dịch.
+   * Tăng `_nextTokenId`, khởi tạo `AssetRecord`, gán mapping ngược.
+   * Gọi `_safeMint(to, currentId)` và `_setTokenURI(currentId, uri)`.
+   * Phát sự kiện `AssetRegistered(tokenId, creator, contentHash, uri, timestamp)`.
+2. **`getAssetByHash(bytes32 contentHash)` (View Function - 0 Gas):**
+   * Cho phép tra cứu công khai trực tiếp từ node RPC mà không tốn phí gas. Trả về `tokenId`, `creator`, `currentOwner`, `registeredAt`, `isRevoked`, `uri`.
+3. **`transferAsset(address to, uint256 tokenId)`**:
+   * Kiểm tra chính chủ: `require(ownerOf(tokenId) == msg.sender)`.
+   * Chặn tự chuyển cho chính mình: `require(to != msg.sender)`.
+   * Chặn chuyển nhượng nếu tài sản đã bị thu hồi: `require(!assets[tokenId].isRevoked)`.
+   * Gọi `safeTransferFrom` và phát sự kiện `AssetTransferred`.
+4. **`revokeAsset(uint256 tokenId, string memory reason)`**:
+   * Phân quyền quản trị: `onlyOwner` (chỉ Admin Council mới được gọi).
+   * Không dùng hàm `_burn` (đốt token) vì việc đốt token sẽ làm mất dấu vết lịch sử. Giữ nguyên token nhưng đánh dấu `isRevoked = true` và ghi nhận `revocationReason`.
+5. **Hook bảo vệ tầng sâu `_update()` (OpenZeppelin v5 Override):**
+   * Ghi đè hàm móc nội tại: Bất kỳ lệnh chuyển nhượng nào (dù gọi gián tiếp hay dùng script ngoài) đều bị chặn đứng nếu `assets[tokenId].isRevoked == true`.
+
+#### C. Quy trình xuất ABI tự động:
+Khi chạy script `contracts/scripts/deploy.js`, hệ thống tự động biên dịch và xuất file cấu hình chuẩn xác gồm Contract Address và ABI ra [`src/contracts/AssetRegistry.json`](file:///d:/GITHUB/assetchain/src/contracts/AssetRegistry.json) để Frontend và Backend sử dụng đồng bộ.
+
+---
+
+### 3.2. Cơ Sở Dữ Liệu & Prisma ORM (Data Layer)
+📁 **Vị trí mã nguồn:** [`prisma/schema.prisma`](file:///d:/GITHUB/assetchain/prisma/schema.prisma)  
+Hệ thống sử dụng **SQLite** kết hợp cùng **Prisma ORM**, đảm bảo tính cơ động (*Local-First*), không cần cài đặt Docker hay PostgreSQL server cồng kềnh.
+
+#### Các thực thể dữ liệu chính:
+* **`User`:** Lưu tài khoản, email, họ tên, vai trò (`CREATOR` / `ADMIN`), `walletAddress` (độc nhất).
+* **`Asset`:** Bản ghi trung tâm:
+  * `id`: Khóa chính CUID.
+  * `tokenId`: Số nguyên on-chain (`Int? @unique`), cấp phát sau khi mint.
+  * `fileHash`: Chuỗi 64 ký tự hex SHA-256 (`String @unique`), chặn upload trùng lặp ngay tại CSDL.
+  * `status`: Máy trạng thái nghiêm ngặt:
+    $$\text{PENDING\_APPROVAL} \longrightarrow \begin{cases} \text{APPROVED} \longrightarrow \text{REGISTERED} \longrightarrow \text{REVOKED} \\ \text{REJECTED} \end{cases}$$
+  * `currentOwnerWallet`: Địa chỉ ví đang sở hữu tác phẩm để kiểm tra quyền.
+* **`OwnershipHistory`:** Ghi nhận nhật ký dòng đời tài sản (*Provenance*): `fromWallet`, `toWallet`, `txHash` (`@unique`), `blockNumber`, `eventType` (`MINT`, `TRANSFER`, `REVOKE`).
+* **`Certificate`:** Lưu thông tin chứng nhận: `certificateNumber` (`CERT-2026-XXXX`), `verifyUrl`, `issuedAt`, `issuedBy`.
+
+---
+
+### 3.3. Backend API & An Toàn Bảo Mật (Next.js Route Handlers)
+📁 **Vị trí mã nguồn:** `src/app/api/...`  
+Chạy dưới dạng Next.js Route Handlers (Edge-compatible & Node.js Runtime), xử lý đầy đủ nghiệp vụ:
+
+1. **`POST /api/assets`:**
+   * Nhận `multipart/form-data`.
+   * **Server-side SHA-256 Hashing:** Dùng module `crypto` tính lại mã băm server-side đối soát với client.
+   * Chống trùng lặp CSDL: Kiểm tra `prisma.asset.findUnique({ where: { fileHash } })`.
+   * Ghi file an toàn vào `public/uploads/` theo tên timestamp chuẩn hóa.
+2. **`POST /api/admin/assets/[id]/review`:**
+   * Xác thực quyền Admin từ header `x-admin-wallet` hoặc body thông qua hàm `verifyAdminWallet()`.
+   * Bảo vệ máy trạng thái: Chặn duyệt các hồ sơ đã lên chuỗi hoặc đã thu hồi.
+   * Nếu duyệt (`APPROVE`): Tự động tạo bản ghi `Certificate` với số hiệu `CERT-2026-XXXX`.
+3. **`POST /api/assets/[id]/sync-onchain` (Dual Verification Engine):**
+   * **Cơ chế Đối soát kép On-Chain:** Backend sử dụng `ethers.JsonRpcProvider` gọi trực tiếp hàm `contract.ownerOf(numericTokenId)` trên Blockchain EVM để xác minh giao dịch thực sự đã được đào thành công và đúng ví tác giả trước khi cập nhật SQLite sang trạng thái `REGISTERED`.
+4. **`POST /api/assets/[id]/transfer`:**
+   * **Chống lỗ hổng BOLA / IDOR:** Kiểm tra chặt chẽ `callerWallet === asset.currentOwnerWallet`.
+   * Chặn tự chuyển cho chính mình (`toWallet !== currentOwnerWallet`).
+   * Đối soát RPC on-chain đảm bảo NFT đã sang tên trước khi cập nhật CSDL và ghi nhận dòng lịch sử vào bảng `OwnershipHistory`.
+5. **`POST /api/verify`:**
+   * Cổng xác minh 2 tầng: Tầng 1 tra cứu SQLite; Tầng 2 truy vấn trực tiếp Smart Contract qua RPC `contract.getAssetByHash(bytes32Hash)`.
+6. **`GET /api/certificate/[assetId]`:**
+   * Sinh file PDF Chứng nhận sở hữu số A4 Landscape hoàng gia bằng thư viện `jspdf`.
+   * Sinh mã QR Code động trỏ thẳng về link xác minh công khai bằng `qrcode`.
+   * Chuẩn hóa font chữ tiếng Việt qua hàm `removeVietnameseAccents` đảm bảo file PDF không bị vỡ font.
+
+---
+
+### 3.4. Frontend Web3 Client & Xử Lý RAM (Ethers.js v6)
+📁 **Vị trí mã nguồn:** `src/lib/onchain.ts`, `src/components/...`
+
+* **Băm mã vân tay số trong RAM (0.02s):** Thành phần [`FileDropzone.tsx`](file:///d:/GITHUB/assetchain/src/components/FileDropzone.tsx) sử dụng chuẩn Web Crypto API (`window.crypto.subtle.digest("SHA-256", arrayBuffer)`). Mã băm được sinh ngay trong bộ nhớ RAM của trình duyệt trước khi upload, tiết kiệm 100% băng thông nếu phát hiện file trùng.
+* **Bộ chuyển đổi tài khoản ví 1-Click:** Thành phần [`WalletButton.tsx`](file:///d:/GITHUB/assetchain/src/components/WalletButton.tsx) tích hợp nút **`[ Đổi tài khoản ví ]`** gọi phương thức chuẩn `wallet_requestPermissions`, cho phép chuyển đổi tức thì giữa các vai trò `Admin Council`, `Creator 1` và `Buyer` mà không bị MetaMask lưu cache cũ.
+* **Tự động chuyển mạng:** Hàm `ensureHardhatNetwork()` tự động phát hiện và gửi yêu cầu `wallet_switchEthereumChain` chuyển sang mạng Hardhat Local (Chain ID `31337`).
+* **Bẫy lỗi Web3 thân thiện:** Hàm `parseWeb3ErrorMessage()` bẫy mã lỗi revert từ Smart Contract (từ chối ký, thiếu gas, hợp đồng tạm dừng) và hiển thị thông báo tiếng Việt rõ ràng.
+
+---
+
+## 4. HỆ THỐNG GIAO DIỆN (SITEMAP)
+
+| Đường dẫn (URL) | Trang / Component | Tệp mã nguồn | Chức năng nghiệp vụ chi tiết |
+| :--- | :--- | :--- | :--- |
+| **`/`** | Trang chủ Landing Page | `src/app/page.tsx` | Giới thiệu dự án, kiến trúc PoE, demo tính mã băm SHA-256 trực tiếp trong RAM. |
+| **`/explore`** | Thư viện Tác phẩm số | `src/app/explore/page.tsx` | Khám phá các tác phẩm đã xác thực on-chain, lọc danh mục (Art, Photo, Design, Doc). |
+| **`/creator/register`**| Đăng ký tác phẩm mới | `src/app/creator/register/page.tsx` | Form tải file, tính mã băm SHA-256 client-side, nộp hồ sơ chờ thẩm định. |
+| **`/creator/my-assets`**| Quản lý tác phẩm | `src/app/creator/my-assets/page.tsx`| Dashboard tác giả: Theo dõi trạng thái, bấm **Đúc NFT lên Blockchain**, xem PDF E-Cert. |
+| **`/creator/assets/[id]`**| Chi tiết tác phẩm | `src/app/creator/assets/[id]/page.tsx`| Xem chi tiết mốc khối on-chain, mã hash SHA-256, chuỗi lịch sử sở hữu (Provenance). |
+| **`/creator/transfer`**| Chuyển quyền sở hữu | `src/app/creator/transfer/page.tsx` | Chuyển giao quyền sở hữu NFT ERC-721 sang ví người mua, ký giao dịch MetaMask. |
+| **`/admin/approvals`** | Cổng Thẩm định hồ sơ | `src/app/admin/approvals/page.tsx` | Dành cho Admin: Kiểm duyệt tác phẩm, Phê duyệt (APPROVED) hoặc Từ chối kèm lý do. |
+| **`/admin/revoke`** | Cổng Thu hồi bản quyền | `src/app/admin/revoke/page.tsx` | Dành cho Admin: Thu hồi chứng nhận on-chain, đóng băng token vi phạm bản quyền. |
+| **`/verify`** | Cổng Xác minh 0 Gas | `src/app/verify/page.tsx` | Cổng kiểm chứng công khai: Kéo thả file ảnh hoặc nhập Token ID/Hash để tra cứu on-chain. |
+
+---
+
+## 5. CÁC LUỒNG NGHIỆP VỤ THỰC TẾ (WORKFLOWS)
+
+```
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│ 1. LUỒNG ĐĂNG KÝ VÀ BĂM DẤU VÂN TAY SỐ                                                 │
+│ Tác giả kéo ảnh vào /creator/register ──► Web Crypto API sinh SHA-256 trong 0.02s      │
+│ ──► Gửi multipart lên /api/assets ──► SQLite ghi nhận trạng thái PENDING_APPROVAL      │
+└───────────────────────────────────────────┬────────────────────────────────────────────┘
+                                            │
+                                            ▼
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│ 2. LUỒNG HỘI ĐỒNG ADMIN THẨM ĐỊNH HỒ SƠ                                               │
+│ Admin mở /admin/approvals ──► Xem xét ảnh và hash ──► Bấm Phê duyệt (APPROVE)          │
+│ ──► SQLite đổi trạng thái thành APPROVED ──► Tự động cấp số hiệu CERT-2026-XXXX        │
+└───────────────────────────────────────────┬────────────────────────────────────────────┘
+                                            │
+                                            ▼
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│ 3. LUỒNG ĐÚC NFT ON-CHAIN (MINT BLOCKCHAIN)                                            │
+│ Tác giả vào /creator/my-assets ──► Bấm "Đúc NFT lên Blockchain"                        │
+│ ──► MetaMask bật popup ký gọi registerAsset(to, uri, hash)                             │
+│ ──► Hardhat Node đào block mới ──► Sinh Token ID ERC-721 và mốc block.timestamp       │
+│ ──► Backend đối soát kép qua RPC ownerOf() ──► SQLite đổi trạng thái REGISTERED       │
+└───────────────────────────────────────────┬────────────────────────────────────────────┘
+                                            │
+                                            ▼
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│ 4. LUỒNG XÁC MINH CÔNG KHAI 0 GAS & XUẤT CHỨNG NHẬN                                    │
+│ Bất kỳ ai vào /verify ──► Kéo thả file ảnh cần kiểm tra ──► Trình duyệt tính SHA-256   │
+│ ──► Gọi hàm view getAssetByHash trên Smart Contract (0 Gas, không cần ví)              │
+│ ──► Màn hình hiện TÍCH XANH chính chủ ──► Bấm tải file PDF E-Certificate có mã QR Code │
+└───────────────────────────────────────────┬────────────────────────────────────────────┘
+                                            │
+                                            ▼
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│ 5. LUỒNG CHUYỂN NHƯỢNG QUYỀN SỞ HỮU (TRANSFER)                                         │
+│ Tác giả vào /creator/transfer ──► Chọn tác phẩm ──► Nhập ví Người mua (Buyer)          │
+│ ──► Ký giao dịch transferAsset trên MetaMask ──► Quyền sở hữu NFT chuyển sang ví mới   │
+│ ──► Bảng Provenance Timeline ghi nhận lịch sử chuyển nhượng minh bạch                  │
+└───────────────────────────────────────────┬────────────────────────────────────────────┘
+                                            │
+                                            ▼
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│ 6. LUỒNG THU HỒI KHI CÓ TRANH CHẤP BẢN QUYỀN (REVOCATION)                              │
+│ Admin vào /admin/revoke ──► Chọn Token vi phạm ──► Nhập lý do ──► Ký gọi revokeAsset   │
+│ ──► Smart Contract gán isRevoked = true ──► Hook _update() đóng băng token vĩnh viễn   │
+│ ──► Cổng xác minh /verify cảnh báo ĐỎ: "TÀI SẢN ĐÃ BỊ THU HỒI HIỆU LỰC"                │
+└────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 👥 5. PHÂN CHIA CÔNG VIỆC CHI TIẾT (VERTICAL SLICING)
+## 6. BẢNG CÔNG NGHỆ TOÀN DỰ ÁN (TECH STACK)
 
-| Tiêu chí | **Thành Viên A (Nền tảng & Đăng ký)** | **Thành Viên B (Xét duyệt & Chứng nhận)** |
-|---|---|---|
-| **Chức năng chính** | - Khởi tạo project Next.js + Tailwind + Prisma SQLite.<br>- Viết Smart Contract lõi `AssetRegistry.sol` & Unit tests.<br>- Form đăng ký tài sản (Upload, Web Crypto SHA-256).<br>- API Upload và xử lý trùng hash trong SQLite.<br>- Tích hợp MetaMask ký mint NFT on-chain.<br>- Dashboard tác giả (`/creator/my-assets`).<br>- Chức năng Chuyển nhượng quyền sở hữu (`transferAsset`). | - Xây dựng Layout tổng thể & Component kết nối ví.<br>- Cổng quản trị thẩm định hồ sơ Admin (`/admin/approvals`).<br>- API duyệt / từ chối hồ sơ (Approve / Reject).<br>- Bộ sinh E-Certificate PDF & tạo mã QR động.<br>- Cổng tra cứu xác minh công khai (`/verify`).<br>- Tính năng 1-Click Drag-and-Drop Verification.<br>- Nghiệp vụ thu hồi bản quyền (`revokeAsset`). |
-| **Phần dùng chung** | Chịu trách nhiệm chính cấu trúc hợp đồng và Prisma schema ban đầu. Khóa ABI và schema vào Ngày 2. | Nhận ABI và schema để xây dựng cổng Admin và cổng xác minh mà không phải chờ Thành viên A code xong giao diện. |
-| **Kế hoạch chi tiết 14 ngày** | 🔗 **[Xem Kế Hoạch Thành Viên A](file:///d:/GITHUB/assetchain/PLAN_THANH_VIEN_A_14_DAYS.md)** | 🔗 **[Xem Kế Hoạch Thành Viên B](file:///d:/GITHUB/assetchain/PLAN_THANH_VIEN_B_14_DAYS.md)** |
+| Hạng mục | Công nghệ / Thư viện | Phiên bản | Vai trò kỹ thuật trong hệ thống |
+| :--- | :--- | :--- | :--- |
+| **Smart Contract** | Solidity + OpenZeppelin | `^0.8.24` / `v5.x` | Xây dựng logic token ERC-721, quản lý mốc PoE và kiểm soát chuyển nhượng. |
+| **Blockchain Dev** | Hardhat Local EVM | `^2.22.x` | Mạng node blockchain nội bộ tại cổng 8545, Chain ID 31337, cấp sẵn 20 ví test. |
+| **Frontend/Backend** | Next.js (App Router) | `14.2.18` | Framework Fullstack React + TypeScript, kiêm nhiệm UI Client và REST API. |
+| **Cơ sở dữ liệu** | SQLite + Prisma ORM | `^5.x` | Read-Model Cache lưu trữ bộ nhớ đệm metadata, tìm kiếm và phân trang tức thì. |
+| **Web3 Client SDK** | Ethers.js | `^6.13.x` | Thư viện tương tác Blockchain, kết nối MetaMask, gọi hàm contract và giải mã hex. |
+| **Mật mã học (Crypto)**| Web Crypto API + Node crypto | Tiêu chuẩn W3C | Tính toán mã băm SHA-256 an toàn trong RAM máy tính trong 0.02s. |
+| **Xuất chứng nhận** | jsPDF + qrcode | `^2.5.x` / `^1.5.x` | Lập trình đồ họa xuất file PDF chứng nhận A4 Landscape kèm mã QR Code động. |
+| **Styling & UI** | Tailwind CSS + Lucide Icons | `^3.4.x` | Giao diện Dark theme hiện đại, đáp ứng chuẩn Typography Inter đồng bộ. |
 
 ---
 
-## 💻 6. QUY TRÌNH LÀM VIỆC ĐỘC LẬP TRÊN 2 MÁY LOCAL
+## 7. HƯỚNG DẪN KHỞI CHẠY & KỊCH BẢN DEMO NHANH
 
-### 6.1. Yêu cầu cài đặt trên mỗi máy
-- **Node.js:** Phiên bản LTS >= 18.x (khuyến nghị 20.x).
-- **Git:** Bản mới nhất.
-- **Trình duyệt & Extension:** Google Chrome + Ví **MetaMask**.
+### 7.1. Khởi chạy 2 Terminal trong VS Code:
 
-### 6.2. Hướng dẫn cài đặt và khởi chạy dự án
-Mỗi thành viên thực hiện các bước sau trên máy của mình:
-
-```bash
-# Bước 1: Clone repository
-git clone https://github.com/minhthuy70/assetchain.git
-cd assetchain
-
-# Bước 2: Cài đặt dependencies (chỉ 1 lệnh duy nhất cho toàn bộ dự án)
-npm install
-
-# Bước 3: Tạo file cấu hình môi trường cục bộ
-cp .env.example .env
-
-# Bước 4: Khởi tạo database SQLite cục bộ
-npx prisma db push
-npx prisma db seed # (tạo sẵn tài khoản admin & creator mẫu)
-```
-
-### 6.3. Khởi chạy 2 tiến trình để làm việc hàng ngày
-
-Mở **2 cửa sổ Terminal**:
-
-- **Terminal 1: Chạy Blockchain Local (Hardhat Node)**
-  ```bash
+* **Terminal 1: Khởi động Blockchain Local Node (Giữ chạy liên tục)**
+  ```powershell
+  cd d:\GITHUB\assetchain\contracts
   npx hardhat node
   ```
-  *(Node sẽ chạy tại `http://127.0.0.1:8545`, hiển thị 20 tài khoản test kèm 10,000 ETH)*
+  *(Node phát sóng tại `http://127.0.0.1:8545`, hiển thị 20 tài khoản có sẵn 10,000 ETH)*
 
-- **Terminal 2: Deploy Contract và chạy Next.js**
-  ```bash
-  # Deploy contract lên local node vừa bật (chỉ mất 2 giây)
+* **Terminal 2: Triển khai Hợp đồng, Nạp dữ liệu mẫu & Chạy Web Server**
+  ```powershell
+  cd d:\GITHUB\assetchain
+  # 1. Deploy Smart Contract lên node
   npx hardhat run contracts/scripts/deploy.js --network localhost
 
-  # Khởi chạy Next.js Fullstack (giao diện + API)
+  # 2. Nạp sẵn 3 Token mẫu lên Blockchain (Token 1 hợp lệ, Token 2 thu hồi, Token 3 chuyển nhượng)
+  npx hardhat run contracts/scripts/seed-onchain.js --network localhost
+
+  # 3. Khởi động Web Next.js
   npm run dev
   ```
   *(Truy cập ứng dụng tại: `http://localhost:3000`)*
 
-### 6.4. Xử lý đặc thù Blockchain Local trên 2 máy riêng biệt
-- **Vấn đề:** Hardhat node trên 2 máy sinh ra state riêng biệt; transaction hash trên máy A không tồn tại trên máy B.
-- **Giải pháp:**
-  - Hardhat sử dụng tài khoản deployer cố định (Account #0: `0xf39Fd6e5...`). Do đó, địa chỉ contract khi deploy lần đầu trên cả 2 máy **luôn luôn giống hệt nhau** (`0x5FbDB2315678afecb367f032d93F642f64180aa3`).
-  - Trong quá trình phát triển độc lập, mỗi thành viên tự test trên chuỗi local của máy mình.
-  - **Quy trình Demo:** Khi tích hợp lên máy thuyết trình, chỉ cần chạy 1 lệnh duy nhất:
-    ```bash
-    npm run demo:reset
-    ```
-    Script này sẽ tự động: reset database SQLite -> deploy lại contract -> nạp sẵn 3 tác phẩm số mẫu (1 đã duyệt và mint, 1 chờ duyệt, 1 bị từ chối) -> sẵn sàng trình chiếu mượt mà trong 10 giây!
+---
+
+### 7.2. Cấu hình MetaMask & 3 Tài khoản mẫu có sẵn 10,000 ETH:
+
+1. **Thêm mạng Hardhat Local EVM:**  
+   * Network Name: `Hardhat Local EVM` | New RPC URL: `http://127.0.0.1:8545` | Chain ID: `31337` | Symbol: `ETH`.  
+   *(Nếu MetaMask hiện cảnh báo màu cam về GoChain, đây là cảnh báo an toàn mặc định, chỉ cần cuộn xuống bấm **Save/Lưu**).*
+2. **Nhập 3 tài khoản bằng Private Key:**
+   * 👑 **Ví Admin Council:** `0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80` (Duyệt & Thu hồi)
+   * 🎨 **Ví Creator 1:** `0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d` (Đăng ký & Đúc NFT)
+   * 💼 **Ví Buyer (Chị B):** `0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a` (Nhận chuyển nhượng)
 
 ---
 
-## 🌿 7. QUY TRÌNH GIT VÀ TÍCH HỢP CODE
+### 7.3. Thư mục tệp kéo thả sẵn (`D:\GITHUB\assetchain\DEMO_FILES`):
 
-- **Nhánh chính (`main`):** Chỉ chứa mã nguồn đã kiểm thử và chạy ổn định.
-- **Nhánh thành viên:**
-  - Thành viên A làm việc trên nhánh: `feature/member-a-registration`
-  - Thành viên B làm việc trên nhánh: `feature/member-b-approval-cert`
-- **Quy tắc cam kết (Commit):**
-  - Không commit các file sau lên Git (đã có trong `.gitignore`):
-    - `.env`
-    - `node_modules/`
-    - `prisma/dev.db` và `*.db-journal`
-    - `public/uploads/*` (ngoại trừ file `.gitkeep`)
-    - `public/certificates/*` (ngoại trừ file `.gitkeep`)
-    - `contracts/artifacts/` và `contracts/cache/`
-- **Tích hợp:** Tại các mốc M1 (Ngày 3), M2 (Ngày 8), M3 (Ngày 10), M4 (Ngày 12), hai thành viên tạo Pull Request, cùng review chéo và merge vào `main`.
+| Tệp tin | Vị trí thao tác | Kết quả hiển thị |
+| :--- | :--- | :--- |
+| **`1_Xac_Minh_Hop_Le_Sen_Vang.png`** | Kéo vào `/verify` | ✅ **TÍCH XANH:** Hợp lệ chính chủ Token #1 on-chain, xem PDF E-Certificate. |
+| **`2_Xac_Minh_Bi_Sua_Doi_Fake.png`** | Kéo vào `/verify` | ❌ **BÁO ĐỎ:** Bị sửa 1 byte $\rightarrow$ Hash lệch hoàn toàn, báo chưa đăng ký / giả mạo! |
+| **`3_Xac_Minh_Thu_Hoi_Revoked.png`** | Kéo vào `/verify` | ⚠️ **CẢNH BÁO ĐỎ:** Tác phẩm Token #2 đã bị thu hồi do vi phạm bản quyền! |
+| **`4_Dang_Ky_Moi_ArtWork_2026.png`** | Kéo vào `/creator/register` | 🎨 Nộp hồ sơ mới $\rightarrow$ Đổi ví Admin duyệt $\rightarrow$ Đổi ví Creator đúc NFT! |
 
 ---
 
-## 📅 8. KẾ HOẠCH TRIỂN KHAI 14 NGÀY (TÓM TẮT)
+## 8. CHECKLIST KIỂM THỬ (UNIT TESTS & QUALITY ASSURANCE)
 
-- **Ngày 1 - 3 (Khung nền tảng & Contract):** Khởi tạo Next.js, Prisma SQLite, Hardhat node, contract `AssetRegistry.sol`, Unit test 100% pass, Mốc M1.
-- **Ngày 4 - 7 (Triển khai Slice độc lập):** A làm luồng Đăng ký & Mint on-chain; B làm Cổng Admin duyệt hồ sơ & Bộ sinh E-Certificate PDF/QR.
-- **Ngày 8 (Mốc M2):** Tích hợp luồng chéo liên máy lần 1 (Đăng ký -> Duyệt -> Mint -> Xuất chứng nhận -> Tra cứu).
-- **Ngày 9 - 11 (Nâng cấp trải nghiệm):** A làm Dashboard & Chuyển nhượng; B làm Cổng xác minh kéo-thả 1-Click & Thu hồi bản quyền.
-- **Ngày 12 - 13 (Kiểm thử, Chuẩn hóa demo):** Test lỗi, viết script 1-Click Reset Demo, diễn tập thuyết trình 5 phút.
-- **Ngày 14:** BẢO VỆ ĐỒ ÁN VÀ ĐẠT ĐIỂM TỐI ĐA (10/10).
+Hệ thống đã trải qua quy trình kiểm thử đơn vị (*Unit Testing*) và kiểm toán toàn diện:
 
----
+```powershell
+cd contracts
+npx hardhat test
+```
 
-## ✅ 9. CHECKLIST KIỂM THỬ VÀ TIÊU CHÍ HOÀN THÀNH
+### Kết quả kiểm thử Smart Contract: **23/23 Tests Passed (100%)**
+- [x] **Deployment & Init:** Khởi tạo chính xác tên token (`AssetChain Digital Asset`), ký hiệu (`ASSET`), gán quyền `Ownable`.
+- [x] **Registration & PoE:** Đúc NFT Token #1 tuần tự, lưu trữ mã hash 32 bytes, Revert nếu hash trùng lặp (*Anti-Duplication*).
+- [x] **1-Click Verification (0 Gas):** Trả về bản ghi chính xác qua `getAssetByHash` và `getAssetById`, Revert khi hash không tồn tại.
+- [x] **Ownership Transfer:** Chuyển nhượng an toàn, chặn chuyển cho `address(0)`, chặn tự chuyển cho chính mình (`require(to != msg.sender)`), chặn chuyển nếu tài sản bị thu hồi.
+- [x] **Admin Revocation:** Chỉ Admin mới được thu hồi, chặn thu hồi lần 2, chặn thu hồi với lý do rỗng.
+- [x] **Transfer Freeze Guard:** Hook `_update()` của OpenZeppelin v5 đóng băng vĩnh viễn mọi giao dịch của token đã thu hồi.
+- [x] **Pausable Mechanism:** Tạm dừng và kích hoạt lại hợp đồng thành công khi có sự cố.
 
-| Hạng mục kiểm thử | Kịch bản kiểm thử | Kết quả mong đợi |
-|---|---|---|
-| **Smart Contract** | `npx hardhat test` | 15-20 unit test cases đều pass màu xanh, kiểm tra đủ mint, trùng hash, chuyển quyền, thu hồi. |
-| **Băm Client-side** | Chọn 1 file ảnh tại `/creator/register` | Mã SHA-256 (64 ký tự hex) hiển thị tức thì dưới tên file trước khi nhấn nút Gửi. |
-| **Chống trùng lặp** | Upload lại đúng file ảnh đó lần thứ 2 | Hệ thống báo lỗi trùng lặp ngay tại giao diện, không tạo thêm bản ghi. |
-| **Quy trình Admin** | Mở `/admin/approvals` và bấm Duyệt | Trạng thái đổi thành `APPROVED`, tác giả thấy hồ sơ chuyển sang trạng thái sẵn sàng mint. |
-| **Giao dịch Web3** | Bấm "Đưa lên Blockchain" qua MetaMask | Giao dịch thành công, trừ đúng lượng gas test, sinh `tokenId` và `txHash`. |
-| **Chứng nhận PDF** | Bấm "Tải chứng nhận" | Xuất file PDF sắc nét, mã QR quét bằng điện thoại mở ra đúng link xác minh tài sản. |
-| **1-Click Verify** | Kéo thả file gốc vào `/verify` | Hệ thống báo: "CHỨNG NHẬN HỢP LỆ VÀ NGUYÊN BẢN" kèm mốc thời gian on-chain. |
-| **Phát hiện giả mạo**| Sửa 1 điểm ảnh trên file rồi kéo vào `/verify` | Hệ thống báo: "CẢNH BÁO: TỆP TIN CHƯA TỪNG ĐƯỢC ĐĂNG KÝ HOẶC ĐÃ BỊ CHỈNH SỬA!" |
+### Kết quả biên dịch Next.js Production Build:
+- [x] **12/12 Routes** tĩnh và động biên dịch thành công (`exit code 0`), 0 lỗi cú pháp hoặc TypeScript.
+- [x] **Tài liệu học tập & Kịch bản vấn đáp:** Được lưu đầy đủ tại [`docs/HUONG_DAN_BAO_CAO_BLOCKCHAIN.md`](file:///d:/GITHUB/assetchain/docs/HUONG_DAN_BAO_CAO_BLOCKCHAIN.md), [`docs/GIAI_THICH_TOAN_BO_CODE_HE_THONG.md`](file:///d:/GITHUB/assetchain/docs/GIAI_THICH_TOAN_BO_CODE_HE_THONG.md) và tệp in Word [`docs/TAI_LIEU_ON_TAP_VA_BAO_CAO_ASSETCHAIN.docx`](file:///d:/GITHUB/assetchain/docs/TAI_LIEU_ON_TAP_VA_BAO_CAO_ASSETCHAIN.docx).
