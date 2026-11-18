@@ -99,6 +99,14 @@ async function main() {
 main()
   .then(() => process.exit(0))
   .catch((err) => {
+    if (err.code === "ECONNREFUSED" || err.message?.includes("connect ECONNREFUSED") || err.message?.includes("could not detect network")) {
+      console.log("\n💡 LƯU Ý KHI CHẠY SEED ON-CHAIN:");
+      console.log("Mạng Hardhat local (node) hiện chưa được bật.");
+      console.log("Để đồng bộ lên chuỗi Blockchain, vui lòng mở terminal và chạy lệnh:");
+      console.log("   npx hardhat node");
+      console.log("Sau đó chạy lại lệnh seed on-chain:\n   npx hardhat run contracts/scripts/seed-onchain.js --network localhost\n");
+      process.exit(0);
+    }
     console.error("❌ Lỗi khi đồng bộ on-chain:", err);
     process.exit(1);
   });
